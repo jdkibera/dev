@@ -3,36 +3,110 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Flag Gauntlet</title>
+  <title>Kibera's Flag Gauntlet</title>
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
-    body { margin: 0; background: #0b1020; color: #e9eefc; }
+
+    /* UI: light bluish grey background */
+    body { margin: 0; background: #dfe8f4; color: #0b1020; }
+
     .wrap { max-width: 900px; margin: 0 auto; padding: 22px; }
-    .card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); border-radius: 16px; padding: 18px; }
-    .topbar { display:flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+
+    /* Keep dark modal/card */
+    .card {
+      background: rgba(11,16,32,0.92);
+      border: 1px solid rgba(0,0,0,0.18);
+      border-radius: 16px;
+      padding: 18px;
+      color: #e9eefc;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.25);
+    }
+
+    .topbar { display:flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 12px; }
     .pill { padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.10); font-size: 13px; }
+    .titleRow { text-align: center; font-weight: 800; letter-spacing: 0.2px; font-size: 22px; margin: 6px 0 10px; }
+
     .flagBox { display:flex; align-items:center; justify-content:center; min-height: 280px; padding: 12px; }
     .flag { max-width: 520px; width: min(520px, 90%); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12); }
-    .controls { display:flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+
+    /* Controls layout: input on its own line, buttons centered under it */
+    .controls { margin-top: 14px; display:flex; flex-direction: column; align-items: center; gap: 10px; }
+
+    .inputWrap { width: min(520px, 92%); position: relative; }
     input[type="text"]{
-      flex: 1 1 280px; padding: 12px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(0,0,0,0.35); color: #e9eefc; outline: none;
+      width: 100%;
+      padding: 16px 14px;            /* taller */
+      font-size: 18px;               /* bigger text */
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.35);
+      color: #e9eefc;
+      outline: none;
     }
+    input[type="text"]::placeholder { color: rgba(233,238,252,0.65); }
+
+    .btnRow { display:flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
     button{
-      padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(90,140,255,0.22); color: #e9eefc; cursor: pointer;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(90,140,255,0.22);
+      color: #e9eefc;
+      cursor: pointer;
+      min-width: 110px;
     }
     button:hover{ background: rgba(90,140,255,0.33); }
     button:disabled{ opacity: 0.55; cursor: not-allowed; }
-    .msg { margin-top: 12px; font-size: 14px; opacity: 0.95; }
+
+    .msg { margin-top: 10px; font-size: 14px; opacity: 0.95; min-height: 18px; text-align: center; }
     .screen { display:none; margin-top: 14px; padding: 14px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.12); }
     .screen.ok { background: rgba(60, 200, 120, 0.16); }
     .screen.bad { background: rgba(255, 90, 90, 0.16); }
     pre { margin: 0; white-space: pre-wrap; }
     .muted { opacity: 0.8; }
-    .footer { margin-top: 16px; opacity: 0.75; font-size: 12px; }
+    .footer { margin-top: 14px; opacity: 0.75; font-size: 12px; text-align: center; }
+
     .spinner { display:inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.25); border-top-color: rgba(255,255,255,0.9); border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Custom suggestion dropdown w/ continent headers */
+    .suggestBox {
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(100% + 8px);
+      background: rgba(14, 20, 40, 0.98);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 14px;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.45);
+      overflow: hidden;
+      z-index: 50;
+      display: none;
+      max-height: 340px;
+      overflow-y: auto;
+    }
+    .sgHeader {
+      padding: 10px 12px;
+      font-size: 12px;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: rgba(233,238,252,0.72);
+      background: rgba(255,255,255,0.06);
+      border-top: 1px solid rgba(255,255,255,0.10);
+    }
+    .sgItem {
+      padding: 10px 12px;
+      cursor: pointer;
+      color: #e9eefc;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .sgItem:hover, .sgItem.active {
+      background: rgba(90,140,255,0.22);
+    }
+    .kbdHint {
+      font-size: 12px;
+      opacity: 0.65;
+      margin-left: 6px;
+    }
   </style>
 </head>
 
@@ -47,25 +121,32 @@
     </div>
 
     <div class="card">
+      <div class="titleRow">Kibera's Flag Gauntlet</div>
+
       <div class="flagBox">
         <img id="flagImg" class="flag" alt="Country flag" />
       </div>
 
       <div class="controls">
-        <input id="guessInput" type="text" placeholder="Type a country name…" autocomplete="off" list="countryList" />
-        <datalist id="countryList"></datalist>
-        <button id="submitBtn">Submit</button>
-        <button id="skipBtn" title="Give up on this flag (0 points)">Skip</button>
-        <button id="restartBtn" title="Restart from Round 1">Restart</button>
+        <div class="inputWrap">
+          <input id="guessInput" type="text" placeholder="Type a country name…" autocomplete="off" />
+          <div id="suggestBox" class="suggestBox" role="listbox" aria-label="Country suggestions"></div>
+        </div>
+
+        <div class="btnRow">
+          <button id="submitBtn">Submit</button>
+          <button id="skipBtn" title="Give up on this flag (0 points)">Skip</button>
+          <button id="restartBtn" title="Restart from Round 1">Restart</button>
+        </div>
       </div>
 
-      <div class="msg muted" id="hintLine">Tip: use the dropdown suggestions to avoid typos.</div>
+      <div class="msg muted" id="hintLine"></div>
 
       <div class="screen ok" id="okScreen"></div>
       <div class="screen bad" id="badScreen"></div>
 
       <div class="footer muted">
-        Difficulty increases each round by selecting countries with smaller populations.
+        Rounds get harder by mixing “how big” with “how famous.” (Yes, Israel is easy. No, you’re not imagining things.)
       </div>
     </div>
   </div>
@@ -83,23 +164,30 @@
   const flagsPerRoundEl = document.getElementById('flagsPerRound');
   const triesLeftEl = document.getElementById('triesLeft');
   const scoreEl = document.getElementById('score');
+
   const flagImg = document.getElementById('flagImg');
   const guessInput = document.getElementById('guessInput');
   const submitBtn = document.getElementById('submitBtn');
   const skipBtn = document.getElementById('skipBtn');
   const restartBtn = document.getElementById('restartBtn');
+
   const okScreen = document.getElementById('okScreen');
   const badScreen = document.getElementById('badScreen');
-  const countryList = document.getElementById('countryList');
+  const hintLine = document.getElementById('hintLine');
+
+  const suggestBox = document.getElementById('suggestBox');
 
   // Game state
   let countries = [];
-  let normalizedNameToCountry = new Map(); // normalized -> country
-  let rounds = [];                         // array of arrays (each round's countries)
+  let rounds = [];
   let roundIdx = 0;
   let flagIdx = 0;
   let triesLeft = TRIES_PER_FLAG;
   let score = 0;
+
+  // Suggest state
+  let activeSuggestionIndex = -1;
+  let flatSuggestionItems = []; // { type: 'item', name } in current render order
 
   const FAIL_WHALE = `
         __      _
@@ -115,8 +203,8 @@
     return String(s || '')
       .trim()
       .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
-      .replace(/[^a-z0-9 ]/g, '')                       // remove punctuation
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9 ]/g, '')
       .replace(/\s+/g, ' ');
   }
 
@@ -128,7 +216,12 @@
     return arr;
   }
 
-  function setStatus(text) { statusPill.textContent = text; }
+  function setStatus(text, withSpinner=false) {
+    statusPill.innerHTML = withSpinner
+      ? `${text} <span class="spinner" aria-hidden="true"></span>`
+      : text;
+  }
+
   function show(el, html) { el.style.display = 'block'; el.innerHTML = html; }
   function hide(el) { el.style.display = 'none'; el.innerHTML = ''; }
 
@@ -145,14 +238,31 @@
     return rounds?.[roundIdx]?.[flagIdx] || null;
   }
 
+  function continentLabel(region, subregion) {
+    const r = String(region || '').trim();
+    const s = String(subregion || '').trim();
+    if (!r) return 'Other';
+    // REST Countries v3 uses region like: Africa, Americas, Asia, Europe, Oceania
+    // We'll treat Americas as North/South if subregion hints it.
+    if (r === 'Americas') {
+      if (s.includes('South')) return 'South America';
+      if (s.includes('North')) return 'North America';
+      if (s.includes('Caribbean')) return 'Caribbean';
+      if (s.includes('Central')) return 'Central America';
+      return 'Americas';
+    }
+    return r;
+  }
+
   function renderFlag() {
     hide(okScreen);
     hide(badScreen);
+    hintLine.textContent = ''; // no hint on first try
+    closeSuggest();
 
     const c = currentCountry();
     if (!c) return;
 
-    // prefer png; fallback svg
     const url = c.flags?.png || c.flags?.svg || '';
     flagImg.src = url;
     flagImg.alt = `Flag of ${c.name?.common || 'Unknown'}`;
@@ -164,7 +274,6 @@
   }
 
   function pointsForTry(tryNumberUsed) {
-    // tryNumberUsed: 1..3
     if (tryNumberUsed === 1) return 3;
     if (tryNumberUsed === 2) return 2;
     if (tryNumberUsed === 3) return 1;
@@ -205,21 +314,82 @@
     setTimeout(() => advanceFlag(), 700);
   }
 
-  function markFail(guess, answer, outOfTries) {
-    const quip = [
+  function failQuip() {
+    const quips = [
       "Bold. Incorrect. Iconic.",
       "That guess just got politely escorted out.",
       "Close… if we’re grading by vibes.",
       "The flag disagrees. Loudly.",
-      "Somewhere, a geography teacher felt a disturbance."
-    ][Math.floor(Math.random() * 5)];
+      "Somewhere, a geography teacher felt a disturbance.",
+      "You just invented a new country. The UN will be in touch."
+    ];
+    return quips[Math.floor(Math.random() * quips.length)];
+  }
 
+  function computeHints(c) {
+    const common = c.name?.common || 'Unknown';
+    const region = continentLabel(c.region, c.subregion);
+    const firstLetter = common[0] || '?';
+    const wordCount = common.trim().split(/\s+/).filter(Boolean).length;
+    const lettersOnly = common.replace(/[^A-Za-z]/g, '');
+    const letterCount = lettersOnly.length;
+
+    // Humorous (2nd try) and stronger (3rd try)
+    const humorous = [
+      `It’s in <b>${region}</b>. (No, “Earth” is not specific enough.)`,
+      `Starts with <b>${firstLetter}</b>. Like your confidence… before this moment.`,
+      `It’s <b>${wordCount}</b> word${wordCount === 1 ? '' : 's'} long.`
+    ];
+
+    const stronger = [
+      `Region: <b>${region}</b>`,
+      `Starts with <b>${firstLetter}</b>`,
+      `Name has <b>${letterCount}</b> letters (A–Z only).`
+    ];
+
+    return { humorous, stronger };
+  }
+
+  function updateHintLineForTry(c) {
+    // triesLeft is after decrement; determine attempt number (1..3)
+    const tryUsed = TRIES_PER_FLAG - triesLeft; // after a wrong guess, tryUsed becomes 1,2,...
+    if (tryUsed <= 0) { hintLine.textContent = ''; return; }     // first try: no hint
+    const { humorous, stronger } = computeHints(c);
+
+    if (tryUsed === 1) {
+      // user is about to take 2nd attempt
+      hintLine.innerHTML = `Hint (soft): ${humorous[Math.floor(Math.random() * humorous.length)]}`;
+      return;
+    }
+    // user is about to take 3rd attempt
+    hintLine.innerHTML = `Hint (strong): ${stronger.join(' · ')}`;
+  }
+
+  function markFail(guess, answer, outOfTries) {
+    const quip = failQuip();
     if (!outOfTries) {
       show(badScreen, `<pre>${FAIL_WHALE}</pre><div><b>${quip}</b><br/>Try again. You have <b>${triesLeft}</b> tries left.</div>`);
     } else {
       show(badScreen, `<pre>${FAIL_WHALE}</pre><div><b>${quip}</b><br/>Out of tries. The answer was <b>${answer}</b>.<br/>Moving on…</div>`);
       setTimeout(() => advanceFlag(), 1000);
     }
+  }
+
+  function acceptedNamesForCountry(c) {
+    const accepted = new Set();
+    accepted.add(norm(c.name?.common));
+    accepted.add(norm(c.name?.official));
+    (c.altSpellings || []).forEach(s => accepted.add(norm(s)));
+
+    // A few extra common aliases
+    const common = norm(c.name?.common);
+    if (common === 'united states') accepted.add('usa');
+    if (common === 'united kingdom') accepted.add('uk');
+    if (common === 'russia') accepted.add('russian federation');
+    if (common === 'south korea') accepted.add('korea');
+    if (common === 'czechia') accepted.add('czech republic');
+
+    return accepted;
   }
 
   function submitGuess() {
@@ -229,39 +399,46 @@
     const guess = guessInput.value;
     const guessN = norm(guess);
 
-    if (!guessN) {
-      markFail(guess, c.name.common, false);
-      return;
+    // If user has a highlighted suggestion selected via keyboard, take it.
+    if (suggestBox.style.display === 'block' && activeSuggestionIndex >= 0) {
+      const pick = flatSuggestionItems[activeSuggestionIndex];
+      if (pick && pick.type === 'item') {
+        guessInput.value = pick.name;
+      }
     }
 
-    // Accept: common name, official name, and any alt spellings we load.
-    const accepted = new Set();
-    accepted.add(norm(c.name?.common));
-    accepted.add(norm(c.name?.official));
-    (c.altSpellings || []).forEach(s => accepted.add(norm(s)));
-
+    const accepted = acceptedNamesForCountry(c);
     const tryUsed = TRIES_PER_FLAG - triesLeft + 1;
 
-    if (accepted.has(guessN)) {
+    if (guessN && accepted.has(guessN)) {
+      closeSuggest();
+      hintLine.textContent = '';
       markSuccess(c.name.common, tryUsed);
       return;
     }
 
+    // Wrong
     triesLeft--;
     updateHUD();
 
     if (triesLeft <= 0) {
+      hintLine.textContent = '';
       markFail(guess, c.name.common, true);
-    } else {
-      markFail(guess, c.name.common, false);
-      guessInput.select();
-      guessInput.focus();
+      return;
     }
+
+    // Show hints based on what attempt they're entering
+    updateHintLineForTry(c);
+
+    markFail(guess, c.name.common, false);
+    guessInput.select();
+    guessInput.focus();
   }
 
   function skipFlag() {
     const c = currentCountry();
     if (!c) return;
+    hintLine.textContent = '';
     show(badScreen, `<b>⏭️ Skipped.</b> That was <b>${c.name.common}</b>. (0 points)`);
     setTimeout(() => advanceFlag(), 700);
   }
@@ -278,79 +455,245 @@
     renderFlag();
   }
 
-  function buildDatalist(countries) {
-    // For suggestions we show common names only to keep the list readable.
-    countryList.innerHTML = '';
-    countries
-      .map(c => c.name?.common)
-      .filter(Boolean)
-      .sort((a,b) => a.localeCompare(b))
-      .forEach(name => {
-        const opt = document.createElement('option');
-        opt.value = name;
-        countryList.appendChild(opt);
-      });
+  // -------------------------
+  // Suggest UI (continent headers + alpha under each)
+  // -------------------------
+
+  function closeSuggest() {
+    suggestBox.style.display = 'none';
+    suggestBox.innerHTML = '';
+    activeSuggestionIndex = -1;
+    flatSuggestionItems = [];
   }
 
-  function buildRoundsByPopulation(countries) {
-    // Sort by population descending: big countries first (easier), microstates later (harder).
-    const sorted = [...countries].sort((a,b) => (b.population || 0) - (a.population || 0));
+  function openSuggest() {
+    suggestBox.style.display = 'block';
+  }
 
-    // Chunk into difficulty bands, then sample 10 per round from each band.
-    // Banding logic: each round pulls from a deeper slice of the population ranking.
-    const totalPossibleRounds = Math.floor(sorted.length / FLAGS_PER_ROUND);
-    const roundsCount = Math.max(6, Math.min(12, totalPossibleRounds)); // keep it sane: 6..12 rounds
-    const bandSize = Math.floor(sorted.length / roundsCount);
+  function renderSuggestions(query) {
+    const q = norm(query);
+    if (!q) { closeSuggest(); return; }
+
+    // Filter by substring match on common name (normalized)
+    const matches = countries
+      .filter(c => norm(c.name.common).includes(q))
+      .slice(0, 60); // cap for perf
+
+    if (!matches.length) { closeSuggest(); return; }
+
+    // Group by continent label
+    const groups = new Map();
+    for (const c of matches) {
+      const cont = continentLabel(c.region, c.subregion);
+      if (!groups.has(cont)) groups.set(cont, []);
+      groups.get(cont).push(c.name.common);
+    }
+
+    // Sort each group alpha
+    for (const [k, arr] of groups.entries()) {
+      arr.sort((a,b) => a.localeCompare(b));
+      groups.set(k, arr);
+    }
+
+    // Sort group order (nice order)
+    const preferredOrder = [
+      'Europe','Asia','Africa','North America','South America','Central America','Caribbean','Oceania','Americas','Other'
+    ];
+    const groupNames = Array.from(groups.keys()).sort((a,b) => {
+      const ia = preferredOrder.indexOf(a); const ib = preferredOrder.indexOf(b);
+      if (ia === -1 && ib === -1) return a.localeCompare(b);
+      if (ia === -1) return 1;
+      if (ib === -1) return -1;
+      return ia - ib;
+    });
+
+    // Render
+    suggestBox.innerHTML = '';
+    flatSuggestionItems = [];
+    activeSuggestionIndex = -1;
+
+    let itemCount = 0;
+    for (const g of groupNames) {
+      const header = document.createElement('div');
+      header.className = 'sgHeader';
+      header.textContent = g;
+      suggestBox.appendChild(header);
+
+      for (const name of groups.get(g)) {
+        const div = document.createElement('div');
+        div.className = 'sgItem';
+        div.textContent = name;
+        div.addEventListener('mousedown', (e) => {
+          e.preventDefault(); // keep focus in input
+          guessInput.value = name;
+          closeSuggest();
+          guessInput.focus();
+        });
+        suggestBox.appendChild(div);
+
+        flatSuggestionItems.push({ type: 'item', name, el: div });
+        itemCount++;
+        if (itemCount >= 20) break; // keep it readable
+      }
+      if (itemCount >= 20) break;
+    }
+
+    openSuggest();
+  }
+
+  function moveActive(delta) {
+    if (suggestBox.style.display !== 'block') return;
+
+    const items = flatSuggestionItems;
+    if (!items.length) return;
+
+    activeSuggestionIndex += delta;
+    if (activeSuggestionIndex < 0) activeSuggestionIndex = items.length - 1;
+    if (activeSuggestionIndex >= items.length) activeSuggestionIndex = 0;
+
+    items.forEach((it, idx) => {
+      if (!it.el) return;
+      it.el.classList.toggle('active', idx === activeSuggestionIndex);
+    });
+
+    const active = items[activeSuggestionIndex];
+    if (active?.el) active.el.scrollIntoView({ block: 'nearest' });
+  }
+
+  // -------------------------
+  // Difficulty model
+  // -------------------------
+
+  // Curated "well-known / easy" set: put these early regardless of population.
+  // Add/remove freely.
+  const WELL_KNOWN = new Set([
+    'United States','Canada','Mexico','Brazil','Argentina','Chile','Colombia','Peru',
+    'United Kingdom','Ireland','France','Spain','Portugal','Italy','Germany','Netherlands','Belgium','Switzerland','Austria','Sweden','Norway','Denmark','Finland','Iceland',
+    'Russia','Ukraine','Poland','Czechia','Greece','Turkey',
+    'China','Japan','South Korea','India','Pakistan','Bangladesh','Sri Lanka','Thailand','Vietnam','Indonesia','Philippines','Malaysia','Singapore',
+    'Australia','New Zealand',
+    'Egypt','South Africa','Nigeria','Kenya','Ethiopia','Ghana','Morocco','Tunisia',
+    'Saudi Arabia','United Arab Emirates','Qatar','Iran','Iraq','Israel','Jordan','Lebanon','Syria',
+  ]);
+
+  function familiarityScore(c) {
+    // Heuristic: start with population score and boost if in WELL_KNOWN.
+    // Larger pop => easier (more likely heard of it), but WELL_KNOWN overrides.
+    const pop = Math.max(0, c.population || 0);
+    const popScore = Math.log10(pop + 1); // 0..~9
+    const knownBoost = WELL_KNOWN.has(c.name.common) ? 6 : 0; // Israel becomes very easy, etc.
+    return popScore + knownBoost;
+  }
+
+  function buildRoundsSmart(countries) {
+    // Compute a single "ease" score, then sort descending (easy -> hard).
+    const scored = countries.map(c => ({ c, ease: familiarityScore(c) }));
+    scored.sort((a,b) => b.ease - a.ease);
+
+    // Create bands by rank into rounds; each round takes 10 from a deeper slice.
+    const totalPossibleRounds = Math.floor(scored.length / FLAGS_PER_ROUND);
+    const roundsCount = Math.max(6, Math.min(12, totalPossibleRounds));
+    const bandSize = Math.floor(scored.length / roundsCount);
 
     const out = [];
     for (let r = 0; r < roundsCount; r++) {
       const start = r * bandSize;
-      const end = (r === roundsCount - 1) ? sorted.length : (r + 1) * bandSize;
-      const band = sorted.slice(start, end);
+      const end = (r === roundsCount - 1) ? scored.length : (r + 1) * bandSize;
+      const band = scored.slice(start, end).map(x => x.c);
 
-      // sample 10 unique from this band
+      // shuffle within band so it isn't “all Europe then all Asia”, etc.
       shuffle(band);
       out.push(band.slice(0, FLAGS_PER_ROUND));
     }
+
+    // Ensure Round 1 feels friendly: if it accidentally contains too many obscure,
+    // force-in some WELL_KNOWN countries.
+    const round1 = out[0] || [];
+    const round1Names = new Set(round1.map(c => c.name.common));
+    const needed = Math.max(0, 8 - round1.filter(c => WELL_KNOWN.has(c.name.common)).length);
+
+    if (needed > 0) {
+      const candidates = scored
+        .map(x => x.c)
+        .filter(c => WELL_KNOWN.has(c.name.common) && !round1Names.has(c.name.common));
+      shuffle(candidates);
+      for (let i = 0; i < Math.min(needed, candidates.length); i++) {
+        // replace from end of round1
+        round1[FLAGS_PER_ROUND - 1 - i] = candidates[i];
+      }
+      out[0] = round1;
+    }
+
     return out;
   }
 
-  async function loadCountries() {
-    setStatus('Loading countries…');
+  // -------------------------
+  // Boot
+  // -------------------------
 
-    const res = await fetch('https://restcountries.com/v3.1/all?fields=name,flags,altSpellings,population');
+  async function loadCountries() {
+    setStatus('Loading countries…', true);
+
+    const res = await fetch('https://restcountries.com/v3.1/all?fields=name,flags,altSpellings,population,region,subregion');
     if (!res.ok) throw new Error(`Failed to fetch countries: ${res.status}`);
 
     const data = await res.json();
 
-    // Keep only what we need
     countries = data
       .filter(c => c?.name?.common && (c?.flags?.png || c?.flags?.svg))
       .map(c => ({
         name: c.name,
         altSpellings: c.altSpellings || [],
         flags: c.flags,
-        population: c.population || 0
+        population: c.population || 0,
+        region: c.region || '',
+        subregion: c.subregion || ''
       }));
 
-    // Map normalized common name -> country (for possible future fast-lookup)
-    normalizedNameToCountry = new Map();
-    for (const c of countries) {
-      normalizedNameToCountry.set(norm(c.name.common), c);
-    }
+    rounds = buildRoundsSmart(countries);
 
-    buildDatalist(countries);
-    rounds = buildRoundsByPopulation(countries);
     setStatus('Ready');
     restart();
   }
 
-  // Wire events
+  // Events
   submitBtn.addEventListener('click', submitGuess);
   skipBtn.addEventListener('click', skipFlag);
   restartBtn.addEventListener('click', restart);
+
+  guessInput.addEventListener('input', (e) => {
+    renderSuggestions(e.target.value);
+  });
+
+  guessInput.addEventListener('focus', () => {
+    if (guessInput.value) renderSuggestions(guessInput.value);
+  });
+
+  // Close suggest when clicking outside
+  document.addEventListener('mousedown', (e) => {
+    const inWrap = e.target === guessInput || suggestBox.contains(e.target);
+    if (!inWrap) closeSuggest();
+  });
+
+  // Keyboard nav: arrows select suggestions; Enter submits; Tab accepts suggestion
   guessInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') submitGuess();
+    if (e.key === 'ArrowDown') { e.preventDefault(); moveActive(+1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); moveActive(-1); }
+    else if (e.key === 'Tab') {
+      if (suggestBox.style.display === 'block' && activeSuggestionIndex >= 0) {
+        const pick = flatSuggestionItems[activeSuggestionIndex];
+        if (pick?.type === 'item') {
+          e.preventDefault();
+          guessInput.value = pick.name;
+          closeSuggest();
+        }
+      }
+    } else if (e.key === 'Escape') {
+      closeSuggest();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      submitGuess();
+    }
   });
 
   // Boot
