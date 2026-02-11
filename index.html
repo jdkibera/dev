@@ -3,22 +3,21 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Kibera's Flag Gauntlet</title>
+  <title>Flag Gauntlet</title>
   <style>
     :root{
       --bg: #dfe8f4;
       --ink: #253041;
       --card: rgba(11,16,32,0.92);
       --cardBorder: rgba(0,0,0,0.18);
+
       --pillBg: rgba(255,255,255,0.10);
       --btnBg: rgba(90,140,255,0.22);
       --btnBgHover: rgba(90,140,255,0.33);
 
       --flagStageH: 340px; /* fixed stage height so modal never jumps */
-      --msgH: 190px;       /* fixed message block height so it never jumps */
-      --iconColW: 132px;   /* fixed icon column width */
-      --msgColW: 740px;    /* fixed message column width (desktop-ish) */
-      --footerH: 33vh;     /* bottom third */
+      --msgH: 200px;       /* fixed message block height so it never jumps */
+      --iconColW: 120px;   /* fixed icon column width */
     }
 
     html, body { height: 100%; }
@@ -26,45 +25,44 @@
       margin: 0;
       background: var(--bg);
       color: var(--ink);
-      display: flex;
-      flex-direction: column;
       min-height: 100vh;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      overflow-x: hidden;
-    }
-
-    /* angled brand */
-    .cornerBrand{
-      position: fixed;
-      left: -40px;
-      top: 26px;
-      transform: rotate(-45deg);
-      transform-origin: left top;
-      font-family: "Snell Roundhand", "Brush Script MT", "Apple Chancery", "Comic Sans MS", cursive;
-      font-size: 46px;
-      color: rgba(37,48,65,0.55);
-      letter-spacing: 0.6px;
-      z-index: 5;
-      pointer-events: none;
-      user-select: none;
-      white-space: nowrap;
+      display:flex;
+      flex-direction: column;
     }
 
     .main{
       flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 22px;
-      padding-bottom: calc(var(--footerH) + 18px); /* keep content above footer */
+      display: grid;
+      place-items: center;
+      padding: 22px 14px 10px;
+      position: relative;
     }
+
     .wrap{
       width: min(980px, 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 14px;
+      position: relative; /* anchor angled title to the card */
+    }
+
+    /* Angled brand title anchored near the modal */
+    .brandAngle{
+      position: absolute;
+      left: -118px;   /* sits just left of the card corner */
+      top: 78px;      /* aligned near the top-left of the modal area */
+      transform: rotate(-45deg);
+      transform-origin: left top;
+      font-family: "Brush Script MT", "Snell Roundhand", "Segoe Script", "Apple Chancery", cursive;
+      font-size: 44px;
+      color: rgba(37,48,65,0.42);
+      user-select: none;
+      pointer-events: none;
+      white-space: nowrap;
       z-index: 10;
+      line-height: 0.9;
     }
 
     .topbar{
@@ -76,6 +74,7 @@
       justify-content: space-between;
       margin-bottom: 2px;
     }
+
     .pill{
       padding: 10px 14px;
       border-radius: 999px;
@@ -100,8 +99,8 @@
       cursor: pointer;
       font-size: 13px;
       white-space: nowrap;
-      font-weight: 700;
       letter-spacing: 0.8px;
+      font-weight: 700;
     }
     .restartBtnTop:hover{ background: rgba(0,0,0,0.10); }
 
@@ -113,19 +112,18 @@
       padding: 18px 18px 16px;
       color: #e9eefc;
       box-shadow: 0 18px 45px rgba(0,0,0,0.25);
+      position: relative;
     }
 
-    .titleRow{
+    .questionTitle{
       text-align: center;
       margin: 6px 0 10px;
       font-size: 30px;
       letter-spacing: 0.4px;
       font-weight: 300;
-      font-family: "Helvetica Neue UltraLight", "HelveticaNeue-UltraLight", "Helvetica Neue", Helvetica, Arial, sans-serif;
-      opacity: 0.95;
+      opacity: 0.96;
     }
 
-    /* Fixed-height stage; flags contain within */
     .flagStage{
       height: var(--flagStageH);
       width: 100%;
@@ -145,7 +143,6 @@
       background: rgba(255,255,255,0.04);
     }
 
-    /* Controls */
     .controls{
       display:flex;
       flex-direction: column;
@@ -159,6 +156,7 @@
       align-items: stretch;
       gap: 10px;
     }
+
     .inputWrap{ flex: 1; position: relative; }
     input[type="text"]{
       width: 100%;
@@ -178,6 +176,7 @@
       gap: 10px;
       align-items: stretch;
     }
+
     button{
       padding: 12px 14px;
       border-radius: 12px;
@@ -185,10 +184,10 @@
       background: var(--btnBg);
       color: #e9eefc;
       cursor: pointer;
-      min-width: 104px;
+      min-width: 96px;
       font-size: 13px;
       font-weight: 800;
-      letter-spacing: 0.8px;
+      letter-spacing: 0.9px;
     }
     button:hover{ background: var(--btnBgHover); }
     button:disabled{ opacity: 0.55; cursor: not-allowed; }
@@ -200,9 +199,8 @@
       color: rgba(233,238,252,0.70);
       margin-top: -2px;
     }
-    .hintHotkeyLine b{ color: rgba(233,238,252,0.92); font-weight: 800; }
+    .hintHotkeyLine b{ color: rgba(233,238,252,0.92); font-weight: 900; }
 
-    /* Suggestions */
     .suggestBox{
       position: absolute;
       left: 0; right: 0;
@@ -230,7 +228,6 @@
     .sgItem:hover, .sgItem.active{ background: rgba(90,140,255,0.22); }
     .sgMeta{ font-size: 12px; opacity: 0.70; white-space: nowrap; }
 
-    /* Fixed message block: invisible table with fixed icon column + message column */
     .belowMsg{
       width: min(900px, 100%);
       height: var(--msgH);
@@ -243,61 +240,69 @@
       width: min(900px, 100%);
       display: grid;
       grid-template-columns: var(--iconColW) minmax(0, 1fr);
-      align-items: start;            /* TOP align */
+      align-items: start; /* top align */
       gap: 14px;
       padding: 0 6px;
       box-sizing: border-box;
     }
 
-    .iconWrap{
-      width: 120px;
-      display: flex;
+    .iconCol{
+      display:flex;
       flex-direction: column;
       align-items: center;
       gap: 6px;
+      padding-top: 2px;
     }
 
     .iconSq{
-      width: 110px;
-      height: 110px;
+      width: 108px;
+      height: 108px;
       border-radius: 18px;
       border: 2px solid rgba(0,0,0,0.12);
-      background: rgba(255,255,255,0.55);
+      background: rgba(255,255,255,0.0);
       overflow: hidden;
       display: grid;
       place-items: center;
-      /* NO SHADOW on icon */
-      box-shadow: none;
+      box-shadow: none; /* no shadow on the icon */
     }
-    .iconSq img{
+    .iconSq svg{
       width: 100%;
       height: 100%;
-      object-fit: cover;
       display:block;
     }
     .iconLabel{
       font-size: 10px;
-      letter-spacing: 1.1px;
-      font-weight: 900;
-      color: rgba(37,48,65,0.72);
+      letter-spacing: 1.2px;
+      font-weight: 500; /* unbold */
+      color: rgba(37,48,65,0.70);
+      text-transform: uppercase;
+      user-select:none;
+      line-height: 1;
     }
 
     .msgText{
-      max-width: min(var(--msgColW), 92vw);
       text-align: left;
       line-height: 1.25;
-      align-self: start;             /* TOP align */
+      align-self: start;
+      padding-top: 4px;
     }
     .msgText .headline{
       font-size: 18px;
       margin: 0 0 6px;
-      min-height: 24px; /* anchor header height so it never jumps */
+      min-height: 24px; /* anchor */
+      color: rgba(37,48,65,0.92);
     }
     .msgText .sub{
       font-size: 14px;
       opacity: 0.88;
       margin: 0;
-      min-height: 42px; /* anchor body so it never jumps */
+      min-height: 44px;
+      color: rgba(37,48,65,0.86);
+    }
+    .msgText a{
+      color: rgba(30,80,170,0.95);
+      text-decoration: underline;
+      font-weight: 700;
     }
 
     .spinner{
@@ -310,52 +315,61 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Footer */
+    /* Footer area: bottom third */
     .bottomArea{
       width: 100%;
+      position: relative;
+    }
+
+    /* Copyright anchored to bottom, just above footer */
+    .copyright{
       position: fixed;
       left: 0;
-      bottom: 0;
-      height: var(--footerH);
-      z-index: 1;
-      pointer-events: none;
-    }
-    .copyright{
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      top: 10px;
+      width: 100%;
+      bottom: calc(33vh + 10px);
       text-align: center;
       color: rgba(37,48,65,0.75);
       font-size: 13px;
       letter-spacing: 0.3px;
-      width: 100%;
+      z-index: 3;
+      pointer-events: none;
     }
+
     .flagFooter{
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      top: 0;
+      height: 33vh;
+      min-height: 220px;
+      max-height: 420px;
+      width: 100vw;      /* full page */
+      position: relative;
       overflow: hidden;
       background: linear-gradient(to bottom, rgba(223,232,244,0.0), rgba(223,232,244,0.98));
     }
-    #footerSvg{
-      position: absolute;
+
+    .footerSvg{
+      position:absolute;
       left: 0;
       top: 0;
       width: 100%;
       height: 100%;
-      opacity: 0.72;
+      opacity: 0.62;
       mask-image: linear-gradient(to bottom, rgba(0,0,0,0.0), rgba(0,0,0,1.0));
     }
 
+    @media (max-width: 900px){
+      .brandAngle{
+        left: -96px;
+        top: 86px;
+        font-size: 38px;
+      }
+    }
+
     @media (max-width: 760px){
-      :root{ --iconColW: 132px; --msgColW: 520px; }
-      .msgText .headline{ font-size: 17px; }
+      :root{ --iconColW: 112px; }
       .pill{ font-size: 16px; }
       .pill b{ font-size: 18px; }
-      .cornerBrand{ font-size: 36px; left: -50px; }
+      .questionTitle{ font-size: 26px; }
+      .brandAngle{ font-size: 34px; left: -82px; top: 92px; }
+      .copyright{ bottom: calc(33vh + 8px); }
     }
 
     @media (prefers-reduced-motion: reduce){
@@ -365,10 +379,10 @@
 </head>
 
 <body>
-  <div class="cornerBrand">Kibera's Flag Gauntlet</div>
-
   <div class="main">
     <div class="wrap">
+      <div class="brandAngle">Kibera's<br/>Flag Gauntlet</div>
+
       <div class="topbar">
         <div class="pill" id="statusPill">Loading countries… <span class="spinner" aria-hidden="true"></span></div>
 
@@ -382,8 +396,8 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="titleRow">What Country’s Flag Is This?</div>
+      <div class="card" id="card">
+        <div class="questionTitle">What Country's Flag Is This?</div>
 
         <div class="flagStage">
           <img id="flagImg" class="flag" alt="Country flag" />
@@ -414,8 +428,8 @@
 
   <div class="bottomArea">
     <div class="copyright">© 2026 Kibera &amp; Co.</div>
-    <div class="flagFooter">
-      <svg id="footerSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
+    <div class="flagFooter" aria-hidden="true">
+      <svg id="footerSvg" class="footerSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
     </div>
   </div>
 
@@ -444,6 +458,7 @@
 
   const suggestBox = document.getElementById('suggestBox');
   const belowMsg = document.getElementById('belowMsg');
+
   const footerSvg = document.getElementById('footerSvg');
 
   // Game state
@@ -459,7 +474,6 @@
   let currentSuggestions = []; // [{name, continent}]
   let lastRenderedQuery = "";
 
-  // Borders lookup
   let cca3ToCountry = new Map();
 
   function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
@@ -514,114 +528,83 @@
     return r;
   }
 
-  // --- Cartoon Icons (always render) ---
-  function iconLabelForKind(kind){
-    if (kind === 'success') return 'TONY TIGER';
-    if (kind === 'fail') return 'FAIL WHALE';
-    if (kind === 'hint') return 'HELPFUL HIPPO';
-    return '';
-  }
+  // --- Flat-ish cartoon icons (original SVGs, more “flat”) ---
+  function iconSVG(kind) {
+    const stroke = "rgba(15,20,25,0.78)";
+    const white = "rgba(255,255,255,0.92)";
 
-  function iconDataURI(kind){
-    const svg =
-      kind === 'success' ? cartoonTigerSVG() :
-      kind === 'fail'    ? cartoonWhaleSVG() :
-      kind === 'hint'    ? cartoonHippoSVG() :
-                           cartoonStarSVG();
-    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-  }
+    if (kind === 'success') {
+      // Tony Tiger (flat)
+      return `
+      <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="110" height="110" rx="18" fill="rgba(255,255,255,0.0)"/>
+        <circle cx="55" cy="58" r="34" fill="rgba(255,165,72,0.95)" stroke="${stroke}" stroke-width="3"/>
+        <path d="M30 48c-8-8-6-18 6-20l8 10z" fill="rgba(255,165,72,0.95)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M80 48c8-8 6-18-6-20l-8 10z" fill="rgba(255,165,72,0.95)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M36 60c0-10 7-18 19-18s19 8 19 18-9 16-19 16-19-6-19-16z"
+              fill="${white}" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+        <circle cx="46" cy="58" r="3" fill="${stroke}"/>
+        <circle cx="64" cy="58" r="3" fill="${stroke}"/>
+        <path d="M55 62c0 6-6 8-10 6" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/>
+        <path d="M55 62c0 6 6 8 10 6" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/>
+        <path d="M38 70h-12M38 76h-12M84 70h12M84 76h12" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/>
+        <path d="M44 42c2 8 4 10 6 12M66 42c-2 8-4 10-6 12" stroke="rgba(20,20,20,0.22)" stroke-width="4" stroke-linecap="round"/>
+      </svg>`;
+    }
 
-  function cartoonCardBase(content){
+    if (kind === 'fail') {
+      // Fail Whale (flat)
+      return `
+      <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="110" height="110" rx="18" fill="rgba(255,255,255,0.0)"/>
+        <path d="M18 66c10 18 28 28 46 24 20-4 30-18 30-36 0-6-2-12-6-16-6 8-18 10-28 6-10-4-20-10-30-4-8 4-14 12-12 26z"
+              fill="rgba(80,145,220,0.92)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+        <circle cx="52" cy="62" r="3" fill="${stroke}"/>
+        <path d="M60 70c-6 4-12 4-18 0" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/>
+        <path d="M78 46c10-6 16-2 18 6-6 2-12 2-18-2z"
+              fill="rgba(80,145,220,0.92)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M28 54c-6-10-2-18 8-22 2 8-1 16-8 22z"
+              fill="rgba(80,145,220,0.92)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M22 86c14 6 28 6 44 0 16-6 26-6 40 0" stroke="rgba(0,0,0,0.10)" stroke-width="5" stroke-linecap="round"/>
+      </svg>`;
+    }
+
+    if (kind === 'hint') {
+      // Helpful Hippo (flat)
+      return `
+      <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="110" height="110" rx="18" fill="rgba(255,255,255,0.0)"/>
+        <path d="M22 70c0-22 14-36 33-36s33 14 33 36-16 28-33 28-33-6-33-28z"
+              fill="rgba(165,175,210,0.95)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M30 56c-10-6-8-16 2-18l8 10z"
+              fill="rgba(165,175,210,0.95)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M80 56c10-6 8-16-2-18l-8 10z"
+              fill="rgba(165,175,210,0.95)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M40 70c0-10 7-18 15-18s15 8 15 18-7 16-15 16-15-6-15-16z"
+              fill="${white}" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+        <circle cx="48" cy="68" r="3" fill="${stroke}"/>
+        <circle cx="62" cy="68" r="3" fill="${stroke}"/>
+        <path d="M55 72c-2 3-5 3-8 0" stroke="rgba(15,20,25,0.48)" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M55 40v-14" stroke="rgba(15,20,25,0.45)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M48 30h14" stroke="rgba(15,20,25,0.45)" stroke-width="3" stroke-linecap="round"/>
+      </svg>`;
+    }
+
     return `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 110">
-  <rect x="0" y="0" width="110" height="110" rx="18" fill="#ffffff"/>
-  ${content}
-</svg>`.trim();
+    <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="110" height="110" rx="18" fill="rgba(255,255,255,0.0)"/>
+      <circle cx="55" cy="55" r="30" fill="rgba(120,150,190,0.25)" stroke="rgba(15,20,25,0.35)" stroke-width="3"/>
+      <path d="M55 36l8 22-22 8 14-30z" fill="rgba(15,20,25,0.35)"/>
+      <circle cx="55" cy="55" r="4" fill="rgba(15,20,25,0.55)"/>
+    </svg>`;
   }
 
-  function cartoonTigerSVG(){
-    return cartoonCardBase(`
-      <rect x="6" y="6" width="98" height="98" rx="16" fill="#fff7e6"/>
-      <circle cx="55" cy="58" r="34" fill="#ffb347" stroke="#101010" stroke-width="3"/>
-      <circle cx="28" cy="38" r="12" fill="#ffb347" stroke="#101010" stroke-width="3"/>
-      <circle cx="82" cy="38" r="12" fill="#ffb347" stroke="#101010" stroke-width="3"/>
-      <circle cx="28" cy="38" r="5" fill="#ffd9a3" stroke="#101010" stroke-width="2"/>
-      <circle cx="82" cy="38" r="5" fill="#ffd9a3" stroke="#101010" stroke-width="2"/>
-
-      <ellipse cx="44" cy="58" rx="6" ry="8" fill="#ffffff" stroke="#101010" stroke-width="2"/>
-      <ellipse cx="66" cy="58" rx="6" ry="8" fill="#ffffff" stroke="#101010" stroke-width="2"/>
-      <circle cx="44" cy="60" r="3" fill="#101010"/>
-      <circle cx="66" cy="60" r="3" fill="#101010"/>
-
-      <path d="M55 68c-4 4-8 4-12 0" fill="none" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
-      <path d="M55 68c4 4 8 4 12 0" fill="none" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
-
-      <path d="M50 70l5 6 5-6" fill="#101010"/>
-      <path d="M40 46l-10-8M70 46l10-8" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
-
-      <!-- stripes -->
-      <path d="M34 54l-10-6M34 64l-10-2M76 54l10-6M76 64l10-2" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
-      <path d="M55 30l0 10" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
-      <path d="M46 32l4 10M64 32l-4 10" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
-
-      <!-- confetti -->
-      <circle cx="18" cy="18" r="3" fill="#ff5aa5"/>
-      <circle cx="92" cy="20" r="3" fill="#5a8cff"/>
-      <circle cx="18" cy="92" r="3" fill="#4bd37b"/>
-      <circle cx="92" cy="92" r="3" fill="#ffd34d"/>
-    `);
-  }
-
-  function cartoonWhaleSVG(){
-    return cartoonCardBase(`
-      <rect x="6" y="6" width="98" height="98" rx="16" fill="#ecf6ff"/>
-      <path d="M18 68c10 10 28 14 44 6 14-7 18-20 32-22-2 12-6 22-14 30-12 12-34 18-52 12-10-4-16-10-18-16 0 0 2-2 8-10z"
-            fill="#5a8cff" stroke="#101010" stroke-width="3" stroke-linejoin="round"/>
-      <path d="M74 52c8-10 18-14 24-12-2 6-6 10-12 12" fill="none" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="44" cy="66" r="3" fill="#101010"/>
-      <path d="M52 72c6 6 12 6 18 0" fill="none" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
-      <path d="M30 60c-10-10-12-18-10-24 6 2 10 6 12 12" fill="none" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
-      <path d="M26 34c2-6 6-10 10-12 2 4 2 10-4 16" fill="#9ec7ff" stroke="#101010" stroke-width="3" stroke-linejoin="round"/>
-      <path d="M40 30c2-6 6-10 10-12 2 4 2 10-4 16" fill="#9ec7ff" stroke="#101010" stroke-width="3" stroke-linejoin="round"/>
-    `);
-  }
-
-  function cartoonHippoSVG(){
-    return cartoonCardBase(`
-      <rect x="6" y="6" width="98" height="98" rx="16" fill="#f0fff6"/>
-      <circle cx="55" cy="60" r="34" fill="#9bd6c6" stroke="#101010" stroke-width="3"/>
-      <circle cx="30" cy="38" r="12" fill="#9bd6c6" stroke="#101010" stroke-width="3"/>
-      <circle cx="80" cy="38" r="12" fill="#9bd6c6" stroke="#101010" stroke-width="3"/>
-      <ellipse cx="55" cy="72" rx="22" ry="16" fill="#b9eadc" stroke="#101010" stroke-width="3"/>
-      <circle cx="46" cy="74" r="3" fill="#101010"/>
-      <circle cx="64" cy="74" r="3" fill="#101010"/>
-
-      <circle cx="44" cy="56" r="4" fill="#101010"/>
-      <circle cx="66" cy="56" r="4" fill="#101010"/>
-
-      <path d="M48 62c4 4 10 4 14 0" fill="none" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
-      <!-- little idea bulb -->
-      <circle cx="86" cy="20" r="8" fill="#ffd34d" stroke="#101010" stroke-width="3"/>
-      <path d="M86 28v8" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
-    `);
-  }
-
-  function cartoonStarSVG(){
-    return cartoonCardBase(`
-      <rect x="6" y="6" width="98" height="98" rx="16" fill="#ffffff"/>
-      <path d="M55 20l8 18 20 2-15 13 5 20-18-10-18 10 5-20-15-13 20-2z"
-            fill="#5a8cff" stroke="#101010" stroke-width="3" stroke-linejoin="round"/>
-    `);
-  }
-
-  function renderMsg(kind, headline, sub){
-    const icon = iconDataURI(kind);
-    const lab = iconLabelForKind(kind);
+  function renderMsg(kind, iconName, headline, sub){
     belowMsg.innerHTML = `
       <div class="msgGrid">
-        <div class="iconWrap" aria-hidden="true">
-          <div class="iconSq"><img src="${icon}" alt="" /></div>
-          <div class="iconLabel">${lab}</div>
+        <div class="iconCol">
+          <div class="iconSq" aria-hidden="true">${iconSVG(kind)}</div>
+          <div class="iconLabel">${iconName || ""}</div>
         </div>
         <div class="msgText">
           <div class="headline">${headline || ""}</div>
@@ -724,7 +707,12 @@
     guessInput.focus();
     updateHUD();
 
-    renderMsg('neutral', '', `Type a country name — or hit <b>.</b> for a hint (hint uses a try).`);
+    renderMsg(
+      'neutral',
+      '',
+      '',
+      `Type a country name — or hit <b>.</b> for a hint (hint uses a try).`
+    );
   }
 
   function pointsForTry(tryNumberUsed) {
@@ -741,7 +729,7 @@
       flagIdx = 0;
 
       if (roundIdx >= rounds.length) {
-        renderMsg('success', `🏁 Game complete! Final score: <b>${score}</b>`, `Hit RESTART to play again.`);
+        renderMsg('success','TONY TIGER',`🏁 Game complete! Final score: <b>${score}</b>`, `Hit RESTART to play again.`);
         submitBtn.disabled = true;
         skipBtn.disabled = true;
         guessInput.disabled = true;
@@ -749,7 +737,7 @@
         return;
       }
 
-      renderMsg('success', `➡️ Next round!`, `Round <b>${roundIdx + 1}</b> incoming…`);
+      renderMsg('success','TONY TIGER',`➡️ Next round!`, `Round <b>${roundIdx + 1}</b> incoming…`);
       setTimeout(() => renderFlag(), 650);
       updateHUD();
       return;
@@ -773,43 +761,6 @@
     return accepted;
   }
 
-  // --- Better food hints (country-specific when available) ---
-  const FOOD_HINT = {
-    "Iran": `date palms & saffron rice with meat (<i>Chelo Kabab</i>) 🍚🥩`,
-    "Peru": `ceviche + lomo saltado (and a million potatoes) 🐟🥔`,
-    "Japan": `sushi + ramen (and the art of the bento) 🍣🍜`,
-    "Italy": `pasta + espresso (and dramatic hand gestures) 🍝☕`,
-    "Mexico": `tacos al pastor + mole magic 🌮🍫`,
-    "India": `biryani + masala chai (welcome to spice city) 🍛☕`,
-    "Thailand": `pad thai + green curry 🌶️🍜`,
-    "Turkey": `kebabs + baklava + strong tea 🥙🍯`,
-    "Morocco": `tagine + mint tea 🫖🍲`,
-    "Ethiopia": `injera + wats (stews) 🍲`
-  };
-
-  // Famous person (best-known-ish). Extend freely.
-  const FAMOUS_PERSON = {
-    "Iran": "Famous name: <b>Ayatollah Khomeini</b> (politics) 🧔‍♂️",
-    "Peru": "Famous name: <b>Mario Vargas Llosa</b> (writer) ✍️",
-    "Turkey": "Famous name: <b>Kemal Atatürk</b> (founder) 🇹🇷",
-    "United Kingdom": "Famous name: <b>The Beatles</b> (music) 🎸",
-    "France": "Famous name: <b>Napoleon</b> (history) 🧢",
-    "Japan": "Famous name: <b>Hayao Miyazaki</b> (film) 🎬",
-    "Brazil": "Famous name: <b>Pelé</b> (football) ⚽",
-    "Mexico": "Famous name: <b>Frida Kahlo</b> (art) 🎨",
-    "India": "Famous name: <b>Mahatma Gandhi</b> (history) 🕊️",
-    "South Africa": "Famous name: <b>Nelson Mandela</b> (history) ✊"
-  };
-
-  // 1-line “Meaning” from RJTravel pages (curated; add more anytime).
-  // Source pages: rjtravelagency.com/flag-of-<country>/
-  const FLAG_MEANING_1L = {
-    "Peru": "Red symbolizes blood shed for independence; white represents peace and purity (often with the coat of arms on the state flag).",
-    "Iran": "Green stands for growth/Islam; white for peace/purity; red for bravery/martyrdom, with a central “Allah” emblem.",
-    "Kuwait": "Green for growth, white for peace, red for sacrifice, and the black trapezium evokes history/resilience.",
-    "Azerbaijan": "Blue for Turkic heritage, red for progress, green for Islam; crescent and eight-pointed star reflect faith and identity."
-  };
-
   function fmtNumber(n){
     if (!Number.isFinite(n)) return '—';
     return n.toLocaleString('en-US');
@@ -828,6 +779,74 @@
     return `Neighbors: <b>${sample.join(', ')}</b>${extra} 🤝`;
   }
 
+  const FOOD_HINT = {
+    "Iran": `date palms & saffron rice with meat (<i>Chelo Kabab</i>) 🍚🥩`,
+    "Peru": `ceviche + lomo saltado (and a million potatoes) 🐟🥔`,
+    "Japan": `sushi + ramen (and the art of the bento) 🍣🍜`,
+    "Italy": `pasta + espresso (and dramatic hand gestures) 🍝☕`,
+    "Mexico": `tacos al pastor + mole magic 🌮🍫`,
+    "India": `biryani + masala chai (welcome to spice city) 🍛☕`,
+    "Thailand": `pad thai + green curry 🌶️🍜`,
+    "Turkey": `kebabs + baklava + strong tea 🥙🍯`,
+    "Morocco": `tagine + mint tea 🫖🍲`,
+    "Ethiopia": `injera + wats (stews) 🍲`,
+    "France": `croissant + cheese + “butter is a food group” 🥐🧀`,
+    "United States": `burgers + BBQ + suspiciously large sodas 🍔🥤`
+  };
+
+  const FAMOUS_PERSON = {
+    "Iran": "Rumi (poet) 📜",
+    "Peru": "Mario Vargas Llosa (writer) 📚",
+    "United States": "Beyoncé (musician) 🎤",
+    "United Kingdom": "David Bowie (musician) 🎸",
+    "France": "Marie Curie (scientist) ⚗️",
+    "Germany": "Albert Einstein (scientist) 🧠",
+    "Italy": "Leonardo da Vinci (artist) 🎨",
+    "Spain": "Pablo Picasso (artist) 🖼️",
+    "Japan": "Hayao Miyazaki (filmmaker) 🎬",
+    "India": "Mahatma Gandhi (leader) 🕊️",
+    "South Africa": "Nelson Mandela (leader) ✊",
+    "Brazil": "Pelé (athlete) ⚽",
+    "Argentina": "Lionel Messi (athlete) ⚽",
+    "Mexico": "Frida Kahlo (artist) 🎨",
+    "Turkey": "Mustafa Kemal Atatürk (leader) 🧭",
+    "Israel": "Golda Meir (leader) 🗳️",
+    "Russia": "Leo Tolstoy (writer) 📚",
+    "China": "Jackie Chan (actor) 🎥",
+    "Egypt": "Omar Sharif (actor) 🎞️"
+  };
+
+  const SYMBOLISM_ONE_LINER = {
+    "Peru": "Red honors sacrifice in the independence struggle; white stands for peace/purity (coat of arms variant adds national symbols).",
+    "Iran": "Green/white/red are tied to growth/peace/courage; emblem and Takbir pattern reference Islamic identity.",
+    "Japan": "Red sun disc represents the sun—Japan as the ‘land of the rising sun.’",
+    "France": "Tricolor tied to the Revolution; often read as liberty/equality/fraternity."
+  };
+
+  function rjSlugForCountry(name){
+    const slug = name.toLowerCase()
+      .replace(/’/g,'')
+      .replace(/'/g,'')
+      .replace(/&/g,'and')
+      .replace(/[^a-z0-9 ]/g,'')
+      .trim()
+      .replace(/\s+/g,'-');
+
+    return `https://www.rjtravelagency.com/flag-of-${slug}/`;
+  }
+
+  function symbolismBlock(c){
+    const name = c.name.common;
+    const one = SYMBOLISM_ONE_LINER[name];
+    const url = rjSlugForCountry(name);
+
+    const line = one
+      ? `<b>Flag symbolism (1-liner):</b> ${one}`
+      : `<b>Flag symbolism:</b> Tap <a href="${url}" target="_blank" rel="noopener">RJ Travel Agency</a> for a quick symbolism blurb.`;
+
+    return `${line}<br/><span style="opacity:0.82">Source link: <a href="${url}" target="_blank" rel="noopener">rjtravelagency.com</a></span>`;
+  }
+
   function hint1Food(c){
     const name = c.name.common;
     if (FOOD_HINT[name]) return FOOD_HINT[name];
@@ -836,7 +855,7 @@
     const fallback = {
       "Europe": "cheese + bread + something fermented 🧀🥖",
       "Asia": "noodles + rice + a signature spice profile 🍜🍚",
-      "Africa": "stews + grains + slow-cooked goodness 🍲",
+      "Africa": "stews + grains + slow-cooked deliciousness 🍲",
       "North America": "BBQ or tacos… possibly both 🔥🌮",
       "Central America": "beans + rice + coffee fuel ☕🍛",
       "Caribbean": "jerk seasoning + tropical fruit 🥭🌶️",
@@ -850,13 +869,14 @@
   function hintForTry(c, tryUsed){
     if (tryUsed === 1) {
       const cont = continentLabel(c.region, c.subregion);
-      return `Hint #1: Continent: <b>${cont}</b> 🌍 · Food: <b>${hint1Food(c)}</b>`;
+      return `Hint 1: Continent: <b>${cont}</b> 🌍 · Food: <b>${hint1Food(c)}</b>`;
     }
     if (tryUsed === 2) {
       const pop = fmtNumber(Math.round(c.population || 0));
-      const celeb = FAMOUS_PERSON[c.name.common] ? `<br/>${FAMOUS_PERSON[c.name.common]}` : '';
-      return `Hint #2: Population ~ <b>${pop}</b> 👥${celeb}<br/>${neighborsList(c)}`;
+      const celeb = FAMOUS_PERSON[c.name.common] || "a person too powerful for this hint engine 😅";
+      return `Hint 2: Famous name: <b>${celeb}</b><br/>Stat: population <b>${pop}</b> 👥<br/>${neighborsList(c)}`;
     }
+
     const name = c.name.common;
     const n = norm(name).replace(/ /g,'');
     const ends = n.slice(-3);
@@ -868,17 +888,9 @@
       { suffix: 'ine', words: ['wine','fine','line','shine'] },
     ];
     for (const p of patterns){
-      if (n.endsWith(p.suffix)) return `Hint #3: Rhymes-ish with: <b>${p.words.join(', ')}</b> 🎶 (I never promised poetry).`;
+      if (n.endsWith(p.suffix)) return `Hint 3: Rhymes-ish with: <b>${p.words.join(', ')}</b> 🎶 (I never promised quality)`;
     }
-    return `Hint #3: Ends like “<b>${ends}</b>”… try chanting “<b>${ends}!</b>” dramatically. 🎭`;
-  }
-
-  function meaningLineOrFallback(c){
-    const name = c.name.common;
-    if (FLAG_MEANING_1L[name]) {
-      return `<b>Meaning:</b> ${FLAG_MEANING_1L[name]} <span style="opacity:.75">(RJTravel)</span>`;
-    }
-    return `<b>Meaning:</b> No stored 1-liner for this flag yet — anchor it to <b>${continentLabel(c.region, c.subregion)}</b> and build a silly association (works suspiciously well). 🧠✨`;
+    return `Hint 3: Ends like “<b>${ends}</b>”… so try yelling “<b>${ends}!</b>” dramatically. 🎭`;
   }
 
   function consumeTryWithHint() {
@@ -895,8 +907,9 @@
     if (triesLeft <= 0) {
       renderMsg(
         'fail',
-        `Out of tries. Answer: <b>${c.name.common}</b>.`,
-        `${meaningLineOrFallback(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+        'FAIL WHALE',
+        `Out of tries! Answer: <b>${c.name.common}</b>.`,
+        `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
       );
       setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
       return;
@@ -904,6 +917,7 @@
 
     renderMsg(
       'hint',
+      'HELPFUL HIPPO',
       `Hint used (costs a try).`,
       `${hint}<br/><br/>You have <b>${triesLeft}</b> tries left.`
     );
@@ -928,8 +942,9 @@
       const mega = "🎉🎉🎉🎉🎉  🥳✨🎊  🎉🎉🎉🎉🎉";
       renderMsg(
         'success',
+        'TONY TIGER',
         `Correct! That was <b>${c.name.common}</b>. ${mega}`,
-        `+<b>${pts}</b> point${pts === 1 ? '' : 's'}. You’re absolutely cooking. 🔥🌍<br/><br/>Next flag in <b>${Math.round(PAUSE_CORRECT_MS/1000)}s</b>…`
+        `You earned <b>${pts}</b> point${pts === 1 ? '' : 's'}. Absolutely GRRREAT. 🐯<br/><br/>Next flag in <b>${Math.round(PAUSE_CORRECT_MS/1000)}s</b>…`
       );
       setTimeout(() => advanceFlag(), PAUSE_CORRECT_MS);
       return;
@@ -941,8 +956,9 @@
     if (triesLeft <= 0) {
       renderMsg(
         'fail',
+        'FAIL WHALE',
         `Nope. Answer: <b>${c.name.common}</b>.`,
-        `${meaningLineOrFallback(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+        `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
       );
       setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
       return;
@@ -950,6 +966,7 @@
 
     renderMsg(
       'fail',
+      'FAIL WHALE',
       `Not quite.`,
       `Try again. You have <b>${triesLeft}</b> tries left. (Hit <b>.</b> for a hint — it costs a try.)`
     );
@@ -964,8 +981,9 @@
 
     renderMsg(
       'hint',
+      'HELPFUL HIPPO',
       `Skipped. Answer: <b>${c.name.common}</b>.`,
-      `${meaningLineOrFallback(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+      `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
     );
     setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
   }
@@ -982,7 +1000,6 @@
     renderFlag();
   }
 
-  // Difficulty model
   const WELL_KNOWN = new Set([
     'United States','Canada','Mexico','Brazil','Argentina','Chile','Colombia','Peru',
     'United Kingdom','Ireland','France','Spain','Portugal','Italy','Germany','Netherlands','Belgium','Switzerland','Austria','Sweden','Norway','Denmark','Finland','Iceland',
@@ -1017,7 +1034,6 @@
       out.push(band.slice(0, FLAGS_PER_ROUND));
     }
 
-    // Make Round 1 extra friendly
     const round1 = out[0] || [];
     const round1Names = new Set(round1.map(c => c.name.common));
     const needed = Math.max(0, 8 - round1.filter(c => WELL_KNOWN.has(c.name.common)).length);
@@ -1036,435 +1052,174 @@
     return out;
   }
 
-  // --- Footer flags (full width, 3 rows, random offsets + random washed colors, square corners) ---
+  // --- Footer flags: MANY rows across the footer, ~40px spacing ---
   function buildFooter() {
-    const W = window.innerWidth;
-    const H = Math.max(220, Math.floor(window.innerHeight * 0.33));
-    footerSvg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    const w = Math.max(1200, window.innerWidth);
+    const h = Math.max(220, Math.floor(window.innerHeight * 0.33));
+    footerSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
     footerSvg.innerHTML = '';
 
-    const ns = "http://www.w3.org/2000/svg";
-    const defs = document.createElementNS(ns, 'defs');
+    const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
 
-    function makeFlagTemplate(id, kind) {
-      const g = document.createElementNS(ns, 'g');
+    function mkFlagDef(id, drawFn){
+      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
       g.setAttribute('id', id);
-
-      const rect = document.createElementNS(ns, 'rect');
-      rect.setAttribute('x', '0');
-      rect.setAttribute('y', '0');
-      rect.setAttribute('width', '44');
-      rect.setAttribute('height', '26');
-      rect.setAttribute('rx', '0'); // squared
-      rect.setAttribute('fill', kind === 'color' ? 'rgba(255,255,255,0.20)' : 'none');
-      rect.setAttribute('stroke', 'rgba(37,48,65,0.55)');
-      rect.setAttribute('stroke-width', '1.3');
-      g.appendChild(rect);
-
-      const mode = id.split('-')[1];
-
-      if (mode === 'jp') {
-        const c = document.createElementNS(ns, 'circle');
-        c.setAttribute('cx', '22');
-        c.setAttribute('cy', '13');
-        c.setAttribute('r', '7');
-        c.setAttribute('fill', kind === 'color' ? 'rgba(220,70,70,0.35)' : 'none');
-        c.setAttribute('stroke', 'rgba(37,48,65,0.40)');
-        c.setAttribute('stroke-width', '1.4');
-        g.appendChild(c);
-      }
-
-      if (mode === 'fr') {
-        const a = document.createElementNS(ns, 'rect');
-        a.setAttribute('x','0'); a.setAttribute('y','0'); a.setAttribute('width','14.7'); a.setAttribute('height','26');
-        a.setAttribute('fill', kind === 'color' ? 'rgba(70,110,200,0.25)' : 'none');
-        g.appendChild(a);
-
-        const b = document.createElementNS(ns, 'rect');
-        b.setAttribute('x','29.3'); b.setAttribute('y','0'); b.setAttribute('width','14.7'); b.setAttribute('height','26');
-        b.setAttribute('fill', kind === 'color' ? 'rgba(220,70,70,0.25)' : 'none');
-        g.appendChild(b);
-
-        const s1 = document.createElementNS(ns, 'path');
-        s1.setAttribute('d','M15 0V26 M29 0V26');
-        s1.setAttribute('stroke','rgba(37,48,65,0.35)');
-        s1.setAttribute('stroke-width','1.4');
-        g.appendChild(s1);
-      }
-
-      if (mode === 'de') {
-        const r1 = document.createElementNS(ns,'rect');
-        r1.setAttribute('x','0'); r1.setAttribute('y','0'); r1.setAttribute('width','44'); r1.setAttribute('height','8.7');
-        r1.setAttribute('fill', kind === 'color' ? 'rgba(20,20,20,0.18)' : 'none');
-        g.appendChild(r1);
-
-        const r2 = document.createElementNS(ns,'rect');
-        r2.setAttribute('x','0'); r2.setAttribute('y','8.7'); r2.setAttribute('width','44'); r2.setAttribute('height','8.7');
-        r2.setAttribute('fill', kind === 'color' ? 'rgba(220,70,70,0.18)' : 'none');
-        g.appendChild(r2);
-
-        const r3 = document.createElementNS(ns,'rect');
-        r3.setAttribute('x','0'); r3.setAttribute('y','17.4'); r3.setAttribute('width','44'); r3.setAttribute('height','8.7');
-        r3.setAttribute('fill', kind === 'color' ? 'rgba(240,200,70,0.18)' : 'none');
-        g.appendChild(r3);
-
-        const s = document.createElementNS(ns,'path');
-        s.setAttribute('d','M0 9H44 M0 18H44');
-        s.setAttribute('stroke','rgba(37,48,65,0.35)');
-        s.setAttribute('stroke-width','1.4');
-        g.appendChild(s);
-      }
-
-      if (mode === 'uk') {
-        const s = document.createElementNS(ns,'path');
-        s.setAttribute('d','M0 0 L44 26 M44 0 L0 26');
-        s.setAttribute('stroke','rgba(37,48,65,0.28)');
-        s.setAttribute('stroke-width','1.2');
-        g.appendChild(s);
-
-        const c = document.createElementNS(ns,'path');
-        c.setAttribute('d','M0 13H44 M22 0V26');
-        c.setAttribute('stroke','rgba(37,48,65,0.40)');
-        c.setAttribute('stroke-width','1.6');
-        g.appendChild(c);
-      }
-
-      if (mode === 'us') {
-        const stripes = document.createElementNS(ns,'path');
-        stripes.setAttribute('d','M0 5H44M0 10H44M0 15H44M0 20H44M0 25H44');
-        stripes.setAttribute('stroke','rgba(37,48,65,0.30)');
-        stripes.setAttribute('stroke-width','1.2');
-        g.appendChild(stripes);
-
-        const canton = document.createElementNS(ns,'rect');
-        canton.setAttribute('x','0'); canton.setAttribute('y','0'); canton.setAttribute('width','18'); canton.setAttribute('height','14');
-        canton.setAttribute('fill', kind === 'color' ? 'rgba(70,110,200,0.22)' : 'none');
-        canton.setAttribute('stroke','rgba(37,48,65,0.30)');
-        canton.setAttribute('stroke-width','1.2');
-        g.appendChild(canton);
-      }
-
-      if (mode === 'br') {
-        const d = document.createElementNS(ns,'path');
-        d.setAttribute('d','M22 3 L39 13 L22 23 L5 13 Z');
-        d.setAttribute('fill','none');
-        d.setAttribute('stroke','rgba(37,48,65,0.35)');
-        d.setAttribute('stroke-width','1.6');
-        g.appendChild(d);
-
-        const c = document.createElementNS(ns,'circle');
-        c.setAttribute('cx','22'); c.setAttribute('cy','13'); c.setAttribute('r','5');
-        c.setAttribute('fill','none');
-        c.setAttribute('stroke','rgba(37,48,65,0.28)');
-        c.setAttribute('stroke-width','1.2');
-        g.appendChild(c);
-
-        if (kind === 'color') {
-          rect.setAttribute('fill','rgba(70,160,100,0.16)');
-        }
-      }
-
-      return g;
+      drawFn(g);
+      defs.appendChild(g);
     }
 
-    const templates = [
-      { outline: 'o-us', color: 'c-us', mode:'us' },
-      { outline: 'o-uk', color: 'c-uk', mode:'uk' },
-      { outline: 'o-jp', color: 'c-jp', mode:'jp' },
-      { outline: 'o-fr', color: 'c-fr', mode:'fr' },
-      { outline: 'o-de', color: 'c-de', mode:'de' },
-      { outline: 'o-br', color: 'c-br', mode:'br' }
-    ];
+    const strokeOutline = 'rgba(37,48,65,0.62)';
+    const strokeThin = 'rgba(37,48,65,0.35)';
 
-    templates.forEach(t => {
-      defs.appendChild(makeFlagTemplate(t.outline, 'outline'));
-      defs.appendChild(makeFlagTemplate(t.color, 'color'));
+    function rect(g, x,y,ww,hh, fill, stroke, sw){
+      const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      r.setAttribute('x', x); r.setAttribute('y', y);
+      r.setAttribute('width', ww); r.setAttribute('height', hh);
+      r.setAttribute('rx', 0); r.setAttribute('ry', 0); // square corners
+      r.setAttribute('fill', fill);
+      r.setAttribute('stroke', stroke);
+      r.setAttribute('stroke-width', sw);
+      g.appendChild(r);
+    }
+
+    function line(g, x1,y1,x2,y2, stroke, sw){
+      const l = document.createElementNS('http://www.w3.org/2000/svg','line');
+      l.setAttribute('x1', x1); l.setAttribute('y1', y1);
+      l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+      l.setAttribute('stroke', stroke);
+      l.setAttribute('stroke-width', sw);
+      l.setAttribute('stroke-linecap','round');
+      g.appendChild(l);
+    }
+
+    function circle(g, cx,cy,r, fill, stroke, sw){
+      const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', r);
+      c.setAttribute('fill', fill);
+      if (stroke){ c.setAttribute('stroke', stroke); c.setAttribute('stroke-width', sw); }
+      g.appendChild(c);
+    }
+
+    function path(g, d, fill, stroke, sw){
+      const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+      p.setAttribute('d', d);
+      p.setAttribute('fill', fill);
+      if (stroke){ p.setAttribute('stroke', stroke); p.setAttribute('stroke-width', sw); }
+      p.setAttribute('stroke-linejoin','round');
+      g.appendChild(p);
+    }
+
+    // Outline defs
+    mkFlagDef('o-us', (g)=>{
+      rect(g,0,0,44,26,'none',strokeOutline,1.5);
+      for (let y=5;y<=25;y+=5) line(g,0,y,44,y,strokeThin,1.2);
+      rect(g,0,0,18,14,'none',strokeThin,1.2);
+    });
+    mkFlagDef('o-uk', (g)=>{
+      rect(g,0,0,44,26,'none',strokeOutline,1.5);
+      path(g,'M0 0 L44 26 M44 0 L0 26','none',strokeThin,1.1);
+      line(g,0,13,44,13,'rgba(37,48,65,0.45)',1.7);
+      line(g,22,0,22,26,'rgba(37,48,65,0.45)',1.7);
+    });
+    mkFlagDef('o-jp', (g)=>{
+      rect(g,0,0,44,26,'none',strokeOutline,1.5);
+      circle(g,22,13,7,'none','rgba(37,48,65,0.45)',1.7);
+    });
+    mkFlagDef('o-fr', (g)=>{
+      rect(g,0,0,44,26,'none',strokeOutline,1.5);
+      line(g,14.7,0,14.7,26,'rgba(37,48,65,0.40)',1.7);
+      line(g,29.3,0,29.3,26,'rgba(37,48,65,0.40)',1.7);
+    });
+    mkFlagDef('o-de', (g)=>{
+      rect(g,0,0,44,26,'none',strokeOutline,1.5);
+      line(g,0,8.7,44,8.7,'rgba(37,48,65,0.40)',1.7);
+      line(g,0,17.4,44,17.4,'rgba(37,48,65,0.40)',1.7);
+    });
+    mkFlagDef('o-br', (g)=>{
+      rect(g,0,0,44,26,'none',strokeOutline,1.5);
+      path(g,'M22 3 L39 13 L22 23 L5 13 Z','none','rgba(37,48,65,0.40)',1.7);
+      circle(g,22,13,5,'none','rgba(37,48,65,0.30)',1.2);
+    });
+
+    // Washed color defs
+    mkFlagDef('c-jp', (g)=>{
+      rect(g,0,0,44,26,'rgba(255,255,255,0.18)','rgba(37,48,65,0.25)',1.2);
+      circle(g,22,13,7,'rgba(220,70,70,0.30)','rgba(37,48,65,0.18)',0.9);
+    });
+    mkFlagDef('c-fr', (g)=>{
+      rect(g,0,0,44,26,'rgba(255,255,255,0.15)','rgba(37,48,65,0.22)',1.2);
+      rect(g,0,0,14.7,26,'rgba(70,110,200,0.22)','rgba(0,0,0,0)',0);
+      rect(g,29.3,0,14.7,26,'rgba(220,70,70,0.22)','rgba(0,0,0,0)',0);
+    });
+    mkFlagDef('c-de', (g)=>{
+      rect(g,0,0,44,26,'rgba(255,255,255,0.15)','rgba(37,48,65,0.22)',1.2);
+      rect(g,0,0,44,8.7,'rgba(20,20,20,0.18)','rgba(0,0,0,0)',0);
+      rect(g,0,8.7,44,8.7,'rgba(220,70,70,0.18)','rgba(0,0,0,0)',0);
+      rect(g,0,17.4,44,8.7,'rgba(240,200,70,0.18)','rgba(0,0,0,0)',0);
     });
 
     footerSvg.appendChild(defs);
 
-    function use(id, x, y, scale=1){
-      const u = document.createElementNS(ns,'use');
-      u.setAttribute('href', `#${id}`);
-      u.setAttribute('transform', `translate(${x},${y}) scale(${scale})`);
-      return u;
-    }
+    const flagIdsOutline = ['o-us','o-uk','o-jp','o-fr','o-de','o-br'];
+    const flagIdsColor = ['c-jp','c-fr','c-de'];
 
-    const rows = 3;
-    const scale = 0.5;           // 50% smaller
-    const flagW = 44 * scale;
-    const gap = 26 * scale + 10; // spacing
+    const size = 22;         // ~50% smaller
+    const spacingX = 12;
+    const rowStep = 40;      // "every 40px or so"
+    const scale = size / 44;
+    const approxCount = Math.ceil(w / (size + spacingX)) + 6;
 
-    const rowYs = [ Math.floor(H*0.30), Math.floor(H*0.54), Math.floor(H*0.78) ];
-    const offsets = [
-      -Math.floor(Math.random()*160),
-      Math.floor(Math.random()*220),
-      -Math.floor(Math.random()*260)
-    ];
+    const rows = Math.max(6, Math.floor(h / rowStep) + 2);
 
-    for (let r = 0; r < rows; r++){
-      const group = document.createElementNS(ns,'g');
-      group.setAttribute('opacity', String(0.85 - r*0.18));
+    for (let r = 0; r < rows; r++) {
+      const rowG = document.createElementNS('http://www.w3.org/2000/svg','g');
 
-      const startX = offsets[r];
-      const y = rowYs[r];
+      const rowOffset = Math.floor(Math.random() * 120) - 60;
+      const y = Math.floor(r * rowStep + (Math.random() * 8 - 4));
 
-      const count = Math.ceil((W - startX) / (flagW + gap)) + 2;
-
-      // randomly choose N colored per row
-      const coloredTarget = Math.max(3, Math.floor(count * (0.18 + Math.random()*0.10)));
-      const coloredSet = new Set();
-      while (coloredSet.size < coloredTarget) coloredSet.add(Math.floor(Math.random() * count));
-
-      for (let i = 0; i < count; i++){
-        const x = startX + i*(flagW + gap);
-        const t = templates[Math.floor(Math.random()*templates.length)];
-        const id = coloredSet.has(i) ? t.color : t.outline;
-        group.appendChild(use(id, x, y, scale));
-      }
-      footerSvg.appendChild(group);
-    }
-  }
-
-  // --- End footer ---
-  buildFooter();
-  window.addEventListener('resize', () => buildFooter());
-
-  // ---- Hints & Gameplay ----
-
-  function neighborsList(c){
-    const borders = Array.isArray(c.borders) ? c.borders : [];
-    const names = borders
-      .map(code => cca3ToCountry.get(code)?.name?.common)
-      .filter(Boolean);
-
-    if (!names.length) return `Neighbors: <b>none</b> (island / solo mode) 🏝️😌`;
-
-    const sample = names.slice(0, 6);
-    const extra = names.length > sample.length ? ` (+${names.length - sample.length} more)` : '';
-    return `Neighbors: <b>${sample.join(', ')}</b>${extra} 🤝`;
-  }
-
-  function consumeTryWithHint() {
-    const c = currentCountry();
-    if (!c) return;
-    if (triesLeft <= 0) return;
-
-    const tryUsed = TRIES_PER_FLAG - triesLeft + 1;
-    const hint = hintForTry(c, tryUsed);
-
-    triesLeft--;
-    updateHUD();
-
-    if (triesLeft <= 0) {
-      renderMsg(
-        'fail',
-        `Out of tries. Answer: <b>${c.name.common}</b>.`,
-        `${meaningLineOrFallback(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
-      );
-      setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
-      return;
-    }
-
-    renderMsg(
-      'hint',
-      `Hint used (costs a try).`,
-      `${hint}<br/><br/>You have <b>${triesLeft}</b> tries left.`
-    );
-  }
-
-  function hintForTry(c, tryUsed){
-    if (tryUsed === 1) {
-      const cont = continentLabel(c.region, c.subregion);
-      return `Hint #1: Continent: <b>${cont}</b> 🌍 · Food: <b>${hint1Food(c)}</b>`;
-    }
-    if (tryUsed === 2) {
-      const pop = fmtNumber(Math.round(c.population || 0));
-      const celeb = FAMOUS_PERSON[c.name.common] ? `<br/>${FAMOUS_PERSON[c.name.common]}` : '';
-      return `Hint #2: Population ~ <b>${pop}</b> 👥${celeb}<br/>${neighborsList(c)}`;
-    }
-    const name = c.name.common;
-    const n = norm(name).replace(/ /g,'');
-    const ends = n.slice(-3);
-    const patterns = [
-      { suffix: 'land', words: ['sand','hand','band','grand'] },
-      { suffix: 'ia', words: ['see-ya','pizzeria','utopia','chia'] },
-      { suffix: 'stan', words: ['plan','fan','can','pan'] },
-      { suffix: 'ana', words: ['banana','cabana','bandana','nirvana'] },
-      { suffix: 'ine', words: ['wine','fine','line','shine'] },
-    ];
-    for (const p of patterns){
-      if (n.endsWith(p.suffix)) return `Hint #3: Rhymes-ish with: <b>${p.words.join(', ')}</b> 🎶 (I never promised poetry).`;
-    }
-    return `Hint #3: Ends like “<b>${ends}</b>”… try chanting “<b>${ends}!</b>” dramatically. 🎭`;
-  }
-
-  function hint1Food(c){
-    const name = c.name.common;
-    if (FOOD_HINT[name]) return FOOD_HINT[name];
-
-    const cont = continentLabel(c.region, c.subregion);
-    const fallback = {
-      "Europe": "cheese + bread + something fermented 🧀🥖",
-      "Asia": "noodles + rice + a signature spice profile 🍜🍚",
-      "Africa": "stews + grains + slow-cooked goodness 🍲",
-      "North America": "BBQ or tacos… possibly both 🔥🌮",
-      "Central America": "beans + rice + coffee fuel ☕🍛",
-      "Caribbean": "jerk seasoning + tropical fruit 🥭🌶️",
-      "South America": "grilled meats + corn things + mate vibes 🥩🌽🧉",
-      "Oceania": "BBQ + beach picnic energy 🏖️🥩",
-      "Other": "mystery snacks from a parallel universe 🥪🧁"
-    };
-    return fallback[cont] || fallback["Other"];
-  }
-
-  function meaningLineOrFallback(c){
-    const name = c.name.common;
-    if (FLAG_MEANING_1L[name]) {
-      return `<b>Meaning:</b> ${FLAG_MEANING_1L[name]} <span style="opacity:.75">(RJTravel)</span>`;
-    }
-    return `<b>Meaning:</b> No stored 1-liner for this flag yet — anchor it to <b>${continentLabel(c.region, c.subregion)}</b> and build a silly association (works suspiciously well). 🧠✨`;
-  }
-
-  function submitGuess() {
-    const c = currentCountry();
-    if (!c) return;
-
-    applySuggestionSelectionToInput();
-
-    const guess = guessInput.value;
-    const guessN = norm(guess);
-    const accepted = acceptedNamesForCountry(c);
-    const tryUsed = TRIES_PER_FLAG - triesLeft + 1;
-
-    if (guessN && accepted.has(guessN)) {
-      const pts = pointsForTry(tryUsed);
-      score += pts;
-      updateHUD();
-
-      const mega = "🎉🎉🎉🎉🎉  🥳✨🎊  🎉🎉🎉🎉🎉";
-      renderMsg(
-        'success',
-        `Correct! That was <b>${c.name.common}</b>. ${mega}`,
-        `+<b>${pts}</b> point${pts === 1 ? '' : 's'}. LFG. 🔥🌍<br/><br/>Next flag in <b>${Math.round(PAUSE_CORRECT_MS/1000)}s</b>…`
-      );
-      setTimeout(() => advanceFlag(), PAUSE_CORRECT_MS);
-      return;
-    }
-
-    triesLeft--;
-    updateHUD();
-
-    if (triesLeft <= 0) {
-      renderMsg(
-        'fail',
-        `Nope. Answer: <b>${c.name.common}</b>.`,
-        `${meaningLineOrFallback(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
-      );
-      setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
-      return;
-    }
-
-    renderMsg(
-      'fail',
-      `Not quite.`,
-      `Try again. You have <b>${triesLeft}</b> tries left. (Hit <b>.</b> for a hint — it costs a try.)`
-    );
-
-    guessInput.select();
-    guessInput.focus();
-  }
-
-  function skipFlag() {
-    const c = currentCountry();
-    if (!c) return;
-
-    renderMsg(
-      'hint',
-      `Skipped. Answer: <b>${c.name.common}</b>.`,
-      `${meaningLineOrFallback(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
-    );
-    setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
-  }
-
-  function renderFlag() {
-    closeSuggest();
-
-    const c = currentCountry();
-    if (!c) return;
-
-    const url = c.flags?.png || c.flags?.svg || '';
-    flagImg.src = url;
-    flagImg.alt = `Flag of ${c.name?.common || 'Unknown'}`;
-
-    triesLeft = TRIES_PER_FLAG;
-    guessInput.value = '';
-    guessInput.focus();
-    updateHUD();
-
-    renderMsg('neutral', '', `Type a country name — or hit <b>.</b> for a hint (hint uses a try).`);
-  }
-
-  function pointsForTry(tryNumberUsed) {
-    if (tryNumberUsed === 1) return 3;
-    if (tryNumberUsed === 2) return 2;
-    if (tryNumberUsed === 3) return 1;
-    return 0;
-  }
-
-  function advanceFlag() {
-    flagIdx++;
-    if (flagIdx >= FLAGS_PER_ROUND) {
-      roundIdx++;
-      flagIdx = 0;
-
-      if (roundIdx >= rounds.length) {
-        renderMsg('success', `🏁 Game complete! Final score: <b>${score}</b>`, `Hit RESTART to play again.`);
-        submitBtn.disabled = true;
-        skipBtn.disabled = true;
-        guessInput.disabled = true;
-        updateHUD();
-        return;
+      // how many colored flags in this row
+      const coloredCount = 4 + Math.floor(Math.random() * 6);
+      const coloredSlots = new Set();
+      while (coloredSlots.size < Math.min(coloredCount, approxCount)) {
+        coloredSlots.add(Math.floor(Math.random() * approxCount));
       }
 
-      renderMsg('success', `➡️ Next round!`, `Round <b>${roundIdx + 1}</b> incoming…`);
-      setTimeout(() => renderFlag(), 650);
-      updateHUD();
-      return;
+      let x = rowOffset;
+      for (let i = 0; i < approxCount; i++) {
+        const use = document.createElementNS('http://www.w3.org/2000/svg','use');
+
+        const isColored = coloredSlots.has(i);
+        const id = isColored ? pick(flagIdsColor) : pick(flagIdsOutline);
+
+        use.setAttribute('href', `#${id}`);
+        use.setAttribute('transform', `translate(${x},${y}) scale(${scale})`);
+
+        rowG.appendChild(use);
+        x += (size + spacingX);
+      }
+
+      // fade rows as they go up
+      const alpha = Math.max(0.05, 0.62 - (r * 0.02));
+      rowG.setAttribute('opacity', String(alpha));
+      footerSvg.appendChild(rowG);
     }
-
-    renderFlag();
-  }
-
-  function restart() {
-    roundIdx = 0;
-    flagIdx = 0;
-    triesLeft = TRIES_PER_FLAG;
-    score = 0;
-    submitBtn.disabled = false;
-    skipBtn.disabled = false;
-    guessInput.disabled = false;
-    setStatus('Ready');
-    renderFlag();
   }
 
   // Wire events
   submitBtn.addEventListener('click', submitGuess);
   skipBtn.addEventListener('click', skipFlag);
-  restartBtnTop.addEventListener('click', restart);
+  restartBtnTop.addEventListener('click', () => { restart(); buildFooter(); });
 
   guessInput.addEventListener('input', (e) => renderSuggestions(e.target.value));
   guessInput.addEventListener('focus', () => {
     if (guessInput.value) renderSuggestions(guessInput.value);
   });
 
-  // Close suggest when clicking outside
   document.addEventListener('mousedown', (e) => {
     const inWrap = e.target === guessInput || suggestBox.contains(e.target);
     if (!inWrap) closeSuggest();
   });
 
-  // Keyboard inside input
   guessInput.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown') { e.preventDefault(); moveActive(+1); return; }
     if (e.key === 'ArrowUp') { e.preventDefault(); moveActive(-1); return; }
@@ -1489,7 +1244,7 @@
     }
   });
 
-  // Global "." hint (works regardless of focus)
+  // Global "." hint regardless of focus
   document.addEventListener('keydown', (e) => {
     if (e.key !== '.') return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -1534,14 +1289,17 @@
     rounds = buildRoundsSmart(countries);
 
     setStatus('Ready');
+    buildFooter();
     restart();
   }
 
   loadCountries().catch(err => {
     console.error(err);
     setStatus('Load failed');
-    renderMsg('fail', `Couldn’t load country data.`, `${String(err.message || err)}`);
+    renderMsg('fail','FAIL WHALE',`Couldn’t load country data.`, `${String(err.message || err)}`);
   });
+
+  window.addEventListener('resize', () => buildFooter());
 })();
 </script>
 </body>
