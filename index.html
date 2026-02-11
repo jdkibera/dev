@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Flag Gauntlet</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    body { margin: 0; background: #0b1020; color: #e9eefc; }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 22px; }
+    .card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); border-radius: 16px; padding: 18px; }
+    .topbar { display:flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .pill { padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.10); font-size: 13px; }
+    .flagBox { display:flex; align-items:center; justify-content:center; min-height: 280px; padding: 12px; }
+    .flag { max-width: 520px; width: min(520px, 90%); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12); }
+    .controls { display:flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+    input[type="text"]{
+      flex: 1 1 280px; padding: 12px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.35); color: #e9eefc; outline: none;
+    }
+    button{
+      padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(90,140,255,0.22); color: #e9eefc; cursor: pointer;
+    }
+    button:hover{ background: rgba(90,140,255,0.33); }
+    button:disabled{ opacity: 0.55; cursor: not-allowed; }
+    .msg { margin-top: 12px; font-size: 14px; opacity: 0.95; }
+    .screen { display:none; margin-top: 14px; padding: 14px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.12); }
+    .screen.ok { background: rgba(60, 200, 120, 0.16); }
+    .screen.bad { background: rgba(255, 90, 90, 0.16); }
+    pre { margin: 0; white-space: pre-wrap; }
+    .muted { opacity: 0.8; }
+    .footer { margin-top: 16px; opacity: 0.75; font-size: 12px; }
+    .spinner { display:inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.25); border-top-color: rgba(255,255,255,0.9); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="pill" id="statusPill">Loading countries… <span class="spinner" aria-hidden="true"></span></div>
+      <div class="pill">Round: <b id="roundNum">1</b> / <span id="roundTotal">?</span></div>
+      <div class="pill">Flag: <b id="flagIndex">1</b> / <b id="flagsPerRound">10</b></div>
+      <div class="pill">Tries left: <b id="triesLeft">3</b></div>
+      <div class="pill">Score: <b id="score">0</b></div>
+    </div>
+
+    <div class="card">
+      <div class="flagBox">
+        <img id="flagImg" class="flag" alt="Country flag" />
+      </div>
+
+      <div class="controls">
+        <input id="guessInput" type="text" placeholder="Type a country name…" autocomplete="off" list="countryList" />
+        <datalist id="countryList"></datalist>
+        <button id="submitBtn">Submit</button>
+        <button id="skipBtn" title="Give up on this flag (0 points)">Skip</button>
+        <button id="restartBtn" title="Restart from Round 1">Restart</button>
+      </div>
+
+      <div class="msg muted" id="hintLine">Tip: use the dropdown suggestions to avoid typos.</div>
+
+      <div class="screen ok" id="okScreen"></div>
+      <div class="screen bad" id="badScreen"></div>
+
+      <div class="footer muted">
+        Difficulty increases each round by selecting countries with smaller populations.
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const FLAGS_PER_ROUND = 10;
+  const TRIES_PER_FLAG = 3;
+
+  // UI
+  const statusPill = document.getElementById('statusPill');
+  const roundNumEl = document.getElementById('roundNum');
+  const roundTotalEl = document.getElementById('roundTotal');
+  const flagIndexEl = document.getElementById('flagIndex');
+  const flagsPerRoundEl = document.getElementById('flagsPerRound');
+  const triesLeftEl = document.getElementById('triesLeft');
+  const scoreEl = document.getElementById('score');
+  const flagImg = document.getElementById('flagImg');
+  const guessInput = document.getElementById('guessInput');
+  const submitBtn = document.getElementById('submitBtn');
+  const skipBtn = document.getElementById('skipBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const okScreen = document.getElementById('okScreen');
+  const badScreen = document.getElementById('badScreen');
+  const countryList = document.getElementById('countryList');
+
+  // Game state
+  let countries = [];
+  let normalizedNameToCountry = new Map(); // normalized -> country
+  let rounds = [];                         // array of arrays (each round's countries)
+  let roundIdx = 0;
+  let flagIdx = 0;
+  let triesLeft = TRIES_PER_FLAG;
+  let score = 0;
+
+  const FAIL_WHALE = `
+        __      _
+   .-""  ""-._/ )
+  /  o  o     _/
+  \\  .----.  /
+   '._\\__/_.'
+      /  \\
+  FAIL WHALE SAYS: "NOPE."
+  `;
+
+  function norm(s) {
+    return String(s || '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
+      .replace(/[^a-z0-9 ]/g, '')                       // remove punctuation
+      .replace(/\s+/g, ' ');
+  }
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function setStatus(text) { statusPill.textContent = text; }
+  function show(el, html) { el.style.display = 'block'; el.innerHTML = html; }
+  function hide(el) { el.style.display = 'none'; el.innerHTML = ''; }
+
+  function updateHUD() {
+    roundNumEl.textContent = String(roundIdx + 1);
+    roundTotalEl.textContent = String(rounds.length || '?');
+    flagIndexEl.textContent = String(flagIdx + 1);
+    flagsPerRoundEl.textContent = String(FLAGS_PER_ROUND);
+    triesLeftEl.textContent = String(triesLeft);
+    scoreEl.textContent = String(score);
+  }
+
+  function currentCountry() {
+    return rounds?.[roundIdx]?.[flagIdx] || null;
+  }
+
+  function renderFlag() {
+    hide(okScreen);
+    hide(badScreen);
+
+    const c = currentCountry();
+    if (!c) return;
+
+    // prefer png; fallback svg
+    const url = c.flags?.png || c.flags?.svg || '';
+    flagImg.src = url;
+    flagImg.alt = `Flag of ${c.name?.common || 'Unknown'}`;
+
+    triesLeft = TRIES_PER_FLAG;
+    guessInput.value = '';
+    guessInput.focus();
+    updateHUD();
+  }
+
+  function pointsForTry(tryNumberUsed) {
+    // tryNumberUsed: 1..3
+    if (tryNumberUsed === 1) return 3;
+    if (tryNumberUsed === 2) return 2;
+    if (tryNumberUsed === 3) return 1;
+    return 0;
+  }
+
+  function advanceFlag() {
+    flagIdx++;
+    if (flagIdx >= FLAGS_PER_ROUND) {
+      roundIdx++;
+      flagIdx = 0;
+
+      if (roundIdx >= rounds.length) {
+        show(okScreen, `<b>🏁 Game complete!</b><br/>Final score: <b>${score}</b><br/><br/><button onclick="location.reload()">Play again</button>`);
+        submitBtn.disabled = true;
+        skipBtn.disabled = true;
+        guessInput.disabled = true;
+        updateHUD();
+        return;
+      }
+
+      show(okScreen, `<b>➡️ Next round!</b><br/>Round <b>${roundIdx + 1}</b> incoming…`);
+      setTimeout(() => renderFlag(), 650);
+      updateHUD();
+      return;
+    }
+
+    renderFlag();
+  }
+
+  function markSuccess(countryName, tryUsed) {
+    const pts = pointsForTry(tryUsed);
+    score += pts;
+
+    show(okScreen, `<b>✅ Correct!</b> That was <b>${countryName}</b>.<br/>You earned <b>${pts}</b> point${pts === 1 ? '' : 's'}.`);
+    updateHUD();
+
+    setTimeout(() => advanceFlag(), 700);
+  }
+
+  function markFail(guess, answer, outOfTries) {
+    const quip = [
+      "Bold. Incorrect. Iconic.",
+      "That guess just got politely escorted out.",
+      "Close… if we’re grading by vibes.",
+      "The flag disagrees. Loudly.",
+      "Somewhere, a geography teacher felt a disturbance."
+    ][Math.floor(Math.random() * 5)];
+
+    if (!outOfTries) {
+      show(badScreen, `<pre>${FAIL_WHALE}</pre><div><b>${quip}</b><br/>Try again. You have <b>${triesLeft}</b> tries left.</div>`);
+    } else {
+      show(badScreen, `<pre>${FAIL_WHALE}</pre><div><b>${quip}</b><br/>Out of tries. The answer was <b>${answer}</b>.<br/>Moving on…</div>`);
+      setTimeout(() => advanceFlag(), 1000);
+    }
+  }
+
+  function submitGuess() {
+    const c = currentCountry();
+    if (!c) return;
+
+    const guess = guessInput.value;
+    const guessN = norm(guess);
+
+    if (!guessN) {
+      markFail(guess, c.name.common, false);
+      return;
+    }
+
+    // Accept: common name, official name, and any alt spellings we load.
+    const accepted = new Set();
+    accepted.add(norm(c.name?.common));
+    accepted.add(norm(c.name?.official));
+    (c.altSpellings || []).forEach(s => accepted.add(norm(s)));
+
+    const tryUsed = TRIES_PER_FLAG - triesLeft + 1;
+
+    if (accepted.has(guessN)) {
+      markSuccess(c.name.common, tryUsed);
+      return;
+    }
+
+    triesLeft--;
+    updateHUD();
+
+    if (triesLeft <= 0) {
+      markFail(guess, c.name.common, true);
+    } else {
+      markFail(guess, c.name.common, false);
+      guessInput.select();
+      guessInput.focus();
+    }
+  }
+
+  function skipFlag() {
+    const c = currentCountry();
+    if (!c) return;
+    show(badScreen, `<b>⏭️ Skipped.</b> That was <b>${c.name.common}</b>. (0 points)`);
+    setTimeout(() => advanceFlag(), 700);
+  }
+
+  function restart() {
+    roundIdx = 0;
+    flagIdx = 0;
+    triesLeft = TRIES_PER_FLAG;
+    score = 0;
+    submitBtn.disabled = false;
+    skipBtn.disabled = false;
+    guessInput.disabled = false;
+    setStatus('Ready');
+    renderFlag();
+  }
+
+  function buildDatalist(countries) {
+    // For suggestions we show common names only to keep the list readable.
+    countryList.innerHTML = '';
+    countries
+      .map(c => c.name?.common)
+      .filter(Boolean)
+      .sort((a,b) => a.localeCompare(b))
+      .forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        countryList.appendChild(opt);
+      });
+  }
+
+  function buildRoundsByPopulation(countries) {
+    // Sort by population descending: big countries first (easier), microstates later (harder).
+    const sorted = [...countries].sort((a,b) => (b.population || 0) - (a.population || 0));
+
+    // Chunk into difficulty bands, then sample 10 per round from each band.
+    // Banding logic: each round pulls from a deeper slice of the population ranking.
+    const totalPossibleRounds = Math.floor(sorted.length / FLAGS_PER_ROUND);
+    const roundsCount = Math.max(6, Math.min(12, totalPossibleRounds)); // keep it sane: 6..12 rounds
+    const bandSize = Math.floor(sorted.length / roundsCount);
+
+    const out = [];
+    for (let r = 0; r < roundsCount; r++) {
+      const start = r * bandSize;
+      const end = (r === roundsCount - 1) ? sorted.length : (r + 1) * bandSize;
+      const band = sorted.slice(start, end);
+
+      // sample 10 unique from this band
+      shuffle(band);
+      out.push(band.slice(0, FLAGS_PER_ROUND));
+    }
+    return out;
+  }
+
+  async function loadCountries() {
+    setStatus('Loading countries…');
+
+    const res = await fetch('https://restcountries.com/v3.1/all');
+    if (!res.ok) throw new Error(`Failed to fetch countries: ${res.status}`);
+
+    const data = await res.json();
+
+    // Keep only what we need
+    countries = data
+      .filter(c => c?.name?.common && (c?.flags?.png || c?.flags?.svg))
+      .map(c => ({
+        name: c.name,
+        altSpellings: c.altSpellings || [],
+        flags: c.flags,
+        population: c.population || 0
+      }));
+
+    // Map normalized common name -> country (for possible future fast-lookup)
+    normalizedNameToCountry = new Map();
+    for (const c of countries) {
+      normalizedNameToCountry.set(norm(c.name.common), c);
+    }
+
+    buildDatalist(countries);
+    rounds = buildRoundsByPopulation(countries);
+    setStatus('Ready');
+    restart();
+  }
+
+  // Wire events
+  submitBtn.addEventListener('click', submitGuess);
+  skipBtn.addEventListener('click', skipFlag);
+  restartBtn.addEventListener('click', restart);
+  guessInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitGuess();
+  });
+
+  // Boot
+  loadCountries().catch(err => {
+    console.error(err);
+    setStatus('Load failed');
+    show(badScreen, `<b>Couldn’t load country data.</b><br/><span class="muted">${String(err.message || err)}</span>`);
+  });
+})();
+</script>
+</body>
+</html>
