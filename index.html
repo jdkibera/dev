@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Flag Gauntlet</title>
 
-  <!-- Calligraffitti for the angled brand -->
+  <!-- Calligraffitti for the angled brand + round overlay -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Calligraffitti&display=swap" rel="stylesheet">
@@ -18,12 +18,15 @@
       --cardBorder: rgba(0,0,0,0.18);
 
       --pillBg: rgba(255,255,255,0.10);
+
       --btnBg: rgba(90,140,255,0.22);
       --btnBgHover: rgba(90,140,255,0.33);
 
       --flagStageH: 340px;
-      --msgH: 230px;
-      --iconColW: 120px;
+
+      /* Messaging area: keep fixed + bigger typography */
+      --msgH: 320px;
+      --iconColW: 150px;
 
       --brandBlueGrey: rgba(80, 110, 140, 0.42);
     }
@@ -44,7 +47,7 @@
       flex: 1;
       display: grid;
       place-items: center;
-      padding: 70px 14px 10px; /* MORE top space so angled title never clips */
+      padding: 70px 14px 10px;
       position: relative;
     }
 
@@ -57,11 +60,10 @@
       position: relative;
     }
 
-    /* Angled brand title anchored near modal */
     .brandAngle{
       position: absolute;
       left: -132px;
-      top: 118px;             /* moved down to ensure no clipping */
+      top: 118px;
       transform: rotate(-45deg);
       transform-origin: left top;
       font-family: "Calligraffitti", "Snell Roundhand", "Apple Chancery", "Segoe Script", cursive;
@@ -72,8 +74,8 @@
       pointer-events: none;
       z-index: 10;
       line-height: 0.92;
-      text-align: center;     /* center Kibera over Flag Gauntlet */
-      width: 250px;           /* give a stable box to center in */
+      text-align: center;
+      width: 250px;
     }
 
     .topbar{
@@ -126,7 +128,6 @@
       position: relative;
     }
 
-    /* Modal title: Helvetica Neue ultra thin */
     .questionTitle{
       text-align: center;
       margin: 6px 0 10px;
@@ -194,7 +195,7 @@
       padding: 12px 14px;
       border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.14);
-      background: var(--btnBg);
+      background: rgba(90,140,255,0.22);
       color: #e9eefc;
       cursor: pointer;
       min-width: 96px;
@@ -202,7 +203,7 @@
       font-weight: 900;
       letter-spacing: 0.9px;
     }
-    button:hover{ background: var(--btnBgHover); }
+    button:hover{ background: rgba(90,140,255,0.33); }
     button:disabled{ opacity: 0.55; cursor: not-allowed; }
 
     .hintHotkeyLine{
@@ -243,6 +244,7 @@
     .sgItem:hover, .sgItem.active{ background: rgba(90,140,255,0.22); }
     .sgMeta{ font-size: 12px; opacity: 0.70; white-space: nowrap; }
 
+    /* Messaging area: fixed layout so nothing jumps */
     .belowMsg{
       width: min(900px, 100%);
       height: var(--msgH);
@@ -256,7 +258,7 @@
       display: grid;
       grid-template-columns: var(--iconColW) minmax(0, 1fr);
       align-items: start;
-      gap: 14px;
+      gap: 18px;
       padding: 0 6px;
       box-sizing: border-box;
     }
@@ -265,13 +267,13 @@
       display:flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
       padding-top: 2px;
     }
 
     .iconSq{
-      width: 108px;
-      height: 108px;
+      width: 132px;
+      height: 132px;
       border-radius: 18px;
       border: none;
       background: rgba(255,255,255,0.0);
@@ -286,8 +288,8 @@
       display:block;
     }
     .iconLabel{
-      font-size: 10px;
-      letter-spacing: 1.2px;
+      font-size: 11px;
+      letter-spacing: 1.4px;
       font-weight: 500;
       color: rgba(37,48,65,0.70);
       text-transform: uppercase;
@@ -296,33 +298,35 @@
       font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
     }
 
+    /* Messaging typography: ~2x */
     .msgText{
       text-align: left;
       line-height: 1.25;
       align-self: start;
-      padding-top: 4px;
+      padding-top: 6px;
       font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
       font-weight: 300;
     }
     .msgText .headline{
-      font-size: 18px;
-      margin: 0 0 6px;
-      min-height: 24px;
+      font-size: 36px;
+      margin: 0 0 10px;
+      min-height: 42px;
       color: rgba(37,48,65,0.92);
-      font-weight: 400;
+      font-weight: 350;
     }
     .msgText .sub{
-      font-size: 14px;
+      font-size: 28px;
       opacity: 0.92;
       margin: 0;
-      min-height: 56px;
+      min-height: 110px;
       color: rgba(37,48,65,0.86);
       font-weight: 300;
     }
+    .msgText b{ font-weight: 800; }
     .msgText a{
       color: rgba(30,80,170,0.95);
       text-decoration: underline;
-      font-weight: 700;
+      font-weight: 800;
     }
 
     .bottomArea{
@@ -347,12 +351,12 @@
 
     .flagFooter{
       height: 33vh;
-      min-height: 220px;
-      max-height: 420px;
+      min-height: 240px;
+      max-height: 460px;
       width: 100vw;
       position: relative;
       overflow: hidden;
-      background: linear-gradient(to bottom, rgba(223,232,244,0.0), rgba(223,232,244,0.98));
+      background: linear-gradient(to bottom, rgba(223,232,244,0.0), rgba(223,232,244,1.0));
     }
 
     .footerSvg{
@@ -361,7 +365,7 @@
       top: 0;
       width: 100%;
       height: 100%;
-      opacity: 0.62;
+      opacity: 1;
       mask-image: linear-gradient(to bottom, rgba(0,0,0,0.0), rgba(0,0,0,1.0));
     }
 
@@ -373,6 +377,8 @@
       z-index: 9999;
       display: none;
     }
+
+    /* ROUND overlay: Calligraffitti + huge */
     .roundOverlay{
       position: fixed;
       inset: 0;
@@ -380,17 +386,17 @@
       pointer-events: none;
       z-index: 10000;
       place-items: center;
-      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
-      font-weight: 200;
-      letter-spacing: 2px;
-      color: rgba(11,16,32,0.92);
       text-align: center;
     }
     .roundOverlay .big{
-      font-size: min(78px, 12vw);
-      padding: 22px 28px;
+      font-family: "Calligraffitti", cursive;
+      font-weight: 400;
+      font-size: min(140px, 16vw);
+      line-height: 0.95;
+      color: rgba(11,16,32,0.86);
+      padding: 10px 18px;
       border-radius: 18px;
-      background: rgba(255,255,255,0.55);
+      background: rgba(255,255,255,0.35);
       backdrop-filter: blur(4px);
       border: 1px solid rgba(0,0,0,0.06);
     }
@@ -398,13 +404,19 @@
     @media (max-width: 900px){
       .brandAngle{ left: -122px; top: 130px; font-size: 40px; width: 230px; }
       .questionTitle{ font-size: 30px; }
+      .msgText .headline{ font-size: 30px; }
+      .msgText .sub{ font-size: 22px; }
+      .iconSq{ width: 120px; height: 120px; }
+      :root{ --iconColW: 140px; --msgH: 300px; }
     }
     @media (max-width: 760px){
-      :root{ --iconColW: 112px; }
+      :root{ --iconColW: 132px; --msgH: 290px; }
       .pill{ font-size: 16px; }
       .pill b{ font-size: 18px; }
       .questionTitle{ font-size: 26px; }
       .brandAngle{ font-size: 34px; left: -110px; top: 140px; width: 210px; }
+      .msgText .headline{ font-size: 26px; }
+      .msgText .sub{ font-size: 20px; }
     }
   </style>
 </head>
@@ -414,7 +426,7 @@
     <canvas id="confettiCanvas" style="width:100%;height:100%"></canvas>
   </div>
   <div class="roundOverlay" id="roundOverlay">
-    <div class="big" id="roundOverlayText">ROUND 2</div>
+    <div class="big" id="roundOverlayText">ROUND 2!</div>
   </div>
 
   <div class="main">
@@ -473,7 +485,7 @@
   const FLAGS_PER_ROUND = 10;
   const TRIES_PER_FLAG = 3;
 
-  const PAUSE_CORRECT_MS = 3000;  // changed
+  const PAUSE_CORRECT_MS = 3000;
   const PAUSE_WRONG_MS   = 10000;
 
   // UI
@@ -561,78 +573,90 @@
     return r;
   }
 
-  // --- ICONS: fail whale reference style + matching simple-line animals ---
+  // --- Pencil sketch icon set (consistent linework + light wash) ---
   function iconSVG(kind) {
-    const stroke = "rgba(20,25,30,0.85)";
-    const stroke2 = "rgba(20,25,30,0.65)";
+    const stroke = "rgba(20,25,30,0.82)";
+    const wash1  = "rgba(120,155,200,0.22)";
+    const wash2  = "rgba(120,155,200,0.14)";
+    const paper  = "rgba(255,255,255,0.70)";
+
+    const hatch = (id) => `
+      <defs>
+        <pattern id="${id}" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
+          <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(20,25,30,0.18)" stroke-width="2"/>
+        </pattern>
+        <filter id="roughen">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="2" result="noise"/>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.6" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+      </defs>
+    `;
 
     if (kind === 'fail') {
-      // Inspired-by fail whale: blue whale + splash + little “x eyes”
       return `
       <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-        <rect width="110" height="110" rx="18" fill="rgba(255,255,255,0)"/>
+        ${hatch("h1")}
+        <rect width="110" height="110" rx="18" fill="${paper}"/>
         <path d="M18 66c10 18 28 28 46 24 20-4 30-18 30-36 0-7-2-13-6-18-7 10-22 11-32 7-11-4-20-10-31-4-8 4-13 12-11 27z"
-              fill="rgba(70,135,205,0.96)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+              fill="url(#h1)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round" filter="url(#roughen)"/>
         <path d="M88 46c10-6 16-2 18 6-6 2-12 2-18-2z"
-              fill="rgba(70,135,205,0.96)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+              fill="${wash2}" stroke="${stroke}" stroke-width="3" stroke-linejoin="round" filter="url(#roughen)"/>
         <path d="M26 54c-7-11-2-19 9-23 2 9-2 17-9 23z"
-              fill="rgba(70,135,205,0.96)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+              fill="${wash2}" stroke="${stroke}" stroke-width="3" stroke-linejoin="round" filter="url(#roughen)"/>
 
-        <path d="M46 60l6 6M52 60l-6 6" stroke="${stroke2}" stroke-width="3" stroke-linecap="round"/>
-        <path d="M60 60l6 6M66 60l-6 6" stroke="${stroke2}" stroke-width="3" stroke-linecap="round"/>
-
-        <path d="M58 74c-7 4-16 4-23 0" fill="none" stroke="${stroke2}" stroke-width="3" stroke-linecap="round"/>
-        <path d="M42 38c2-8 10-12 12-12-2 10-8 12-12 12z" fill="rgba(235,245,255,0.85)" stroke="rgba(0,0,0,0)" />
-        <path d="M50 30c4-10 12-12 18-10-6 6-10 10-18 10z" fill="rgba(235,245,255,0.85)" stroke="rgba(0,0,0,0)" />
+        <path d="M46 60l6 6M52 60l-6 6" stroke="rgba(20,25,30,0.55)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M60 60l6 6M66 60l-6 6" stroke="rgba(20,25,30,0.55)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M58 74c-7 4-16 4-23 0" fill="none" stroke="rgba(20,25,30,0.45)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M14 78c10 1 14 0 22-3" stroke="rgba(20,25,30,0.20)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M76 80c12 2 16 2 22-1" stroke="rgba(20,25,30,0.20)" stroke-width="3" stroke-linecap="round"/>
       </svg>`;
     }
 
     if (kind === 'success') {
-      // Tony Tiger in same “flat fill + heavy outline” vibe
       return `
       <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-        <rect width="110" height="110" rx="18" fill="rgba(255,255,255,0)"/>
-        <path d="M26 46c-7-11-2-23 11-25l8 13z" fill="rgba(255,170,70,0.96)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
-        <path d="M84 46c7-11 2-23-11-25l-8 13z" fill="rgba(255,170,70,0.96)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
-        <circle cx="55" cy="60" r="34" fill="rgba(255,170,70,0.96)" stroke="${stroke}" stroke-width="3"/>
+        ${hatch("h2")}
+        <rect width="110" height="110" rx="18" fill="${paper}"/>
+        <path d="M26 46c-7-11-2-23 11-25l8 13z" fill="${wash2}" stroke="${stroke}" stroke-width="3" stroke-linejoin="round" filter="url(#roughen)"/>
+        <path d="M84 46c7-11 2-23-11-25l-8 13z" fill="${wash2}" stroke="${stroke}" stroke-width="3" stroke-linejoin="round" filter="url(#roughen)"/>
+        <circle cx="55" cy="60" r="34" fill="url(#h2)" stroke="${stroke}" stroke-width="3" filter="url(#roughen)"/>
         <path d="M33 63c0-13 10-23 22-23s22 10 22 23-10 21-22 21-22-8-22-21z"
-              fill="rgba(255,255,255,0.92)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+              fill="${paper}" stroke="${stroke}" stroke-width="3" stroke-linejoin="round" filter="url(#roughen)"/>
         <circle cx="45" cy="58" r="3.2" fill="${stroke}"/>
         <circle cx="65" cy="58" r="3.2" fill="${stroke}"/>
-        <path d="M55 62c0 7-7 10-12 7" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/>
-        <path d="M55 62c0 7 7 10 12 7" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/>
-        <path d="M41 47c3 6 5 9 7 11M69 47c-3 6-5 9-7 11" stroke="rgba(0,0,0,0.18)" stroke-width="4" stroke-linecap="round"/>
+        <path d="M55 62c0 7-7 10-12 7" fill="none" stroke="rgba(20,25,30,0.55)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M55 62c0 7 7 10 12 7" fill="none" stroke="rgba(20,25,30,0.55)" stroke-width="3" stroke-linecap="round"/>
+        <path d="M36 50c10 4 18 4 38 0" stroke="rgba(20,25,30,0.18)" stroke-width="4" stroke-linecap="round"/>
       </svg>`;
     }
 
     if (kind === 'hint') {
-      // Helpful Hippo in same style
       return `
       <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-        <rect width="110" height="110" rx="18" fill="rgba(255,255,255,0)"/>
-        <circle cx="55" cy="60" r="34" fill="rgba(170,185,225,0.96)" stroke="${stroke}" stroke-width="3"/>
-        <circle cx="35" cy="40" r="10" fill="rgba(170,185,225,0.96)" stroke="${stroke}" stroke-width="3"/>
-        <circle cx="75" cy="40" r="10" fill="rgba(170,185,225,0.96)" stroke="${stroke}" stroke-width="3"/>
+        ${hatch("h3")}
+        <rect width="110" height="110" rx="18" fill="${paper}"/>
+        <circle cx="55" cy="60" r="34" fill="url(#h3)" stroke="${stroke}" stroke-width="3" filter="url(#roughen)"/>
+        <circle cx="35" cy="40" r="10" fill="${wash2}" stroke="${stroke}" stroke-width="3" filter="url(#roughen)"/>
+        <circle cx="75" cy="40" r="10" fill="${wash2}" stroke="${stroke}" stroke-width="3" filter="url(#roughen)"/>
         <path d="M35 72c0-11 9-19 20-19s20 8 20 19-8 17-20 17-20-6-20-17z"
-              fill="rgba(255,255,255,0.92)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+              fill="${paper}" stroke="${stroke}" stroke-width="3" stroke-linejoin="round" filter="url(#roughen)"/>
         <circle cx="45" cy="56" r="3.1" fill="${stroke}"/>
         <circle cx="65" cy="56" r="3.1" fill="${stroke}"/>
-        <circle cx="48" cy="70" r="3" fill="rgba(20,25,30,0.30)"/>
-        <circle cx="62" cy="70" r="3" fill="rgba(20,25,30,0.30)"/>
-        <path d="M55 74c-3 4-7 4-10 0" stroke="rgba(20,25,30,0.42)" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M55 74c-3 4-7 4-10 0" stroke="rgba(20,25,30,0.45)" stroke-width="3" fill="none" stroke-linecap="round"/>
         <path d="M82 28l6 0M85 25l0 6" stroke="rgba(20,25,30,0.45)" stroke-width="3" stroke-linecap="round"/>
       </svg>`;
     }
 
-    // default: globe/map
     return `
     <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-      <rect width="110" height="110" rx="18" fill="rgba(255,255,255,0)"/>
-      <circle cx="55" cy="55" r="34" fill="rgba(120,170,220,0.30)" stroke="rgba(20,25,30,0.75)" stroke-width="3"/>
-      <path d="M21 55h68" stroke="rgba(20,25,30,0.40)" stroke-width="3"/>
-      <path d="M55 21v68" stroke="rgba(20,25,30,0.25)" stroke-width="3"/>
-      <path d="M30 40c8-8 18-12 26-12" stroke="rgba(20,25,30,0.40)" stroke-width="3" fill="none" stroke-linecap="round"/>
-      <path d="M30 70c8 8 18 12 26 12" stroke="rgba(20,25,30,0.40)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      ${hatch("h4")}
+      <rect width="110" height="110" rx="18" fill="${paper}"/>
+      <circle cx="55" cy="55" r="34" fill="url(#h4)" stroke="${stroke}" stroke-width="3" filter="url(#roughen)"/>
+      <path d="M21 55h68" stroke="rgba(20,25,30,0.35)" stroke-width="3"/>
+      <path d="M55 21v68" stroke="rgba(20,25,30,0.22)" stroke-width="3"/>
+      <path d="M30 40c8-8 18-12 26-12" stroke="rgba(20,25,30,0.35)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M30 70c8 8 18 12 26 12" stroke="rgba(20,25,30,0.35)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M70 40c-6 6-10 10-20 12" stroke="rgba(20,25,30,0.20)" stroke-width="3" fill="none" stroke-linecap="round"/>
     </svg>`;
   }
 
@@ -753,15 +777,15 @@
       .map(code => cca3ToCountry.get(code)?.name?.common)
       .filter(Boolean);
 
-    if (!names.length) return `· <b><i>Neighbors</i></b>: <b>none</b> (island / solo mode) 🏝️`;
+    if (!names.length) return `· <b>Neighbors</b>: <b>none</b> (island / solo mode) 🏝️`;
 
     const sample = names.slice(0, 6);
     const extra = names.length > sample.length ? ` (+${names.length - sample.length} more)` : '';
-    return `· <b><i>Neighbors</i></b>: ${sample.join(', ')}${extra} 🤝`;
+    return `· <b>Neighbors</b>: ${sample.join(', ')}${extra} 🤝`;
   }
 
   const FOOD_HINT = {
-    "Iran": `date palms & saffron rice with meat (<i>Chelo Kabab</i>) 🍚🥩`,
+    "Iran": `date palms & saffron rice with meat (Chelo Kabab) 🍚🥩`,
     "Peru": `ceviche + lomo saltado 🐟🥔`,
     "Japan": `sushi + ramen 🍣🍜`,
     "Italy": `pasta + espresso 🍝☕`,
@@ -776,7 +800,6 @@
     "Australia": `flat white + meat pie + “barbie” culture ☕🥧`
   };
 
-  // Expanded famous people list, incl. Australia and more coverage.
   const FAMOUS_PERSON = {
     "Australia": "Chris Hemsworth (actor) 🎬",
     "New Zealand": "Taika Waititi (filmmaker) 🎬",
@@ -812,26 +835,12 @@
     "Ghana": "Kofi Annan (leader) 🕊️",
     "Morocco": "Ibn Battuta (explorer) 🧭",
     "Tunisia": "Hannibal (general) 🐘",
-    "Saudi Arabia": "MBS (leader) 🏛️",
-    "United Arab Emirates": "Burj Khalifa (icon) 🏙️",
-    "Qatar": "Al Jazeera (media) 📺",
     "Iran": "Rumi (poet) 📜",
-    "Iraq": "Mesopotamia (history) 🏺",
-    "Jordan": "Queen Rania (public figure) 👑",
-    "Lebanon": "Kahlil Gibran (writer) 📚",
     "China": "Jackie Chan (actor) 🎥",
     "Japan": "Hayao Miyazaki (filmmaker) 🎬",
     "South Korea": "BTS (musicians) 🎤",
     "India": "Mahatma Gandhi (leader) 🕊️",
     "Pakistan": "Malala Yousafzai (activist) 🎓",
-    "Bangladesh": "Muhammad Yunus (economist) 💡",
-    "Sri Lanka": "M.I.A. (musician) 🎤",
-    "Thailand": "Tony Jaa (actor) 🥋",
-    "Vietnam": "Ho Chi Minh (leader) 🧭",
-    "Indonesia": "Sukarno (leader) 🗳️",
-    "Philippines": "Manny Pacquiao (athlete) 🥊",
-    "Malaysia": "Michelle Yeoh (actor) 🎬",
-    "Singapore": "Lee Kuan Yew (leader) 🏛️",
     "Brazil": "Pelé (athlete) ⚽",
     "Argentina": "Lionel Messi (athlete) ⚽",
     "Mexico": "Frida Kahlo (artist) 🎨",
@@ -890,16 +899,16 @@
     if (tryUsed === 1) {
       const cont = continentLabel(c.region, c.subregion);
       return [
-        `· <b><i>Continent</i></b>: ${cont} 🌍`,
-        `· <b><i>Food</i></b>: ${hint1Food(c)}`
+        `· <b>Continent</b>: ${cont} 🌍`,
+        `· <b>Food</b>: ${hint1Food(c)}`
       ].join('<br/>');
     }
     if (tryUsed === 2) {
       const pop = fmtNumber(Math.round(c.population || 0));
-      const celeb = FAMOUS_PERSON[c.name.common] || `A-list vibes (${continentLabel(c.region, c.subregion)}) ⭐`;
+      const celeb = FAMOUS_PERSON[c.name.common] || `Big deal in ${continentLabel(c.region, c.subregion)} ⭐`;
       return [
-        `· <b><i>Famous Name</i></b>: ${celeb}`,
-        `· <b><i>Stat</i></b>: population ${pop} 👥`,
+        `· <b>Famous Name</b>: ${celeb}`,
+        `· <b>Population</b>: ${pop} 👥`,
         neighborsList(c)
       ].join('<br/>');
     }
@@ -915,9 +924,9 @@
       { suffix: 'ine', words: ['wine','fine','line','shine'] },
     ];
     for (const p of patterns){
-      if (n.endsWith(p.suffix)) return `· <b><i>Rhymes-ish</i></b>: ${p.words.join(', ')} 🎶`;
+      if (n.endsWith(p.suffix)) return `· <b>Rhymes-ish</b>: ${p.words.join(', ')} 🎶`;
     }
-    return `· <b><i>Sound clue</i></b>: ends like “${ends}”… try yelling “${ends}!” dramatically 🎭`;
+    return `· <b>Sound clue</b>: ends like “${ends}”… try yelling “${ends}!” dramatically 🎭`;
   }
 
   function renderFlag() {
@@ -944,8 +953,8 @@
     return 0;
   }
 
-  // --- Confetti ---
-  function confettiBurst(ms=1800){
+  // --- Confetti: slower rain + smoother fade ---
+  function confettiBurst(ms=3200){
     const dpr = window.devicePixelRatio || 1;
     const w = Math.floor(window.innerWidth * dpr);
     const h = Math.floor(window.innerHeight * dpr);
@@ -957,16 +966,16 @@
     const pieces = [];
     const colors = ['#ff6b6b','#ffd93d','#6bcBef','#6bff95','#b36bff','#ff9f43'];
 
-    const count = 220;
+    const count = 240;
     for (let i=0;i<count;i++){
       pieces.push({
         x: Math.random()*w,
-        y: -20 - Math.random()*h*0.2,
-        vx: (Math.random()*2-1) * dpr * 2.2,
-        vy: (Math.random()*1+2) * dpr * 3.2,
+        y: -40 - Math.random()*h*0.25,
+        vx: (Math.random()*2-1) * dpr * 1.6,
+        vy: (Math.random()*1+1.2) * dpr * 2.1,  // slower
         r: (Math.random()*4+3) * dpr,
         rot: Math.random()*Math.PI,
-        vr: (Math.random()*0.2-0.1),
+        vr: (Math.random()*0.16-0.08),
         c: colors[Math.floor(Math.random()*colors.length)],
         life: Math.random()*0.6 + 0.4
       });
@@ -979,12 +988,17 @@
       const p = Math.min(1, (t-start)/ms);
       ctx.clearRect(0,0,w,h);
 
+      const fade = Math.max(0, 1 - p);
+
       for (const s of pieces){
         s.x += s.vx;
         s.y += s.vy;
         s.rot += s.vr;
-        s.vy += 0.03 * dpr; // gravity
-        const alpha = Math.max(0, (1 - p) * s.life);
+        s.vy += 0.018 * dpr;      // gentler gravity
+        s.vx *= 0.995;            // slight drag
+        s.vy *= 0.998;
+
+        const alpha = Math.max(0, fade * s.life);
 
         ctx.save();
         ctx.translate(s.x, s.y);
@@ -1002,15 +1016,14 @@
   }
 
   function roundTransition(nextRoundNumber){
-    roundOverlayText.textContent = `ROUND ${nextRoundNumber}`;
+    roundOverlayText.textContent = `ROUND ${nextRoundNumber}!`;
     roundOverlay.style.display = 'grid';
-    confettiBurst(2200);
+    confettiBurst(3600);
 
-    // overlay dissolves into confetti
     setTimeout(() => {
       roundOverlay.style.display = 'none';
       renderFlag();
-    }, 2300);
+    }, 2600);
   }
 
   function advanceFlag() {
@@ -1062,7 +1075,7 @@
       'hint',
       'HELPFUL HIPPO',
       `Hint Used (costs a try!)`,
-      `${hint}<br/><br/>You have <b><i>${triesLeft}</i></b> tries left.`
+      `${hint}<br/><br/>You have <b>${triesLeft}</b> tries left.`
     );
   }
 
@@ -1082,7 +1095,7 @@
       score += pts;
       updateHUD();
 
-      const emoji = pick(["🎉","🥳","✨"]); // max 1 here; title only
+      const emoji = pick(["🎉","🥳","✨"]); // keep minimal
       renderMsg(
         'success',
         'TONY TIGER',
@@ -1178,10 +1191,10 @@
     return out;
   }
 
-  // Footer: scattered flags (as previous rev)
+  // Footer: dense “mountain” of overlapping flags, opaque, concentrated low
   function buildFooter() {
     const w = Math.max(1200, window.innerWidth);
-    const h = Math.max(220, Math.floor(window.innerHeight * 0.33));
+    const h = Math.max(240, Math.floor(window.innerHeight * 0.33));
     footerSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
     footerSvg.innerHTML = '';
 
@@ -1234,38 +1247,38 @@
       return p;
     }
 
-    const strokeOutline = 'rgba(37,48,65,0.55)';
-    const strokeThin = 'rgba(37,48,65,0.30)';
+    const strokeOutline = 'rgba(37,48,65,0.70)';
+    const strokeThin = 'rgba(37,48,65,0.45)';
 
     makeOutlineTemplate('tpl-us', (g)=>{
-      rect(g,0,0,44,26,'none',strokeOutline,1.5);
-      for (let y=5;y<=25;y+=5) line(g,0,y,44,y,strokeThin,1.2);
+      rect(g,0,0,44,26,'none',strokeOutline,1.7);
+      for (let y=5;y<=25;y+=5) line(g,0,y,44,y,strokeThin,1.3);
       rect(g,0,0,18,14,'none',strokeThin,1.2);
     });
     makeOutlineTemplate('tpl-uk', (g)=>{
-      rect(g,0,0,44,26,'none',strokeOutline,1.5);
+      rect(g,0,0,44,26,'none',strokeOutline,1.7);
       path(g,'M0 0 L44 26 M44 0 L0 26','none',strokeThin,1.1);
-      line(g,0,13,44,13,'rgba(37,48,65,0.40)',1.7);
-      line(g,22,0,22,26,'rgba(37,48,65,0.40)',1.7);
+      line(g,0,13,44,13,'rgba(37,48,65,0.55)',1.9);
+      line(g,22,0,22,26,'rgba(37,48,65,0.55)',1.9);
     });
     makeOutlineTemplate('tpl-jp', (g)=>{
-      rect(g,0,0,44,26,'none',strokeOutline,1.5);
-      circle(g,22,13,7,'none','rgba(37,48,65,0.40)',1.7);
+      rect(g,0,0,44,26,'none',strokeOutline,1.7);
+      circle(g,22,13,7,'none','rgba(37,48,65,0.55)',1.8);
     });
     makeOutlineTemplate('tpl-fr', (g)=>{
-      rect(g,0,0,44,26,'none',strokeOutline,1.5);
-      line(g,14.7,0,14.7,26,'rgba(37,48,65,0.35)',1.7);
-      line(g,29.3,0,29.3,26,'rgba(37,48,65,0.35)',1.7);
+      rect(g,0,0,44,26,'none',strokeOutline,1.7);
+      line(g,14.7,0,14.7,26,'rgba(37,48,65,0.50)',1.9);
+      line(g,29.3,0,29.3,26,'rgba(37,48,65,0.50)',1.9);
     });
     makeOutlineTemplate('tpl-de', (g)=>{
-      rect(g,0,0,44,26,'none',strokeOutline,1.5);
-      line(g,0,8.7,44,8.7,'rgba(37,48,65,0.35)',1.7);
-      line(g,0,17.4,44,17.4,'rgba(37,48,65,0.35)',1.7);
+      rect(g,0,0,44,26,'none',strokeOutline,1.7);
+      line(g,0,8.7,44,8.7,'rgba(37,48,65,0.50)',1.9);
+      line(g,0,17.4,44,17.4,'rgba(37,48,65,0.50)',1.9);
     });
     makeOutlineTemplate('tpl-br', (g)=>{
-      rect(g,0,0,44,26,'none',strokeOutline,1.5);
-      path(g,'M22 3 L39 13 L22 23 L5 13 Z','none','rgba(37,48,65,0.35)',1.7);
-      circle(g,22,13,5,'none','rgba(37,48,65,0.25)',1.2);
+      rect(g,0,0,44,26,'none',strokeOutline,1.7);
+      path(g,'M22 3 L39 13 L22 23 L5 13 Z','none','rgba(37,48,65,0.50)',1.9);
+      circle(g,22,13,5,'none','rgba(37,48,65,0.35)',1.3);
     });
 
     footerSvg.appendChild(defs);
@@ -1273,45 +1286,61 @@
     const templates = ['tpl-us','tpl-uk','tpl-jp','tpl-fr','tpl-de','tpl-br'];
 
     const flagW = 45;
-    const spacing = 18;
-    const approxCount = Math.floor((w * h) / ((flagW + spacing) * (flagW + spacing) * 1.55));
-    const count = Math.max(180, Math.min(520, approxCount));
+    const scaleBase = flagW / 44;
+
+    // MASSIVELY denser, slightly overlapping
+    const densityMultiplier = 3.2;
+    const approxCount = Math.floor((w * h) / (flagW * flagW * 0.95) * densityMultiplier);
+    const count = Math.max(520, Math.min(2400, approxCount));
 
     const coloredCount = Math.max(1, Math.floor(count * 0.10));
     const coloredIdx = new Set();
     while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(Math.random() * count));
 
     function randColor(i){
-      const h1 = (i * 137.508) % 360;
-      const s = 55 + (i % 20);
-      const l = 60;
-      return `hsla(${h1}, ${s}%, ${l}%, 0.28)`;
+      const hh = (i * 137.508) % 360;
+      return `hsla(${hh}, 55%, 60%, 0.30)`;
     }
 
-    const NS2 = 'http://www.w3.org/2000/svg';
+    // Concentrate positions low: yBias^2 to push toward bottom
+    function ySkew(){
+      const u = Math.random();
+      const v = u*u; // heavier toward 0
+      // map to lower 1/3 with some spill upward
+      const yMin = h * 0.35;
+      const yMax = h * 1.05;
+      return yMin + (1 - v) * (yMax - yMin);
+    }
+
+    const items = [];
     for (let i = 0; i < count; i++) {
       const id = pick(templates);
       const useColored = coloredIdx.has(i);
 
-      const x = Math.random() * (w + 80) - 40;
-      const y = Math.random() * (h + 40) - 20;
+      const x = Math.random() * (w + 120) - 60;
+      const y = ySkew();
 
-      const rot = (Math.random() * 10 - 5);
-      const scale = flagW / 44 * (0.92 + Math.random() * 0.18);
+      const rot = (Math.random() * 14 - 7);
+      const scale = scaleBase * (0.95 + Math.random() * 0.35);
 
-      const g = document.createElementNS(NS2,'g');
-      g.setAttribute('transform', `translate(${x},${y}) rotate(${rot}) scale(${scale})`);
+      items.push({ i, id, useColored, x, y, rot, scale });
+    }
 
-      if (useColored) {
-        rect(g,0,0,44,26,randColor(i),'rgba(0,0,0,0)',0);
+    // Draw order: higher first, lower last so “top” ones sit cleanly on top
+    items.sort((a,b) => a.y - b.y);
+
+    for (const it of items) {
+      const g = document.createElementNS(NS,'g');
+      g.setAttribute('transform', `translate(${it.x},${it.y}) rotate(${it.rot}) scale(${it.scale})`);
+      g.setAttribute('opacity', '1'); // opaque per your request
+
+      if (it.useColored) {
+        rect(g,0,0,44,26,randColor(it.i),'rgba(0,0,0,0)',0);
       }
 
-      const use = document.createElementNS(NS2,'use');
-      use.setAttribute('href', `#${id}`);
+      const use = document.createElementNS(NS,'use');
+      use.setAttribute('href', `#${it.id}`);
       g.appendChild(use);
-
-      const alpha = 0.20 + (y / h) * 0.55;
-      g.setAttribute('opacity', String(Math.max(0.06, Math.min(0.70, alpha))));
 
       footerSvg.appendChild(g);
     }
