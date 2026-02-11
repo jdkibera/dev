@@ -13,10 +13,12 @@
       --pillBg: rgba(255,255,255,0.10);
       --btnBg: rgba(90,140,255,0.22);
       --btnBgHover: rgba(90,140,255,0.33);
+
       --flagStageH: 340px; /* fixed stage height so modal never jumps */
       --msgH: 190px;       /* fixed message block height so it never jumps */
-      --iconColW: 120px;   /* fixed icon column width */
+      --iconColW: 132px;   /* fixed icon column width */
       --msgColW: 740px;    /* fixed message column width (desktop-ish) */
+      --footerH: 33vh;     /* bottom third */
     }
 
     html, body { height: 100%; }
@@ -28,6 +30,24 @@
       flex-direction: column;
       min-height: 100vh;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* angled brand */
+    .cornerBrand{
+      position: fixed;
+      left: -40px;
+      top: 26px;
+      transform: rotate(-45deg);
+      transform-origin: left top;
+      font-family: "Snell Roundhand", "Brush Script MT", "Apple Chancery", "Comic Sans MS", cursive;
+      font-size: 46px;
+      color: rgba(37,48,65,0.55);
+      letter-spacing: 0.6px;
+      z-index: 5;
+      pointer-events: none;
+      user-select: none;
+      white-space: nowrap;
     }
 
     .main{
@@ -36,6 +56,7 @@
       align-items: center;
       justify-content: center;
       padding: 22px;
+      padding-bottom: calc(var(--footerH) + 18px); /* keep content above footer */
     }
     .wrap{
       width: min(980px, 100%);
@@ -43,6 +64,7 @@
       flex-direction: column;
       align-items: center;
       gap: 14px;
+      z-index: 10;
     }
 
     .topbar{
@@ -76,8 +98,10 @@
       background: rgba(0,0,0,0.06);
       color: #0b1020;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
       white-space: nowrap;
+      font-weight: 700;
+      letter-spacing: 0.8px;
     }
     .restartBtnTop:hover{ background: rgba(0,0,0,0.10); }
 
@@ -94,9 +118,9 @@
     .titleRow{
       text-align: center;
       margin: 6px 0 10px;
-      font-size: 36px;
-      letter-spacing: 0.8px;
-      font-weight: 200;
+      font-size: 30px;
+      letter-spacing: 0.4px;
+      font-weight: 300;
       font-family: "Helvetica Neue UltraLight", "HelveticaNeue-UltraLight", "Helvetica Neue", Helvetica, Arial, sans-serif;
       opacity: 0.95;
     }
@@ -161,8 +185,10 @@
       background: var(--btnBg);
       color: #e9eefc;
       cursor: pointer;
-      min-width: 96px;
-      font-size: 14px;
+      min-width: 104px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
     }
     button:hover{ background: var(--btnBgHover); }
     button:disabled{ opacity: 0.55; cursor: not-allowed; }
@@ -174,7 +200,7 @@
       color: rgba(233,238,252,0.70);
       margin-top: -2px;
     }
-    .hintHotkeyLine b{ color: rgba(233,238,252,0.92); font-weight: 700; }
+    .hintHotkeyLine b{ color: rgba(233,238,252,0.92); font-weight: 800; }
 
     /* Suggestions */
     .suggestBox{
@@ -217,22 +243,31 @@
       width: min(900px, 100%);
       display: grid;
       grid-template-columns: var(--iconColW) minmax(0, 1fr);
-      align-items: center;
+      align-items: start;            /* TOP align */
       gap: 14px;
       padding: 0 6px;
       box-sizing: border-box;
     }
 
+    .iconWrap{
+      width: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
     .iconSq{
       width: 110px;
       height: 110px;
-      border-radius: 24px;
+      border-radius: 18px;
       border: 2px solid rgba(0,0,0,0.12);
       background: rgba(255,255,255,0.55);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.10);
       overflow: hidden;
       display: grid;
       place-items: center;
+      /* NO SHADOW on icon */
+      box-shadow: none;
     }
     .iconSq img{
       width: 100%;
@@ -240,11 +275,18 @@
       object-fit: cover;
       display:block;
     }
+    .iconLabel{
+      font-size: 10px;
+      letter-spacing: 1.1px;
+      font-weight: 900;
+      color: rgba(37,48,65,0.72);
+    }
 
     .msgText{
       max-width: min(var(--msgColW), 92vw);
       text-align: left;
       line-height: 1.25;
+      align-self: start;             /* TOP align */
     }
     .msgText .headline{
       font-size: 18px;
@@ -269,38 +311,51 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* Footer */
-    .bottomArea{ width: 100%; }
+    .bottomArea{
+      width: 100%;
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      height: var(--footerH);
+      z-index: 1;
+      pointer-events: none;
+    }
     .copyright{
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 10px;
       text-align: center;
       color: rgba(37,48,65,0.75);
       font-size: 13px;
-      margin: 6px 0 8px;
       letter-spacing: 0.3px;
+      width: 100%;
     }
     .flagFooter{
-      height: 96px;
-      width: 100%;
-      position: relative;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      top: 0;
       overflow: hidden;
       background: linear-gradient(to bottom, rgba(223,232,244,0.0), rgba(223,232,244,0.98));
     }
-
-    .footerSvg{
-      position:absolute;
-      left: 50%;
-      top: 52%;
-      transform: translate(-50%, -50%);
+    #footerSvg{
+      position: absolute;
+      left: 0;
+      top: 0;
       width: 100%;
-      height: 120px;
-      opacity: 0.55;
+      height: 100%;
+      opacity: 0.72;
       mask-image: linear-gradient(to bottom, rgba(0,0,0,0.0), rgba(0,0,0,1.0));
     }
 
     @media (max-width: 760px){
-      :root{ --iconColW: 112px; --msgColW: 520px; }
+      :root{ --iconColW: 132px; --msgColW: 520px; }
       .msgText .headline{ font-size: 17px; }
       .pill{ font-size: 16px; }
       .pill b{ font-size: 18px; }
+      .cornerBrand{ font-size: 36px; left: -50px; }
     }
 
     @media (prefers-reduced-motion: reduce){
@@ -310,6 +365,8 @@
 </head>
 
 <body>
+  <div class="cornerBrand">Kibera's Flag Gauntlet</div>
+
   <div class="main">
     <div class="wrap">
       <div class="topbar">
@@ -321,12 +378,12 @@
 
         <div class="pill">
           Score: <b id="score">0</b>
-          <button class="restartBtnTop" id="restartBtnTop" title="Restart from Round 1">Restart</button>
+          <button class="restartBtnTop" id="restartBtnTop" title="Restart from Round 1">RESTART</button>
         </div>
       </div>
 
       <div class="card">
-        <div class="titleRow">Kibera's Flag Gauntlet</div>
+        <div class="titleRow">What Country’s Flag Is This?</div>
 
         <div class="flagStage">
           <img id="flagImg" class="flag" alt="Country flag" />
@@ -340,8 +397,8 @@
             </div>
 
             <div class="btnCol">
-              <button id="submitBtn">Submit</button>
-              <button id="skipBtn" title="Give up on this flag (0 points)">Skip</button>
+              <button id="submitBtn">SUBMIT</button>
+              <button id="skipBtn" title="Give up on this flag (0 points)">SKIP</button>
             </div>
           </div>
 
@@ -357,119 +414,8 @@
 
   <div class="bottomArea">
     <div class="copyright">© 2026 Kibera &amp; Co.</div>
-
-    <div class="flagFooter" aria-hidden="true">
-      <!-- 3 rows, 50% smaller flags, offset rows; mostly outline, a few washed color -->
-      <svg class="footerSvg" viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <g id="o-us">
-            <rect x="0" y="0" width="44" height="26" rx="4" fill="none" stroke="rgba(37,48,65,0.60)" stroke-width="1.5"/>
-            <path d="M0 5H44M0 10H44M0 15H44M0 20H44M0 25H44" stroke="rgba(37,48,65,0.35)" stroke-width="1.3"/>
-            <rect x="0" y="0" width="18" height="14" rx="4" fill="none" stroke="rgba(37,48,65,0.35)" stroke-width="1.3"/>
-          </g>
-          <g id="o-uk">
-            <rect x="0" y="0" width="44" height="26" rx="4" fill="none" stroke="rgba(37,48,65,0.60)" stroke-width="1.5"/>
-            <path d="M0 0 L44 26 M44 0 L0 26" stroke="rgba(37,48,65,0.30)" stroke-width="1.2"/>
-            <path d="M0 13H44 M22 0V26" stroke="rgba(37,48,65,0.45)" stroke-width="1.7"/>
-          </g>
-          <g id="o-jp">
-            <rect x="0" y="0" width="44" height="26" rx="4" fill="none" stroke="rgba(37,48,65,0.60)" stroke-width="1.5"/>
-            <circle cx="22" cy="13" r="7" fill="none" stroke="rgba(37,48,65,0.45)" stroke-width="1.7"/>
-          </g>
-          <g id="o-fr">
-            <rect x="0" y="0" width="44" height="26" rx="4" fill="none" stroke="rgba(37,48,65,0.60)" stroke-width="1.5"/>
-            <path d="M15 0V26 M29 0V26" stroke="rgba(37,48,65,0.40)" stroke-width="1.7"/>
-          </g>
-          <g id="o-de">
-            <rect x="0" y="0" width="44" height="26" rx="4" fill="none" stroke="rgba(37,48,65,0.60)" stroke-width="1.5"/>
-            <path d="M0 9H44 M0 18H44" stroke="rgba(37,48,65,0.40)" stroke-width="1.7"/>
-          </g>
-          <g id="o-br">
-            <rect x="0" y="0" width="44" height="26" rx="4" fill="none" stroke="rgba(37,48,65,0.60)" stroke-width="1.5"/>
-            <path d="M22 3 L39 13 L22 23 L5 13 Z" fill="none" stroke="rgba(37,48,65,0.40)" stroke-width="1.7"/>
-            <circle cx="22" cy="13" r="5" fill="none" stroke="rgba(37,48,65,0.30)" stroke-width="1.2"/>
-          </g>
-
-          <!-- a few washed-color versions -->
-          <g id="c-jp">
-            <rect x="0" y="0" width="44" height="26" rx="4" fill="rgba(255,255,255,0.25)" stroke="rgba(37,48,65,0.35)" stroke-width="1.2"/>
-            <circle cx="22" cy="13" r="7" fill="rgba(220,70,70,0.35)" stroke="rgba(37,48,65,0.20)" stroke-width="0.8"/>
-          </g>
-          <g id="c-fr">
-            <rect x="0" y="0" width="44" height="26" rx="4" fill="rgba(255,255,255,0.20)" stroke="rgba(37,48,65,0.30)" stroke-width="1.2"/>
-            <rect x="0" y="0" width="14.7" height="26" rx="4" fill="rgba(70,110,200,0.25)"/>
-            <rect x="29.3" y="0" width="14.7" height="26" rx="4" fill="rgba(220,70,70,0.25)"/>
-          </g>
-          <g id="c-de">
-            <rect x="0" y="0" width="44" height="26" rx="4" fill="rgba(255,255,255,0.18)" stroke="rgba(37,48,65,0.25)" stroke-width="1.2"/>
-            <rect x="0" y="0" width="44" height="8.7" fill="rgba(20,20,20,0.18)"/>
-            <rect x="0" y="8.7" width="44" height="8.7" fill="rgba(220,70,70,0.18)"/>
-            <rect x="0" y="17.4" width="44" height="8.7" fill="rgba(240,200,70,0.18)"/>
-          </g>
-        </defs>
-
-        <!-- Row 1 (outline heavy) -->
-        <g opacity="0.85" transform="translate(-10,18)">
-          <g transform="translate(20,0)"><use href="#o-us"/></g>
-          <g transform="translate(90,0)"><use href="#o-uk"/></g>
-          <g transform="translate(160,0)"><use href="#o-jp"/></g>
-          <g transform="translate(230,0)"><use href="#o-fr"/></g>
-          <g transform="translate(300,0)"><use href="#o-de"/></g>
-          <g transform="translate(370,0)"><use href="#o-br"/></g>
-          <g transform="translate(440,0)"><use href="#o-jp"/></g>
-          <g transform="translate(510,0)"><use href="#o-fr"/></g>
-          <g transform="translate(580,0)"><use href="#o-us"/></g>
-          <g transform="translate(650,0)"><use href="#o-uk"/></g>
-          <g transform="translate(720,0)"><use href="#o-de"/></g>
-          <g transform="translate(790,0)"><use href="#o-br"/></g>
-          <g transform="translate(860,0)"><use href="#o-jp"/></g>
-          <g transform="translate(930,0)"><use href="#o-fr"/></g>
-          <g transform="translate(1000,0)"><use href="#o-us"/></g>
-          <g transform="translate(1070,0)"><use href="#o-uk"/></g>
-          <g transform="translate(1140,0)"><use href="#o-de"/></g>
-        </g>
-
-        <!-- Row 2 (offset + a few washed colors) -->
-        <g opacity="0.70" transform="translate(40,52)">
-          <g transform="translate(0,0)"><use href="#o-fr"/></g>
-          <g transform="translate(70,0)"><use href="#c-jp"/></g>
-          <g transform="translate(140,0)"><use href="#o-de"/></g>
-          <g transform="translate(210,0)"><use href="#o-us"/></g>
-          <g transform="translate(280,0)"><use href="#c-fr"/></g>
-          <g transform="translate(350,0)"><use href="#o-uk"/></g>
-          <g transform="translate(420,0)"><use href="#o-br"/></g>
-          <g transform="translate(490,0)"><use href="#o-jp"/></g>
-          <g transform="translate(560,0)"><use href="#o-fr"/></g>
-          <g transform="translate(630,0)"><use href="#c-de"/></g>
-          <g transform="translate(700,0)"><use href="#o-us"/></g>
-          <g transform="translate(770,0)"><use href="#o-uk"/></g>
-          <g transform="translate(840,0)"><use href="#o-de"/></g>
-          <g transform="translate(910,0)"><use href="#o-br"/></g>
-          <g transform="translate(980,0)"><use href="#o-jp"/></g>
-          <g transform="translate(1050,0)"><use href="#o-fr"/></g>
-        </g>
-
-        <!-- Row 3 (more offset) -->
-        <g opacity="0.55" transform="translate(-30,86)">
-          <g transform="translate(10,0)"><use href="#o-de"/></g>
-          <g transform="translate(80,0)"><use href="#o-br"/></g>
-          <g transform="translate(150,0)"><use href="#o-us"/></g>
-          <g transform="translate(220,0)"><use href="#o-uk"/></g>
-          <g transform="translate(290,0)"><use href="#o-jp"/></g>
-          <g transform="translate(360,0)"><use href="#o-fr"/></g>
-          <g transform="translate(430,0)"><use href="#o-de"/></g>
-          <g transform="translate(500,0)"><use href="#o-br"/></g>
-          <g transform="translate(570,0)"><use href="#o-us"/></g>
-          <g transform="translate(640,0)"><use href="#o-uk"/></g>
-          <g transform="translate(710,0)"><use href="#o-jp"/></g>
-          <g transform="translate(780,0)"><use href="#o-fr"/></g>
-          <g transform="translate(850,0)"><use href="#o-de"/></g>
-          <g transform="translate(920,0)"><use href="#o-br"/></g>
-          <g transform="translate(990,0)"><use href="#o-us"/></g>
-          <g transform="translate(1060,0)"><use href="#o-uk"/></g>
-          <g transform="translate(1130,0)"><use href="#o-jp"/></g>
-        </g>
-      </svg>
+    <div class="flagFooter">
+      <svg id="footerSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
     </div>
   </div>
 
@@ -498,6 +444,7 @@
 
   const suggestBox = document.getElementById('suggestBox');
   const belowMsg = document.getElementById('belowMsg');
+  const footerSvg = document.getElementById('footerSvg');
 
   // Game state
   let countries = [];
@@ -567,134 +514,114 @@
     return r;
   }
 
-  // --- Watercolor icons (real image-like) ---
-  // Uses embedded SVG-as-data-uri with ink outline + paper texture + wash.
+  // --- Cartoon Icons (always render) ---
+  function iconLabelForKind(kind){
+    if (kind === 'success') return 'TONY TIGER';
+    if (kind === 'fail') return 'FAIL WHALE';
+    if (kind === 'hint') return 'HELPFUL HIPPO';
+    return '';
+  }
+
   function iconDataURI(kind){
-    // kind: neutral | success | fail | hint
-    const palette = {
-      neutral: { wash1: "rgba(120,150,190,0.20)", wash2: "rgba(90,120,170,0.16)" },
-      success: { wash1: "rgba(70,140,220,0.26)",  wash2: "rgba(90,180,120,0.18)" },
-      fail:    { wash1: "rgba(220,90,90,0.22)",   wash2: "rgba(120,150,190,0.14)" },
-      hint:    { wash1: "rgba(250,200,90,0.22)",  wash2: "rgba(120,150,190,0.14)" },
-    }[kind] || { wash1:"rgba(120,150,190,0.18)", wash2:"rgba(90,120,170,0.14)" };
-
-    // Choose subject
-    const subject = (kind === 'fail')
-      ? 'whale'
-      : (kind === 'success')
-      ? pick(['panda','cat','seal'])
-      : (kind === 'hint')
-      ? 'lantern'
-      : 'wave';
-
-    const svg = watercolorSVG(subject, palette.wash1, palette.wash2);
+    const svg =
+      kind === 'success' ? cartoonTigerSVG() :
+      kind === 'fail'    ? cartoonWhaleSVG() :
+      kind === 'hint'    ? cartoonHippoSVG() :
+                           cartoonStarSVG();
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   }
 
-  function watercolorSVG(subject, wash1, wash2){
-    // A square icon with paper texture and ink outline, Hokusai-ish wave + whale option.
-    // Intentionally no <filter id="..."> collisions: everything is self-contained per SVG.
-    const ink = "rgba(10,10,10,0.86)";
-    const ink2 = "rgba(10,10,10,0.55)";
-
-    const subjectPaths = (() => {
-      if (subject === 'whale') {
-        return `
-          <path d="M18 62c10 8 26 10 40 2 10-6 18-18 28-20-2 8-4 18-10 26-10 14-30 20-48 16-10-2-18-8-22-12z"
-                fill="rgba(30,60,120,0.30)"/>
-          <path d="M22 60c10 8 26 10 40 2 10-6 18-18 28-20"
-                fill="none" stroke="${ink}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M60 38c8-6 18-10 26-10-2 6-6 10-12 12"
-                fill="none" stroke="${ink2}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="44" cy="58" r="2.2" fill="${ink}"/>
-        `;
-      }
-      if (subject === 'panda') {
-        return `
-          <path d="M30 62c0-14 8-24 22-24s22 10 22 24-10 24-22 24-22-10-22-24z"
-                fill="rgba(255,255,255,0.55)" stroke="${ink}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M34 48c-6-8 0-16 10-14 4-7 12-7 16 0 10-2 16 6 10 14"
-                fill="none" stroke="${ink2}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-          <ellipse cx="42" cy="60" rx="5" ry="4" fill="rgba(0,0,0,0.18)" stroke="${ink2}" stroke-width="2"/>
-          <ellipse cx="60" cy="60" rx="5" ry="4" fill="rgba(0,0,0,0.18)" stroke="${ink2}" stroke-width="2"/>
-          <circle cx="46" cy="66" r="2.2" fill="${ink}"/>
-          <path d="M46 66c2 3 5 3 8 0" stroke="${ink2}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-        `;
-      }
-      if (subject === 'cat') {
-        return `
-          <path d="M28 68c0-16 8-28 20-28 6 0 10 2 14 6 4-4 8-6 14-6 12 0 20 12 20 28 0 16-14 24-34 24S28 84 28 68z"
-                fill="rgba(255,255,255,0.52)" stroke="${ink}" stroke-width="3.1" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M40 44l-6-8M76 44l6-8" stroke="${ink2}" stroke-width="2.4" stroke-linecap="round"/>
-          <circle cx="50" cy="68" r="2.2" fill="${ink}"/>
-          <circle cx="66" cy="68" r="2.2" fill="${ink}"/>
-          <path d="M58 70c-2 2-4 2-6 0" stroke="${ink2}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-          <path d="M36 72h-10M36 76h-10M80 72h10M80 76h10" stroke="${ink2}" stroke-width="2" stroke-linecap="round"/>
-        `;
-      }
-      if (subject === 'seal') {
-        return `
-          <path d="M30 70c4-18 18-30 34-28 16 2 26 16 24 32-2 16-18 24-36 22-14-2-24-10-22-26z"
-                fill="rgba(255,255,255,0.50)" stroke="${ink}" stroke-width="3.1" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="54" cy="66" r="2.2" fill="${ink}"/>
-          <circle cx="68" cy="66" r="2.2" fill="${ink}"/>
-          <path d="M60 70c2 3 6 3 8 0" stroke="${ink2}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-          <path d="M40 74c-6 6-10 8-14 8" stroke="${ink2}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-        `;
-      }
-      if (subject === 'lantern') {
-        return `
-          <path d="M46 30c8 0 14 6 14 14 0 6-2 10-5 14 4 4 6 8 6 14 0 10-8 18-18 18s-18-8-18-18c0-6 2-10 6-14-3-4-5-8-5-14 0-8 6-14 14-14z"
-                fill="rgba(255,255,255,0.48)" stroke="${ink}" stroke-width="3.1" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M46 42v20" stroke="${ink2}" stroke-width="2.4" stroke-linecap="round"/>
-          <path d="M36 54h20" stroke="${ink2}" stroke-width="2.4" stroke-linecap="round"/>
-          <path d="M46 90v-8" stroke="${ink2}" stroke-width="2.4" stroke-linecap="round"/>
-        `;
-      }
-      // wave
-      return `
-        <path d="M10 66c18-24 44-34 70-26 16 6 24 18 34 22-10 2-16 10-30 12-18 2-30-8-40-16-8-6-18-6-34 8z"
-              fill="rgba(30,60,120,0.26)"/>
-        <path d="M14 66c18-24 44-34 70-26 16 6 24 18 34 22"
-              fill="none" stroke="${ink}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M44 50c4 2 6 6 2 10" stroke="${ink2}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-      `;
-    })();
-
+  function cartoonCardBase(content){
     return `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 110">
-  <defs>
-    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="rgba(255,255,255,0.95)"/>
-      <stop offset="1" stop-color="rgba(245,250,255,0.92)"/>
-    </linearGradient>
-    <radialGradient id="washA" cx="30%" cy="30%" r="80%">
-      <stop offset="0" stop-color="${wash1}"/>
-      <stop offset="1" stop-color="rgba(0,0,0,0)"/>
-    </radialGradient>
-    <radialGradient id="washB" cx="70%" cy="45%" r="75%">
-      <stop offset="0" stop-color="${wash2}"/>
-      <stop offset="1" stop-color="rgba(0,0,0,0)"/>
-    </radialGradient>
-  </defs>
+  <rect x="0" y="0" width="110" height="110" rx="18" fill="#ffffff"/>
+  ${content}
+</svg>`.trim();
+  }
 
-  <rect x="0" y="0" width="110" height="110" rx="24" fill="url(#paper)"/>
-  <path d="M0 18c18-10 30 10 46 2s28-2 40 8 16 12 24 6v76H0z" fill="url(#washA)" opacity="0.95"/>
-  <path d="M0 12c18 6 28-6 42 2s24 20 42 18 18-2 26-10v80H0z" fill="url(#washB)" opacity="0.90"/>
+  function cartoonTigerSVG(){
+    return cartoonCardBase(`
+      <rect x="6" y="6" width="98" height="98" rx="16" fill="#fff7e6"/>
+      <circle cx="55" cy="58" r="34" fill="#ffb347" stroke="#101010" stroke-width="3"/>
+      <circle cx="28" cy="38" r="12" fill="#ffb347" stroke="#101010" stroke-width="3"/>
+      <circle cx="82" cy="38" r="12" fill="#ffb347" stroke="#101010" stroke-width="3"/>
+      <circle cx="28" cy="38" r="5" fill="#ffd9a3" stroke="#101010" stroke-width="2"/>
+      <circle cx="82" cy="38" r="5" fill="#ffd9a3" stroke="#101010" stroke-width="2"/>
 
-  <path d="M10 92c20-6 38 10 56 2s24-18 44-8" fill="none" stroke="rgba(10,10,10,0.18)" stroke-width="2.0" stroke-linecap="round"/>
+      <ellipse cx="44" cy="58" rx="6" ry="8" fill="#ffffff" stroke="#101010" stroke-width="2"/>
+      <ellipse cx="66" cy="58" rx="6" ry="8" fill="#ffffff" stroke="#101010" stroke-width="2"/>
+      <circle cx="44" cy="60" r="3" fill="#101010"/>
+      <circle cx="66" cy="60" r="3" fill="#101010"/>
 
-  ${subjectPaths}
-</svg>
-    `.trim();
+      <path d="M55 68c-4 4-8 4-12 0" fill="none" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
+      <path d="M55 68c4 4 8 4 12 0" fill="none" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
+
+      <path d="M50 70l5 6 5-6" fill="#101010"/>
+      <path d="M40 46l-10-8M70 46l10-8" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
+
+      <!-- stripes -->
+      <path d="M34 54l-10-6M34 64l-10-2M76 54l10-6M76 64l10-2" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
+      <path d="M55 30l0 10" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
+      <path d="M46 32l4 10M64 32l-4 10" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
+
+      <!-- confetti -->
+      <circle cx="18" cy="18" r="3" fill="#ff5aa5"/>
+      <circle cx="92" cy="20" r="3" fill="#5a8cff"/>
+      <circle cx="18" cy="92" r="3" fill="#4bd37b"/>
+      <circle cx="92" cy="92" r="3" fill="#ffd34d"/>
+    `);
+  }
+
+  function cartoonWhaleSVG(){
+    return cartoonCardBase(`
+      <rect x="6" y="6" width="98" height="98" rx="16" fill="#ecf6ff"/>
+      <path d="M18 68c10 10 28 14 44 6 14-7 18-20 32-22-2 12-6 22-14 30-12 12-34 18-52 12-10-4-16-10-18-16 0 0 2-2 8-10z"
+            fill="#5a8cff" stroke="#101010" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M74 52c8-10 18-14 24-12-2 6-6 10-12 12" fill="none" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="44" cy="66" r="3" fill="#101010"/>
+      <path d="M52 72c6 6 12 6 18 0" fill="none" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
+      <path d="M30 60c-10-10-12-18-10-24 6 2 10 6 12 12" fill="none" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
+      <path d="M26 34c2-6 6-10 10-12 2 4 2 10-4 16" fill="#9ec7ff" stroke="#101010" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M40 30c2-6 6-10 10-12 2 4 2 10-4 16" fill="#9ec7ff" stroke="#101010" stroke-width="3" stroke-linejoin="round"/>
+    `);
+  }
+
+  function cartoonHippoSVG(){
+    return cartoonCardBase(`
+      <rect x="6" y="6" width="98" height="98" rx="16" fill="#f0fff6"/>
+      <circle cx="55" cy="60" r="34" fill="#9bd6c6" stroke="#101010" stroke-width="3"/>
+      <circle cx="30" cy="38" r="12" fill="#9bd6c6" stroke="#101010" stroke-width="3"/>
+      <circle cx="80" cy="38" r="12" fill="#9bd6c6" stroke="#101010" stroke-width="3"/>
+      <ellipse cx="55" cy="72" rx="22" ry="16" fill="#b9eadc" stroke="#101010" stroke-width="3"/>
+      <circle cx="46" cy="74" r="3" fill="#101010"/>
+      <circle cx="64" cy="74" r="3" fill="#101010"/>
+
+      <circle cx="44" cy="56" r="4" fill="#101010"/>
+      <circle cx="66" cy="56" r="4" fill="#101010"/>
+
+      <path d="M48 62c4 4 10 4 14 0" fill="none" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
+      <!-- little idea bulb -->
+      <circle cx="86" cy="20" r="8" fill="#ffd34d" stroke="#101010" stroke-width="3"/>
+      <path d="M86 28v8" stroke="#101010" stroke-width="3" stroke-linecap="round"/>
+    `);
+  }
+
+  function cartoonStarSVG(){
+    return cartoonCardBase(`
+      <rect x="6" y="6" width="98" height="98" rx="16" fill="#ffffff"/>
+      <path d="M55 20l8 18 20 2-15 13 5 20-18-10-18 10 5-20-15-13 20-2z"
+            fill="#5a8cff" stroke="#101010" stroke-width="3" stroke-linejoin="round"/>
+    `);
   }
 
   function renderMsg(kind, headline, sub){
     const icon = iconDataURI(kind);
+    const lab = iconLabelForKind(kind);
     belowMsg.innerHTML = `
       <div class="msgGrid">
-        <div class="iconSq" aria-hidden="true">
-          <img src="${icon}" alt="" />
+        <div class="iconWrap" aria-hidden="true">
+          <div class="iconSq"><img src="${icon}" alt="" /></div>
+          <div class="iconLabel">${lab}</div>
         </div>
         <div class="msgText">
           <div class="headline">${headline || ""}</div>
@@ -814,7 +741,7 @@
       flagIdx = 0;
 
       if (roundIdx >= rounds.length) {
-        renderMsg('success', `🏁 Game complete! Final score: <b>${score}</b>`, `Hit Restart to play again.`);
+        renderMsg('success', `🏁 Game complete! Final score: <b>${score}</b>`, `Hit RESTART to play again.`);
         submitBtn.disabled = true;
         skipBtn.disabled = true;
         guessInput.disabled = true;
@@ -857,29 +784,30 @@
     "Thailand": `pad thai + green curry 🌶️🍜`,
     "Turkey": `kebabs + baklava + strong tea 🥙🍯`,
     "Morocco": `tagine + mint tea 🫖🍲`,
-    "Ethiopia": `injera + wats (stews) 🍲`,
+    "Ethiopia": `injera + wats (stews) 🍲`
   };
 
-  // --- Fun facts (actual, not just “population ~ …”) ---
-  const FUN_FACT = {
-    "Iran": `land of the famous long-haired Persian cat 🐈`,
-    "Peru": `home of Machu Picchu and the Inca legacy 🏔️`,
-    "Turkey": `Istanbul spans two continents 🌍`,
-    "Japan": `the Shinkansen helped define modern rail speed 🚄`,
-    "Brazil": `the Amazon rainforest is the largest tropical rainforest 🌿`,
-    "Egypt": `pyramids + ancient engineering that still flexes on us 🧱`,
-    "Greece": `birthplace of the Olympic Games 🏛️`,
+  // Famous person (best-known-ish). Extend freely.
+  const FAMOUS_PERSON = {
+    "Iran": "Famous name: <b>Ayatollah Khomeini</b> (politics) 🧔‍♂️",
+    "Peru": "Famous name: <b>Mario Vargas Llosa</b> (writer) ✍️",
+    "Turkey": "Famous name: <b>Kemal Atatürk</b> (founder) 🇹🇷",
+    "United Kingdom": "Famous name: <b>The Beatles</b> (music) 🎸",
+    "France": "Famous name: <b>Napoleon</b> (history) 🧢",
+    "Japan": "Famous name: <b>Hayao Miyazaki</b> (film) 🎬",
+    "Brazil": "Famous name: <b>Pelé</b> (football) ⚽",
+    "Mexico": "Famous name: <b>Frida Kahlo</b> (art) 🎨",
+    "India": "Famous name: <b>Mahatma Gandhi</b> (history) 🕊️",
+    "South Africa": "Famous name: <b>Nelson Mandela</b> (history) ✊"
   };
 
-  // --- Flag meaning (curated “official-ish” notes; expand over time) ---
-  // This is NOT universally available without manual sources, so we only show when known.
-  const FLAG_MEANING = {
-    "Peru": `Flag features vertical red bands symbolizing blood shed for independence and a central white band representing peace, purity, and justice. Often said to be inspired by the red-and-white parihuanas (flamingos).`,
-    "Iran": `Green represents growth/Islam, white peace/honesty, and red courage/blood; the central emblem is a stylized “Allah” and the Takbir phrase repeats along the borders.`,
-    "France": `Tricolore associated with the Revolution; commonly interpreted as liberty, equality, fraternity (and historically Paris + monarchy symbolism).`,
-    "Italy": `Green/white/red widely associated with hope/faith/charity (and historical origins in civic/revolutionary banners).`,
-    "Japan": `The red sun disc represents the sun; Japan is traditionally “the land of the rising sun.”`,
-    "United States": `Stars represent the states; stripes represent the original colonies.`,
+  // 1-line “Meaning” from RJTravel pages (curated; add more anytime).
+  // Source pages: rjtravelagency.com/flag-of-<country>/
+  const FLAG_MEANING_1L = {
+    "Peru": "Red symbolizes blood shed for independence; white represents peace and purity (often with the coat of arms on the state flag).",
+    "Iran": "Green stands for growth/Islam; white for peace/purity; red for bravery/martyrdom, with a central “Allah” emblem.",
+    "Kuwait": "Green for growth, white for peace, red for sacrifice, and the black trapezium evokes history/resilience.",
+    "Azerbaijan": "Blue for Turkic heritage, red for progress, green for Islam; crescent and eight-pointed star reflect faith and identity."
   };
 
   function fmtNumber(n){
@@ -904,31 +832,19 @@
     const name = c.name.common;
     if (FOOD_HINT[name]) return FOOD_HINT[name];
 
-    // fallback by continent (still specific-ish)
     const cont = continentLabel(c.region, c.subregion);
     const fallback = {
       "Europe": "cheese + bread + something fermented 🧀🥖",
-      "Asia": "noodles + rice + regional spice signature 🍜🍚",
-      "Africa": "stews + grains + something deliciously slow-cooked 🍲",
+      "Asia": "noodles + rice + a signature spice profile 🍜🍚",
+      "Africa": "stews + grains + slow-cooked goodness 🍲",
       "North America": "BBQ or tacos… possibly both 🔥🌮",
-      "Central America": "beans + rice + coffee (fuel) ☕🍛",
+      "Central America": "beans + rice + coffee fuel ☕🍛",
       "Caribbean": "jerk seasoning + tropical fruit 🥭🌶️",
       "South America": "grilled meats + corn things + mate vibes 🥩🌽🧉",
       "Oceania": "BBQ + beach picnic energy 🏖️🥩",
       "Other": "mystery snacks from a parallel universe 🥪🧁"
     };
     return fallback[cont] || fallback["Other"];
-  }
-
-  function hint2FunFact(c){
-    const name = c.name.common;
-    if (FUN_FACT[name]) return FUN_FACT[name];
-
-    // fallback: pick a not-boring “geo-ish” fact without claiming symbolism
-    const cont = continentLabel(c.region, c.subregion);
-    const pop = fmtNumber(Math.round(c.population || 0));
-    const area = fmtNumber(Math.round(c.area || 0));
-    return `located in <b>${cont}</b>; population ~ <b>${pop}</b>; area ~ <b>${area}</b> km² 📏`;
   }
 
   function hintForTry(c, tryUsed){
@@ -938,10 +854,9 @@
     }
     if (tryUsed === 2) {
       const pop = fmtNumber(Math.round(c.population || 0));
-      const area = fmtNumber(Math.round(c.area || 0));
-      return `Hint #2: Fun fact: <b>${hint2FunFact(c)}</b> ✨<br/>Stats: population <b>${pop}</b> · area <b>${area}</b> km² 📏<br/>${neighborsList(c)}`;
+      const celeb = FAMOUS_PERSON[c.name.common] ? `<br/>${FAMOUS_PERSON[c.name.common]}` : '';
+      return `Hint #2: Population ~ <b>${pop}</b> 👥${celeb}<br/>${neighborsList(c)}`;
     }
-    // rhyming
     const name = c.name.common;
     const n = norm(name).replace(/ /g,'');
     const ends = n.slice(-3);
@@ -953,17 +868,17 @@
       { suffix: 'ine', words: ['wine','fine','line','shine'] },
     ];
     for (const p of patterns){
-      if (n.endsWith(p.suffix)) return `Hint #3: Rhymes-ish with: <b>${p.words.join(', ')}</b> 🎶 (I never promised quality)`;
+      if (n.endsWith(p.suffix)) return `Hint #3: Rhymes-ish with: <b>${p.words.join(', ')}</b> 🎶 (I never promised poetry).`;
     }
-    return `Hint #3: Ends like “<b>${ends}</b>”… so try yelling “<b>${ends}!</b>” dramatically. 🎭`;
+    return `Hint #3: Ends like “<b>${ends}</b>”… try chanting “<b>${ends}!</b>” dramatically. 🎭`;
   }
 
-  function officialFlagMeaningOrFallback(c){
+  function meaningLineOrFallback(c){
     const name = c.name.common;
-    if (FLAG_MEANING[name]) {
-      return `<b>Flag meaning (curated):</b> ${FLAG_MEANING[name]}`;
+    if (FLAG_MEANING_1L[name]) {
+      return `<b>Meaning:</b> ${FLAG_MEANING_1L[name]} <span style="opacity:.75">(RJTravel)</span>`;
     }
-    return `<b>Flag note:</b> I don’t have official symbolism text stored for this one yet. Try anchoring <b>${name}</b> to its continent and saying “${continentLabel(c.region, c.subregion)} → ${name}” once. Tiny ritual, big recall. 🧠✨`;
+    return `<b>Meaning:</b> No stored 1-liner for this flag yet — anchor it to <b>${continentLabel(c.region, c.subregion)}</b> and build a silly association (works suspiciously well). 🧠✨`;
   }
 
   function consumeTryWithHint() {
@@ -980,8 +895,8 @@
     if (triesLeft <= 0) {
       renderMsg(
         'fail',
-        `💥 Out of tries! Answer: <b>${c.name.common}</b>.`,
-        `${officialFlagMeaningOrFallback(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+        `Out of tries. Answer: <b>${c.name.common}</b>.`,
+        `${meaningLineOrFallback(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
       );
       setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
       return;
@@ -989,7 +904,7 @@
 
     renderMsg(
       'hint',
-      `🕵️ Hint used (costs a try).`,
+      `Hint used (costs a try).`,
       `${hint}<br/><br/>You have <b>${triesLeft}</b> tries left.`
     );
   }
@@ -1013,22 +928,21 @@
       const mega = "🎉🎉🎉🎉🎉  🥳✨🎊  🎉🎉🎉🎉🎉";
       renderMsg(
         'success',
-        `✅ Correct! That was <b>${c.name.common}</b>. ${mega}`,
-        `You earned <b>${pts}</b> point${pts === 1 ? '' : 's'}. Absolute flag wizardry. 🪄🌍<br/><br/>Next flag in <b>${Math.round(PAUSE_CORRECT_MS/1000)}s</b>…`
+        `Correct! That was <b>${c.name.common}</b>. ${mega}`,
+        `+<b>${pts}</b> point${pts === 1 ? '' : 's'}. You’re absolutely cooking. 🔥🌍<br/><br/>Next flag in <b>${Math.round(PAUSE_CORRECT_MS/1000)}s</b>…`
       );
       setTimeout(() => advanceFlag(), PAUSE_CORRECT_MS);
       return;
     }
 
-    // Wrong consumes a try
     triesLeft--;
     updateHUD();
 
     if (triesLeft <= 0) {
       renderMsg(
         'fail',
-        `❌ Nope. Answer: <b>${c.name.common}</b>.`,
-        `${officialFlagMeaningOrFallback(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+        `Nope. Answer: <b>${c.name.common}</b>.`,
+        `${meaningLineOrFallback(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
       );
       setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
       return;
@@ -1036,7 +950,7 @@
 
     renderMsg(
       'fail',
-      `❌ Not quite.`,
+      `Not quite.`,
       `Try again. You have <b>${triesLeft}</b> tries left. (Hit <b>.</b> for a hint — it costs a try.)`
     );
 
@@ -1050,8 +964,8 @@
 
     renderMsg(
       'hint',
-      `⏭️ Skipped. Answer: <b>${c.name.common}</b>.`,
-      `${officialFlagMeaningOrFallback(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+      `Skipped. Answer: <b>${c.name.common}</b>.`,
+      `${meaningLineOrFallback(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
     );
     setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
   }
@@ -1122,42 +1036,419 @@
     return out;
   }
 
-  async function loadCountries() {
-    setStatus('Loading countries…', true);
+  // --- Footer flags (full width, 3 rows, random offsets + random washed colors, square corners) ---
+  function buildFooter() {
+    const W = window.innerWidth;
+    const H = Math.max(220, Math.floor(window.innerHeight * 0.33));
+    footerSvg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    footerSvg.innerHTML = '';
 
-    const res = await fetch(
-      'https://restcountries.com/v3.1/all?fields=name,flags,altSpellings,population,area,region,subregion,cca3,borders'
-    );
-    if (!res.ok) throw new Error(`Failed to fetch countries: ${res.status}`);
+    const ns = "http://www.w3.org/2000/svg";
+    const defs = document.createElementNS(ns, 'defs');
 
-    const data = await res.json();
+    function makeFlagTemplate(id, kind) {
+      const g = document.createElementNS(ns, 'g');
+      g.setAttribute('id', id);
 
-    countries = data
-      .filter(c => c?.name?.common && (c?.flags?.png || c?.flags?.svg))
-      .map(c => ({
-        name: c.name,
-        altSpellings: c.altSpellings || [],
-        flags: c.flags,
-        population: c.population || 0,
-        area: c.area || 0,
-        region: c.region || '',
-        subregion: c.subregion || '',
-        cca3: c.cca3 || '',
-        borders: Array.isArray(c.borders) ? c.borders : []
-      }));
+      const rect = document.createElementNS(ns, 'rect');
+      rect.setAttribute('x', '0');
+      rect.setAttribute('y', '0');
+      rect.setAttribute('width', '44');
+      rect.setAttribute('height', '26');
+      rect.setAttribute('rx', '0'); // squared
+      rect.setAttribute('fill', kind === 'color' ? 'rgba(255,255,255,0.20)' : 'none');
+      rect.setAttribute('stroke', 'rgba(37,48,65,0.55)');
+      rect.setAttribute('stroke-width', '1.3');
+      g.appendChild(rect);
 
-    cca3ToCountry = new Map();
-    for (const c of countries) {
-      if (c.cca3) cca3ToCountry.set(c.cca3, c);
+      const mode = id.split('-')[1];
+
+      if (mode === 'jp') {
+        const c = document.createElementNS(ns, 'circle');
+        c.setAttribute('cx', '22');
+        c.setAttribute('cy', '13');
+        c.setAttribute('r', '7');
+        c.setAttribute('fill', kind === 'color' ? 'rgba(220,70,70,0.35)' : 'none');
+        c.setAttribute('stroke', 'rgba(37,48,65,0.40)');
+        c.setAttribute('stroke-width', '1.4');
+        g.appendChild(c);
+      }
+
+      if (mode === 'fr') {
+        const a = document.createElementNS(ns, 'rect');
+        a.setAttribute('x','0'); a.setAttribute('y','0'); a.setAttribute('width','14.7'); a.setAttribute('height','26');
+        a.setAttribute('fill', kind === 'color' ? 'rgba(70,110,200,0.25)' : 'none');
+        g.appendChild(a);
+
+        const b = document.createElementNS(ns, 'rect');
+        b.setAttribute('x','29.3'); b.setAttribute('y','0'); b.setAttribute('width','14.7'); b.setAttribute('height','26');
+        b.setAttribute('fill', kind === 'color' ? 'rgba(220,70,70,0.25)' : 'none');
+        g.appendChild(b);
+
+        const s1 = document.createElementNS(ns, 'path');
+        s1.setAttribute('d','M15 0V26 M29 0V26');
+        s1.setAttribute('stroke','rgba(37,48,65,0.35)');
+        s1.setAttribute('stroke-width','1.4');
+        g.appendChild(s1);
+      }
+
+      if (mode === 'de') {
+        const r1 = document.createElementNS(ns,'rect');
+        r1.setAttribute('x','0'); r1.setAttribute('y','0'); r1.setAttribute('width','44'); r1.setAttribute('height','8.7');
+        r1.setAttribute('fill', kind === 'color' ? 'rgba(20,20,20,0.18)' : 'none');
+        g.appendChild(r1);
+
+        const r2 = document.createElementNS(ns,'rect');
+        r2.setAttribute('x','0'); r2.setAttribute('y','8.7'); r2.setAttribute('width','44'); r2.setAttribute('height','8.7');
+        r2.setAttribute('fill', kind === 'color' ? 'rgba(220,70,70,0.18)' : 'none');
+        g.appendChild(r2);
+
+        const r3 = document.createElementNS(ns,'rect');
+        r3.setAttribute('x','0'); r3.setAttribute('y','17.4'); r3.setAttribute('width','44'); r3.setAttribute('height','8.7');
+        r3.setAttribute('fill', kind === 'color' ? 'rgba(240,200,70,0.18)' : 'none');
+        g.appendChild(r3);
+
+        const s = document.createElementNS(ns,'path');
+        s.setAttribute('d','M0 9H44 M0 18H44');
+        s.setAttribute('stroke','rgba(37,48,65,0.35)');
+        s.setAttribute('stroke-width','1.4');
+        g.appendChild(s);
+      }
+
+      if (mode === 'uk') {
+        const s = document.createElementNS(ns,'path');
+        s.setAttribute('d','M0 0 L44 26 M44 0 L0 26');
+        s.setAttribute('stroke','rgba(37,48,65,0.28)');
+        s.setAttribute('stroke-width','1.2');
+        g.appendChild(s);
+
+        const c = document.createElementNS(ns,'path');
+        c.setAttribute('d','M0 13H44 M22 0V26');
+        c.setAttribute('stroke','rgba(37,48,65,0.40)');
+        c.setAttribute('stroke-width','1.6');
+        g.appendChild(c);
+      }
+
+      if (mode === 'us') {
+        const stripes = document.createElementNS(ns,'path');
+        stripes.setAttribute('d','M0 5H44M0 10H44M0 15H44M0 20H44M0 25H44');
+        stripes.setAttribute('stroke','rgba(37,48,65,0.30)');
+        stripes.setAttribute('stroke-width','1.2');
+        g.appendChild(stripes);
+
+        const canton = document.createElementNS(ns,'rect');
+        canton.setAttribute('x','0'); canton.setAttribute('y','0'); canton.setAttribute('width','18'); canton.setAttribute('height','14');
+        canton.setAttribute('fill', kind === 'color' ? 'rgba(70,110,200,0.22)' : 'none');
+        canton.setAttribute('stroke','rgba(37,48,65,0.30)');
+        canton.setAttribute('stroke-width','1.2');
+        g.appendChild(canton);
+      }
+
+      if (mode === 'br') {
+        const d = document.createElementNS(ns,'path');
+        d.setAttribute('d','M22 3 L39 13 L22 23 L5 13 Z');
+        d.setAttribute('fill','none');
+        d.setAttribute('stroke','rgba(37,48,65,0.35)');
+        d.setAttribute('stroke-width','1.6');
+        g.appendChild(d);
+
+        const c = document.createElementNS(ns,'circle');
+        c.setAttribute('cx','22'); c.setAttribute('cy','13'); c.setAttribute('r','5');
+        c.setAttribute('fill','none');
+        c.setAttribute('stroke','rgba(37,48,65,0.28)');
+        c.setAttribute('stroke-width','1.2');
+        g.appendChild(c);
+
+        if (kind === 'color') {
+          rect.setAttribute('fill','rgba(70,160,100,0.16)');
+        }
+      }
+
+      return g;
     }
 
-    rounds = buildRoundsSmart(countries);
+    const templates = [
+      { outline: 'o-us', color: 'c-us', mode:'us' },
+      { outline: 'o-uk', color: 'c-uk', mode:'uk' },
+      { outline: 'o-jp', color: 'c-jp', mode:'jp' },
+      { outline: 'o-fr', color: 'c-fr', mode:'fr' },
+      { outline: 'o-de', color: 'c-de', mode:'de' },
+      { outline: 'o-br', color: 'c-br', mode:'br' }
+    ];
 
-    setStatus('Ready');
-    restart();
+    templates.forEach(t => {
+      defs.appendChild(makeFlagTemplate(t.outline, 'outline'));
+      defs.appendChild(makeFlagTemplate(t.color, 'color'));
+    });
+
+    footerSvg.appendChild(defs);
+
+    function use(id, x, y, scale=1){
+      const u = document.createElementNS(ns,'use');
+      u.setAttribute('href', `#${id}`);
+      u.setAttribute('transform', `translate(${x},${y}) scale(${scale})`);
+      return u;
+    }
+
+    const rows = 3;
+    const scale = 0.5;           // 50% smaller
+    const flagW = 44 * scale;
+    const gap = 26 * scale + 10; // spacing
+
+    const rowYs = [ Math.floor(H*0.30), Math.floor(H*0.54), Math.floor(H*0.78) ];
+    const offsets = [
+      -Math.floor(Math.random()*160),
+      Math.floor(Math.random()*220),
+      -Math.floor(Math.random()*260)
+    ];
+
+    for (let r = 0; r < rows; r++){
+      const group = document.createElementNS(ns,'g');
+      group.setAttribute('opacity', String(0.85 - r*0.18));
+
+      const startX = offsets[r];
+      const y = rowYs[r];
+
+      const count = Math.ceil((W - startX) / (flagW + gap)) + 2;
+
+      // randomly choose N colored per row
+      const coloredTarget = Math.max(3, Math.floor(count * (0.18 + Math.random()*0.10)));
+      const coloredSet = new Set();
+      while (coloredSet.size < coloredTarget) coloredSet.add(Math.floor(Math.random() * count));
+
+      for (let i = 0; i < count; i++){
+        const x = startX + i*(flagW + gap);
+        const t = templates[Math.floor(Math.random()*templates.length)];
+        const id = coloredSet.has(i) ? t.color : t.outline;
+        group.appendChild(use(id, x, y, scale));
+      }
+      footerSvg.appendChild(group);
+    }
   }
 
-  // Events
+  // --- End footer ---
+  buildFooter();
+  window.addEventListener('resize', () => buildFooter());
+
+  // ---- Hints & Gameplay ----
+
+  function neighborsList(c){
+    const borders = Array.isArray(c.borders) ? c.borders : [];
+    const names = borders
+      .map(code => cca3ToCountry.get(code)?.name?.common)
+      .filter(Boolean);
+
+    if (!names.length) return `Neighbors: <b>none</b> (island / solo mode) 🏝️😌`;
+
+    const sample = names.slice(0, 6);
+    const extra = names.length > sample.length ? ` (+${names.length - sample.length} more)` : '';
+    return `Neighbors: <b>${sample.join(', ')}</b>${extra} 🤝`;
+  }
+
+  function consumeTryWithHint() {
+    const c = currentCountry();
+    if (!c) return;
+    if (triesLeft <= 0) return;
+
+    const tryUsed = TRIES_PER_FLAG - triesLeft + 1;
+    const hint = hintForTry(c, tryUsed);
+
+    triesLeft--;
+    updateHUD();
+
+    if (triesLeft <= 0) {
+      renderMsg(
+        'fail',
+        `Out of tries. Answer: <b>${c.name.common}</b>.`,
+        `${meaningLineOrFallback(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+      );
+      setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
+      return;
+    }
+
+    renderMsg(
+      'hint',
+      `Hint used (costs a try).`,
+      `${hint}<br/><br/>You have <b>${triesLeft}</b> tries left.`
+    );
+  }
+
+  function hintForTry(c, tryUsed){
+    if (tryUsed === 1) {
+      const cont = continentLabel(c.region, c.subregion);
+      return `Hint #1: Continent: <b>${cont}</b> 🌍 · Food: <b>${hint1Food(c)}</b>`;
+    }
+    if (tryUsed === 2) {
+      const pop = fmtNumber(Math.round(c.population || 0));
+      const celeb = FAMOUS_PERSON[c.name.common] ? `<br/>${FAMOUS_PERSON[c.name.common]}` : '';
+      return `Hint #2: Population ~ <b>${pop}</b> 👥${celeb}<br/>${neighborsList(c)}`;
+    }
+    const name = c.name.common;
+    const n = norm(name).replace(/ /g,'');
+    const ends = n.slice(-3);
+    const patterns = [
+      { suffix: 'land', words: ['sand','hand','band','grand'] },
+      { suffix: 'ia', words: ['see-ya','pizzeria','utopia','chia'] },
+      { suffix: 'stan', words: ['plan','fan','can','pan'] },
+      { suffix: 'ana', words: ['banana','cabana','bandana','nirvana'] },
+      { suffix: 'ine', words: ['wine','fine','line','shine'] },
+    ];
+    for (const p of patterns){
+      if (n.endsWith(p.suffix)) return `Hint #3: Rhymes-ish with: <b>${p.words.join(', ')}</b> 🎶 (I never promised poetry).`;
+    }
+    return `Hint #3: Ends like “<b>${ends}</b>”… try chanting “<b>${ends}!</b>” dramatically. 🎭`;
+  }
+
+  function hint1Food(c){
+    const name = c.name.common;
+    if (FOOD_HINT[name]) return FOOD_HINT[name];
+
+    const cont = continentLabel(c.region, c.subregion);
+    const fallback = {
+      "Europe": "cheese + bread + something fermented 🧀🥖",
+      "Asia": "noodles + rice + a signature spice profile 🍜🍚",
+      "Africa": "stews + grains + slow-cooked goodness 🍲",
+      "North America": "BBQ or tacos… possibly both 🔥🌮",
+      "Central America": "beans + rice + coffee fuel ☕🍛",
+      "Caribbean": "jerk seasoning + tropical fruit 🥭🌶️",
+      "South America": "grilled meats + corn things + mate vibes 🥩🌽🧉",
+      "Oceania": "BBQ + beach picnic energy 🏖️🥩",
+      "Other": "mystery snacks from a parallel universe 🥪🧁"
+    };
+    return fallback[cont] || fallback["Other"];
+  }
+
+  function meaningLineOrFallback(c){
+    const name = c.name.common;
+    if (FLAG_MEANING_1L[name]) {
+      return `<b>Meaning:</b> ${FLAG_MEANING_1L[name]} <span style="opacity:.75">(RJTravel)</span>`;
+    }
+    return `<b>Meaning:</b> No stored 1-liner for this flag yet — anchor it to <b>${continentLabel(c.region, c.subregion)}</b> and build a silly association (works suspiciously well). 🧠✨`;
+  }
+
+  function submitGuess() {
+    const c = currentCountry();
+    if (!c) return;
+
+    applySuggestionSelectionToInput();
+
+    const guess = guessInput.value;
+    const guessN = norm(guess);
+    const accepted = acceptedNamesForCountry(c);
+    const tryUsed = TRIES_PER_FLAG - triesLeft + 1;
+
+    if (guessN && accepted.has(guessN)) {
+      const pts = pointsForTry(tryUsed);
+      score += pts;
+      updateHUD();
+
+      const mega = "🎉🎉🎉🎉🎉  🥳✨🎊  🎉🎉🎉🎉🎉";
+      renderMsg(
+        'success',
+        `Correct! That was <b>${c.name.common}</b>. ${mega}`,
+        `+<b>${pts}</b> point${pts === 1 ? '' : 's'}. LFG. 🔥🌍<br/><br/>Next flag in <b>${Math.round(PAUSE_CORRECT_MS/1000)}s</b>…`
+      );
+      setTimeout(() => advanceFlag(), PAUSE_CORRECT_MS);
+      return;
+    }
+
+    triesLeft--;
+    updateHUD();
+
+    if (triesLeft <= 0) {
+      renderMsg(
+        'fail',
+        `Nope. Answer: <b>${c.name.common}</b>.`,
+        `${meaningLineOrFallback(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+      );
+      setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
+      return;
+    }
+
+    renderMsg(
+      'fail',
+      `Not quite.`,
+      `Try again. You have <b>${triesLeft}</b> tries left. (Hit <b>.</b> for a hint — it costs a try.)`
+    );
+
+    guessInput.select();
+    guessInput.focus();
+  }
+
+  function skipFlag() {
+    const c = currentCountry();
+    if (!c) return;
+
+    renderMsg(
+      'hint',
+      `Skipped. Answer: <b>${c.name.common}</b>.`,
+      `${meaningLineOrFallback(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+    );
+    setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
+  }
+
+  function renderFlag() {
+    closeSuggest();
+
+    const c = currentCountry();
+    if (!c) return;
+
+    const url = c.flags?.png || c.flags?.svg || '';
+    flagImg.src = url;
+    flagImg.alt = `Flag of ${c.name?.common || 'Unknown'}`;
+
+    triesLeft = TRIES_PER_FLAG;
+    guessInput.value = '';
+    guessInput.focus();
+    updateHUD();
+
+    renderMsg('neutral', '', `Type a country name — or hit <b>.</b> for a hint (hint uses a try).`);
+  }
+
+  function pointsForTry(tryNumberUsed) {
+    if (tryNumberUsed === 1) return 3;
+    if (tryNumberUsed === 2) return 2;
+    if (tryNumberUsed === 3) return 1;
+    return 0;
+  }
+
+  function advanceFlag() {
+    flagIdx++;
+    if (flagIdx >= FLAGS_PER_ROUND) {
+      roundIdx++;
+      flagIdx = 0;
+
+      if (roundIdx >= rounds.length) {
+        renderMsg('success', `🏁 Game complete! Final score: <b>${score}</b>`, `Hit RESTART to play again.`);
+        submitBtn.disabled = true;
+        skipBtn.disabled = true;
+        guessInput.disabled = true;
+        updateHUD();
+        return;
+      }
+
+      renderMsg('success', `➡️ Next round!`, `Round <b>${roundIdx + 1}</b> incoming…`);
+      setTimeout(() => renderFlag(), 650);
+      updateHUD();
+      return;
+    }
+
+    renderFlag();
+  }
+
+  function restart() {
+    roundIdx = 0;
+    flagIdx = 0;
+    triesLeft = TRIES_PER_FLAG;
+    score = 0;
+    submitBtn.disabled = false;
+    skipBtn.disabled = false;
+    guessInput.disabled = false;
+    setStatus('Ready');
+    renderFlag();
+  }
+
+  // Wire events
   submitBtn.addEventListener('click', submitGuess);
   skipBtn.addEventListener('click', skipFlag);
   restartBtnTop.addEventListener('click', restart);
@@ -1212,6 +1503,40 @@
   });
 
   // Boot
+  async function loadCountries() {
+    setStatus('Loading countries…', true);
+
+    const res = await fetch(
+      'https://restcountries.com/v3.1/all?fields=name,flags,altSpellings,population,region,subregion,cca3,borders'
+    );
+    if (!res.ok) throw new Error(`Failed to fetch countries: ${res.status}`);
+
+    const data = await res.json();
+
+    countries = data
+      .filter(c => c?.name?.common && (c?.flags?.png || c?.flags?.svg))
+      .map(c => ({
+        name: c.name,
+        altSpellings: c.altSpellings || [],
+        flags: c.flags,
+        population: c.population || 0,
+        region: c.region || '',
+        subregion: c.subregion || '',
+        cca3: c.cca3 || '',
+        borders: Array.isArray(c.borders) ? c.borders : []
+      }));
+
+    cca3ToCountry = new Map();
+    for (const c of countries) {
+      if (c.cca3) cca3ToCountry.set(c.cca3, c);
+    }
+
+    rounds = buildRoundsSmart(countries);
+
+    setStatus('Ready');
+    restart();
+  }
+
   loadCountries().catch(err => {
     console.error(err);
     setStatus('Load failed');
