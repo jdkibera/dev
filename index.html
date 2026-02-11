@@ -16,7 +16,7 @@
       --btnBgHover: rgba(90,140,255,0.33);
 
       --flagStageH: 340px; /* fixed stage height so modal never jumps */
-      --msgH: 200px;       /* fixed message block height so it never jumps */
+      --msgH: 220px;       /* fixed message block height so it never jumps */
       --iconColW: 120px;   /* fixed icon column width */
     }
 
@@ -35,7 +35,7 @@
       flex: 1;
       display: grid;
       place-items: center;
-      padding: 22px 14px 10px;
+      padding: 34px 14px 10px; /* more breathing room up top */
       position: relative;
     }
 
@@ -45,18 +45,19 @@
       flex-direction: column;
       align-items: center;
       gap: 14px;
-      position: relative; /* anchor angled title to the card */
+      position: relative;
     }
 
     /* Angled brand title anchored near the modal */
     .brandAngle{
       position: absolute;
-      left: -118px;   /* sits just left of the card corner */
-      top: 78px;      /* aligned near the top-left of the modal area */
+      left: -118px;
+      top: 82px;
       transform: rotate(-45deg);
       transform-origin: left top;
-      font-family: "Brush Script MT", "Snell Roundhand", "Segoe Script", "Apple Chancery", cursive;
+      font-family: "Snell Roundhand", "Apple Chancery", "Zapfino", "Brush Script MT", "Segoe Script", cursive;
       font-size: 44px;
+      font-weight: 300;
       color: rgba(37,48,65,0.42);
       user-select: none;
       pointer-events: none;
@@ -71,7 +72,7 @@
       gap: 12px;
       flex-wrap: wrap;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center; /* center pills */
       margin-bottom: 2px;
     }
 
@@ -100,7 +101,7 @@
       font-size: 13px;
       white-space: nowrap;
       letter-spacing: 0.8px;
-      font-weight: 700;
+      font-weight: 800;
     }
     .restartBtnTop:hover{ background: rgba(0,0,0,0.10); }
 
@@ -115,13 +116,15 @@
       position: relative;
     }
 
+    /* Lighter, elegant header title */
     .questionTitle{
       text-align: center;
       margin: 6px 0 10px;
-      font-size: 30px;
-      letter-spacing: 0.4px;
-      font-weight: 300;
-      opacity: 0.96;
+      font-size: 34px;
+      letter-spacing: 0.5px;
+      font-weight: 200;
+      opacity: 0.95;
+      font-family: "Didot", "Bodoni 72", "Bodoni MT", "Playfair Display", Georgia, serif;
     }
 
     .flagStage{
@@ -186,7 +189,7 @@
       cursor: pointer;
       min-width: 96px;
       font-size: 13px;
-      font-weight: 800;
+      font-weight: 900;
       letter-spacing: 0.9px;
     }
     button:hover{ background: var(--btnBgHover); }
@@ -240,7 +243,7 @@
       width: min(900px, 100%);
       display: grid;
       grid-template-columns: var(--iconColW) minmax(0, 1fr);
-      align-items: start; /* top align */
+      align-items: start;
       gap: 14px;
       padding: 0 6px;
       box-sizing: border-box;
@@ -258,12 +261,12 @@
       width: 108px;
       height: 108px;
       border-radius: 18px;
-      border: 2px solid rgba(0,0,0,0.12);
+      border: none; /* remove border (hint icon asked; keeping clean across all icons) */
       background: rgba(255,255,255,0.0);
       overflow: hidden;
       display: grid;
       place-items: center;
-      box-shadow: none; /* no shadow on the icon */
+      box-shadow: none;
     }
     .iconSq svg{
       width: 100%;
@@ -273,7 +276,7 @@
     .iconLabel{
       font-size: 10px;
       letter-spacing: 1.2px;
-      font-weight: 500; /* unbold */
+      font-weight: 500;
       color: rgba(37,48,65,0.70);
       text-transform: uppercase;
       user-select:none;
@@ -289,14 +292,14 @@
     .msgText .headline{
       font-size: 18px;
       margin: 0 0 6px;
-      min-height: 24px; /* anchor */
+      min-height: 24px;
       color: rgba(37,48,65,0.92);
     }
     .msgText .sub{
       font-size: 14px;
-      opacity: 0.88;
+      opacity: 0.90;
       margin: 0;
-      min-height: 44px;
+      min-height: 56px;
       color: rgba(37,48,65,0.86);
     }
     .msgText a{
@@ -305,28 +308,18 @@
       font-weight: 700;
     }
 
-    .spinner{
-      display:inline-block;
-      width: 12px; height: 12px;
-      border: 2px solid rgba(0,0,0,0.20);
-      border-top-color: rgba(0,0,0,0.75);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
     /* Footer area: bottom third */
     .bottomArea{
       width: 100%;
       position: relative;
     }
 
-    /* Copyright anchored to bottom, just above footer */
+    /* Copyright anchored near bottom */
     .copyright{
       position: fixed;
       left: 0;
       width: 100%;
-      bottom: calc(33vh + 10px);
+      bottom: 50px; /* 50px off bottom */
       text-align: center;
       color: rgba(37,48,65,0.75);
       font-size: 13px;
@@ -339,7 +332,7 @@
       height: 33vh;
       min-height: 220px;
       max-height: 420px;
-      width: 100vw;      /* full page */
+      width: 100vw;
       position: relative;
       overflow: hidden;
       background: linear-gradient(to bottom, rgba(223,232,244,0.0), rgba(223,232,244,0.98));
@@ -356,24 +349,15 @@
     }
 
     @media (max-width: 900px){
-      .brandAngle{
-        left: -96px;
-        top: 86px;
-        font-size: 38px;
-      }
+      .brandAngle{ left: -96px; top: 90px; font-size: 38px; }
+      .questionTitle{ font-size: 30px; }
     }
-
     @media (max-width: 760px){
       :root{ --iconColW: 112px; }
       .pill{ font-size: 16px; }
       .pill b{ font-size: 18px; }
       .questionTitle{ font-size: 26px; }
-      .brandAngle{ font-size: 34px; left: -82px; top: 92px; }
-      .copyright{ bottom: calc(33vh + 8px); }
-    }
-
-    @media (prefers-reduced-motion: reduce){
-      .spinner { animation: none; }
+      .brandAngle{ font-size: 34px; left: -82px; top: 98px; }
     }
   </style>
 </head>
@@ -383,13 +367,11 @@
     <div class="wrap">
       <div class="brandAngle">Kibera's<br/>Flag Gauntlet</div>
 
+      <!-- Removed READY/status pill, centered the remaining pills -->
       <div class="topbar">
-        <div class="pill" id="statusPill">Loading countries… <span class="spinner" aria-hidden="true"></span></div>
-
         <div class="pill">Round: <b id="roundNum">1</b> / <span id="roundTotal">?</span></div>
         <div class="pill">Flag: <b id="flagIndex">1</b> / <b id="flagsPerRound">10</b></div>
         <div class="pill">Tries left: <b id="triesLeft">3</b></div>
-
         <div class="pill">
           Score: <b id="score">0</b>
           <button class="restartBtnTop" id="restartBtnTop" title="Restart from Round 1">RESTART</button>
@@ -442,7 +424,6 @@
   const PAUSE_WRONG_MS   = 10000;
 
   // UI
-  const statusPill = document.getElementById('statusPill');
   const roundNumEl = document.getElementById('roundNum');
   const roundTotalEl = document.getElementById('roundTotal');
   const flagIndexEl = document.getElementById('flagIndex');
@@ -495,12 +476,6 @@
     return arr;
   }
 
-  function setStatus(text, withSpinner=false) {
-    statusPill.innerHTML = withSpinner
-      ? `${text} <span class="spinner" aria-hidden="true"></span>`
-      : text;
-  }
-
   function updateHUD() {
     roundNumEl.textContent = String(roundIdx + 1);
     roundTotalEl.textContent = String(rounds.length || '?');
@@ -528,35 +503,52 @@
     return r;
   }
 
-  // --- Flat-ish cartoon icons (original SVGs, more “flat”) ---
+  // --- More recognizable icons + default globe/map icon ---
   function iconSVG(kind) {
     const stroke = "rgba(15,20,25,0.78)";
-    const white = "rgba(255,255,255,0.92)";
+    const soft = "rgba(255,255,255,0.92)";
 
-    if (kind === 'success') {
-      // Tony Tiger (flat)
+    if (kind === 'neutral') {
+      // Globe / map pin
       return `
       <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-        <rect x="0" y="0" width="110" height="110" rx="18" fill="rgba(255,255,255,0.0)"/>
-        <circle cx="55" cy="58" r="34" fill="rgba(255,165,72,0.95)" stroke="${stroke}" stroke-width="3"/>
-        <path d="M30 48c-8-8-6-18 6-20l8 10z" fill="rgba(255,165,72,0.95)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
-        <path d="M80 48c8-8 6-18-6-20l-8 10z" fill="rgba(255,165,72,0.95)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
-        <path d="M36 60c0-10 7-18 19-18s19 8 19 18-9 16-19 16-19-6-19-16z"
-              fill="${white}" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
-        <circle cx="46" cy="58" r="3" fill="${stroke}"/>
-        <circle cx="64" cy="58" r="3" fill="${stroke}"/>
-        <path d="M55 62c0 6-6 8-10 6" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/>
-        <path d="M55 62c0 6 6 8 10 6" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/>
-        <path d="M38 70h-12M38 76h-12M84 70h12M84 76h12" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/>
-        <path d="M44 42c2 8 4 10 6 12M66 42c-2 8-4 10-6 12" stroke="rgba(20,20,20,0.22)" stroke-width="4" stroke-linecap="round"/>
+        <rect width="110" height="110" rx="18" fill="rgba(255,255,255,0)"/>
+        <circle cx="55" cy="55" r="34" fill="rgba(120,170,220,0.30)" stroke="${stroke}" stroke-width="3"/>
+        <path d="M21 55h68" stroke="${stroke}" stroke-width="2.5" opacity="0.55"/>
+        <path d="M55 21v68" stroke="${stroke}" stroke-width="2.5" opacity="0.35"/>
+        <path d="M29 40c8-8 18-12 26-12" stroke="${stroke}" stroke-width="2.5" opacity="0.55" fill="none" stroke-linecap="round"/>
+        <path d="M29 70c8 8 18 12 26 12" stroke="${stroke}" stroke-width="2.5" opacity="0.55" fill="none" stroke-linecap="round"/>
+        <path d="M70 36c8 8 10 20 6 32" stroke="${stroke}" stroke-width="2.5" opacity="0.55" fill="none" stroke-linecap="round"/>
+        <path d="M55 34c0 8-10 12-10 20 0 6 4 9 10 14 6-5 10-8 10-14 0-8-10-12-10-20z"
+              fill="rgba(240,120,90,0.42)" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round"/>
+        <circle cx="55" cy="52" r="3.5" fill="${soft}" stroke="${stroke}" stroke-width="2"/>
+      </svg>`;
+    }
+
+    if (kind === 'success') {
+      // Tony Tiger-ish (more “face readable”)
+      return `
+      <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+        <rect width="110" height="110" rx="18" fill="rgba(255,255,255,0)"/>
+        <path d="M25 45c-6-10-2-22 10-24l8 12z" fill="rgba(255,170,70,0.92)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M85 45c6-10 2-22-10-24l-8 12z" fill="rgba(255,170,70,0.92)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+        <circle cx="55" cy="60" r="34" fill="rgba(255,170,70,0.92)" stroke="${stroke}" stroke-width="3"/>
+        <path d="M33 62c0-12 10-22 22-22s22 10 22 22-10 20-22 20-22-8-22-20z"
+              fill="${soft}" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+        <circle cx="45" cy="58" r="3.2" fill="${stroke}"/>
+        <circle cx="65" cy="58" r="3.2" fill="${stroke}"/>
+        <path d="M55 62c0 7-7 10-12 7" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/>
+        <path d="M55 62c0 7 7 10 12 7" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/>
+        <path d="M41 47c3 6 5 9 7 11M69 47c-3 6-5 9-7 11" stroke="rgba(0,0,0,0.18)" stroke-width="4" stroke-linecap="round"/>
+        <path d="M26 70h12M26 76h12M84 70h-12M84 76h-12" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/>
       </svg>`;
     }
 
     if (kind === 'fail') {
-      // Fail Whale (flat)
+      // Whale (kept, slightly cleaner)
       return `
       <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-        <rect x="0" y="0" width="110" height="110" rx="18" fill="rgba(255,255,255,0.0)"/>
+        <rect width="110" height="110" rx="18" fill="rgba(255,255,255,0)"/>
         <path d="M18 66c10 18 28 28 46 24 20-4 30-18 30-36 0-6-2-12-6-16-6 8-18 10-28 6-10-4-20-10-30-4-8 4-14 12-12 26z"
               fill="rgba(80,145,220,0.92)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
         <circle cx="52" cy="62" r="3" fill="${stroke}"/>
@@ -565,38 +557,28 @@
               fill="rgba(80,145,220,0.92)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
         <path d="M28 54c-6-10-2-18 8-22 2 8-1 16-8 22z"
               fill="rgba(80,145,220,0.92)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
-        <path d="M22 86c14 6 28 6 44 0 16-6 26-6 40 0" stroke="rgba(0,0,0,0.10)" stroke-width="5" stroke-linecap="round"/>
       </svg>`;
     }
 
     if (kind === 'hint') {
-      // Helpful Hippo (flat)
+      // Hippo reset (more recognizable head + snout)
       return `
       <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-        <rect x="0" y="0" width="110" height="110" rx="18" fill="rgba(255,255,255,0.0)"/>
-        <path d="M22 70c0-22 14-36 33-36s33 14 33 36-16 28-33 28-33-6-33-28z"
-              fill="rgba(165,175,210,0.95)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
-        <path d="M30 56c-10-6-8-16 2-18l8 10z"
-              fill="rgba(165,175,210,0.95)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
-        <path d="M80 56c10-6 8-16-2-18l-8 10z"
-              fill="rgba(165,175,210,0.95)" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
-        <path d="M40 70c0-10 7-18 15-18s15 8 15 18-7 16-15 16-15-6-15-16z"
-              fill="${white}" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
-        <circle cx="48" cy="68" r="3" fill="${stroke}"/>
-        <circle cx="62" cy="68" r="3" fill="${stroke}"/>
-        <path d="M55 72c-2 3-5 3-8 0" stroke="rgba(15,20,25,0.48)" stroke-width="3" fill="none" stroke-linecap="round"/>
-        <path d="M55 40v-14" stroke="rgba(15,20,25,0.45)" stroke-width="3" stroke-linecap="round"/>
-        <path d="M48 30h14" stroke="rgba(15,20,25,0.45)" stroke-width="3" stroke-linecap="round"/>
+        <rect width="110" height="110" rx="18" fill="rgba(255,255,255,0)"/>
+        <circle cx="55" cy="58" r="34" fill="rgba(175,185,220,0.95)" stroke="${stroke}" stroke-width="3"/>
+        <circle cx="35" cy="40" r="10" fill="rgba(175,185,220,0.95)" stroke="${stroke}" stroke-width="3"/>
+        <circle cx="75" cy="40" r="10" fill="rgba(175,185,220,0.95)" stroke="${stroke}" stroke-width="3"/>
+        <path d="M35 70c0-10 9-18 20-18s20 8 20 18-8 16-20 16-20-6-20-16z"
+              fill="${soft}" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/>
+        <circle cx="45" cy="56" r="3" fill="${stroke}"/>
+        <circle cx="65" cy="56" r="3" fill="${stroke}"/>
+        <circle cx="48" cy="70" r="3" fill="rgba(15,20,25,0.35)"/>
+        <circle cx="62" cy="70" r="3" fill="rgba(15,20,25,0.35)"/>
+        <path d="M55 74c-3 4-7 4-10 0" stroke="rgba(15,20,25,0.40)" stroke-width="3" fill="none" stroke-linecap="round"/>
       </svg>`;
     }
 
-    return `
-    <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-      <rect x="0" y="0" width="110" height="110" rx="18" fill="rgba(255,255,255,0.0)"/>
-      <circle cx="55" cy="55" r="30" fill="rgba(120,150,190,0.25)" stroke="rgba(15,20,25,0.35)" stroke-width="3"/>
-      <path d="M55 36l8 22-22 8 14-30z" fill="rgba(15,20,25,0.35)"/>
-      <circle cx="55" cy="55" r="4" fill="rgba(15,20,25,0.55)"/>
-    </svg>`;
+    return iconSVG('neutral');
   }
 
   function renderMsg(kind, iconName, headline, sub){
@@ -709,7 +691,7 @@
 
     renderMsg(
       'neutral',
-      '',
+      'WORLD MAP',
       '',
       `Type a country name — or hit <b>.</b> for a hint (hint uses a try).`
     );
@@ -729,7 +711,7 @@
       flagIdx = 0;
 
       if (roundIdx >= rounds.length) {
-        renderMsg('success','TONY TIGER',`🏁 Game complete! Final score: <b>${score}</b>`, `Hit RESTART to play again.`);
+        renderMsg('success','TONY TIGER',`🏁 Game complete! Final score: <b>${score}</b> 🎉`, `Hit RESTART to play again.`);
         submitBtn.disabled = true;
         skipBtn.disabled = true;
         guessInput.disabled = true;
@@ -737,7 +719,7 @@
         return;
       }
 
-      renderMsg('success','TONY TIGER',`➡️ Next round!`, `Round <b>${roundIdx + 1}</b> incoming…`);
+      renderMsg('success','TONY TIGER',`➡️ Next round! 🎉`, `Round <b>${roundIdx + 1}</b> incoming…`);
       setTimeout(() => renderFlag(), 650);
       updateHUD();
       return;
@@ -772,11 +754,11 @@
       .map(code => cca3ToCountry.get(code)?.name?.common)
       .filter(Boolean);
 
-    if (!names.length) return `Neighbors: <b>none</b> (island / solo mode) 🏝️😌`;
+    if (!names.length) return `· <b><i>Neighbors</i></b>: <b>none</b> (island / solo mode) 🏝️😌`;
 
     const sample = names.slice(0, 6);
     const extra = names.length > sample.length ? ` (+${names.length - sample.length} more)` : '';
-    return `Neighbors: <b>${sample.join(', ')}</b>${extra} 🤝`;
+    return `· <b><i>Neighbors</i></b>: ${sample.join(', ')}${extra} 🤝`;
   }
 
   const FOOD_HINT = {
@@ -796,7 +778,6 @@
 
   const FAMOUS_PERSON = {
     "Iran": "Rumi (poet) 📜",
-    "Peru": "Mario Vargas Llosa (writer) 📚",
     "United States": "Beyoncé (musician) 🎤",
     "United Kingdom": "David Bowie (musician) 🎸",
     "France": "Marie Curie (scientist) ⚗️",
@@ -841,10 +822,10 @@
     const url = rjSlugForCountry(name);
 
     const line = one
-      ? `<b>Flag symbolism (1-liner):</b> ${one}`
-      : `<b>Flag symbolism:</b> Tap <a href="${url}" target="_blank" rel="noopener">RJ Travel Agency</a> for a quick symbolism blurb.`;
+      ? `<b>Flag meaning:</b> ${one}`
+      : `<b>Flag meaning:</b> Quick reference: <a href="${url}" target="_blank" rel="noopener">RJ Travel Agency</a>.`;
 
-    return `${line}<br/><span style="opacity:0.82">Source link: <a href="${url}" target="_blank" rel="noopener">rjtravelagency.com</a></span>`;
+    return `${line}`;
   }
 
   function hint1Food(c){
@@ -854,7 +835,7 @@
     const cont = continentLabel(c.region, c.subregion);
     const fallback = {
       "Europe": "cheese + bread + something fermented 🧀🥖",
-      "Asia": "noodles + rice + a signature spice profile 🍜🍚",
+      "Asia": "noodles + rice + a signature dish 🥢🍚",
       "Africa": "stews + grains + slow-cooked deliciousness 🍲",
       "North America": "BBQ or tacos… possibly both 🔥🌮",
       "Central America": "beans + rice + coffee fuel ☕🍛",
@@ -869,12 +850,19 @@
   function hintForTry(c, tryUsed){
     if (tryUsed === 1) {
       const cont = continentLabel(c.region, c.subregion);
-      return `Hint 1: Continent: <b>${cont}</b> 🌍 · Food: <b>${hint1Food(c)}</b>`;
+      return [
+        `· <b><i>Continent</i></b>: ${cont} 🌍`,
+        `· <b><i>Food vibe</i></b>: ${hint1Food(c)}`
+      ].join('<br/>');
     }
     if (tryUsed === 2) {
       const pop = fmtNumber(Math.round(c.population || 0));
       const celeb = FAMOUS_PERSON[c.name.common] || "a person too powerful for this hint engine 😅";
-      return `Hint 2: Famous name: <b>${celeb}</b><br/>Stat: population <b>${pop}</b> 👥<br/>${neighborsList(c)}`;
+      return [
+        `· <b><i>Famous Name</i></b>: ${celeb}`,
+        `· <b><i>Stat</i></b>: population ${pop} 👥`,
+        neighborsList(c)
+      ].join('<br/>');
     }
 
     const name = c.name.common;
@@ -888,9 +876,9 @@
       { suffix: 'ine', words: ['wine','fine','line','shine'] },
     ];
     for (const p of patterns){
-      if (n.endsWith(p.suffix)) return `Hint 3: Rhymes-ish with: <b>${p.words.join(', ')}</b> 🎶 (I never promised quality)`;
+      if (n.endsWith(p.suffix)) return `· <b><i>Rhymes-ish</i></b>: ${p.words.join(', ')} 🎶`;
     }
-    return `Hint 3: Ends like “<b>${ends}</b>”… so try yelling “<b>${ends}!</b>” dramatically. 🎭`;
+    return `· <b><i>Sound clue</i></b>: ends like “${ends}”… try yelling “${ends}!” dramatically 🎭`;
   }
 
   function consumeTryWithHint() {
@@ -918,8 +906,8 @@
     renderMsg(
       'hint',
       'HELPFUL HIPPO',
-      `Hint used (costs a try).`,
-      `${hint}<br/><br/>You have <b>${triesLeft}</b> tries left.`
+      `Hint Used (costs a try!)`,
+      `${hint}<br/><br/>You have <b><i>${triesLeft}</i></b> tries left.`
     );
   }
 
@@ -939,12 +927,12 @@
       score += pts;
       updateHUD();
 
-      const mega = "🎉🎉🎉🎉🎉  🥳✨🎊  🎉🎉🎉🎉🎉";
+      const emoji = pick(["🎉","🥳","✨"]);
       renderMsg(
         'success',
         'TONY TIGER',
-        `Correct! That was <b>${c.name.common}</b>. ${mega}`,
-        `You earned <b>${pts}</b> point${pts === 1 ? '' : 's'}. Absolutely GRRREAT. 🐯<br/><br/>Next flag in <b>${Math.round(PAUSE_CORRECT_MS/1000)}s</b>…`
+        `Correct! That was <b>${c.name.common}</b>. ${emoji}`,
+        `You earned <b>${pts}</b> point${pts === 1 ? '' : 's'}.<br/><br/>Next flag in <b>${Math.round(PAUSE_CORRECT_MS/1000)}s</b>…`
       );
       setTimeout(() => advanceFlag(), PAUSE_CORRECT_MS);
       return;
@@ -980,8 +968,8 @@
     if (!c) return;
 
     renderMsg(
-      'hint',
-      'HELPFUL HIPPO',
+      'neutral',
+      'WORLD MAP',
       `Skipped. Answer: <b>${c.name.common}</b>.`,
       `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
     );
@@ -996,7 +984,6 @@
     submitBtn.disabled = false;
     skipBtn.disabled = false;
     guessInput.disabled = false;
-    setStatus('Ready');
     renderFlag();
   }
 
@@ -1052,156 +1039,149 @@
     return out;
   }
 
-  // --- Footer flags: MANY rows across the footer, ~40px spacing ---
+  // --- Footer flags: scattered field (no rows/columns), ~45px wide, 10% colored, random unique colors ---
   function buildFooter() {
     const w = Math.max(1200, window.innerWidth);
     const h = Math.max(220, Math.floor(window.innerHeight * 0.33));
     footerSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
     footerSvg.innerHTML = '';
 
-    const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+    const NS = 'http://www.w3.org/2000/svg';
+    const defs = document.createElementNS(NS,'defs');
 
-    function mkFlagDef(id, drawFn){
-      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    // simple outline templates
+    function makeOutlineTemplate(id, drawFn){
+      const g = document.createElementNS(NS,'g');
       g.setAttribute('id', id);
       drawFn(g);
       defs.appendChild(g);
     }
 
-    const strokeOutline = 'rgba(37,48,65,0.62)';
-    const strokeThin = 'rgba(37,48,65,0.35)';
-
     function rect(g, x,y,ww,hh, fill, stroke, sw){
-      const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      const r = document.createElementNS(NS,'rect');
       r.setAttribute('x', x); r.setAttribute('y', y);
       r.setAttribute('width', ww); r.setAttribute('height', hh);
-      r.setAttribute('rx', 0); r.setAttribute('ry', 0); // square corners
+      r.setAttribute('rx', 0); r.setAttribute('ry', 0);
       r.setAttribute('fill', fill);
       r.setAttribute('stroke', stroke);
       r.setAttribute('stroke-width', sw);
       g.appendChild(r);
+      return r;
     }
-
     function line(g, x1,y1,x2,y2, stroke, sw){
-      const l = document.createElementNS('http://www.w3.org/2000/svg','line');
+      const l = document.createElementNS(NS,'line');
       l.setAttribute('x1', x1); l.setAttribute('y1', y1);
       l.setAttribute('x2', x2); l.setAttribute('y2', y2);
       l.setAttribute('stroke', stroke);
       l.setAttribute('stroke-width', sw);
       l.setAttribute('stroke-linecap','round');
       g.appendChild(l);
+      return l;
     }
-
     function circle(g, cx,cy,r, fill, stroke, sw){
-      const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      const c = document.createElementNS(NS,'circle');
       c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', r);
       c.setAttribute('fill', fill);
       if (stroke){ c.setAttribute('stroke', stroke); c.setAttribute('stroke-width', sw); }
       g.appendChild(c);
+      return c;
     }
-
     function path(g, d, fill, stroke, sw){
-      const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+      const p = document.createElementNS(NS,'path');
       p.setAttribute('d', d);
       p.setAttribute('fill', fill);
       if (stroke){ p.setAttribute('stroke', stroke); p.setAttribute('stroke-width', sw); }
       p.setAttribute('stroke-linejoin','round');
       g.appendChild(p);
+      return p;
     }
 
-    // Outline defs
-    mkFlagDef('o-us', (g)=>{
+    const strokeOutline = 'rgba(37,48,65,0.55)';
+    const strokeThin = 'rgba(37,48,65,0.30)';
+
+    makeOutlineTemplate('tpl-us', (g)=>{
       rect(g,0,0,44,26,'none',strokeOutline,1.5);
       for (let y=5;y<=25;y+=5) line(g,0,y,44,y,strokeThin,1.2);
       rect(g,0,0,18,14,'none',strokeThin,1.2);
     });
-    mkFlagDef('o-uk', (g)=>{
+    makeOutlineTemplate('tpl-uk', (g)=>{
       rect(g,0,0,44,26,'none',strokeOutline,1.5);
       path(g,'M0 0 L44 26 M44 0 L0 26','none',strokeThin,1.1);
-      line(g,0,13,44,13,'rgba(37,48,65,0.45)',1.7);
-      line(g,22,0,22,26,'rgba(37,48,65,0.45)',1.7);
+      line(g,0,13,44,13,'rgba(37,48,65,0.40)',1.7);
+      line(g,22,0,22,26,'rgba(37,48,65,0.40)',1.7);
     });
-    mkFlagDef('o-jp', (g)=>{
+    makeOutlineTemplate('tpl-jp', (g)=>{
       rect(g,0,0,44,26,'none',strokeOutline,1.5);
-      circle(g,22,13,7,'none','rgba(37,48,65,0.45)',1.7);
+      circle(g,22,13,7,'none','rgba(37,48,65,0.40)',1.7);
     });
-    mkFlagDef('o-fr', (g)=>{
+    makeOutlineTemplate('tpl-fr', (g)=>{
       rect(g,0,0,44,26,'none',strokeOutline,1.5);
-      line(g,14.7,0,14.7,26,'rgba(37,48,65,0.40)',1.7);
-      line(g,29.3,0,29.3,26,'rgba(37,48,65,0.40)',1.7);
+      line(g,14.7,0,14.7,26,'rgba(37,48,65,0.35)',1.7);
+      line(g,29.3,0,29.3,26,'rgba(37,48,65,0.35)',1.7);
     });
-    mkFlagDef('o-de', (g)=>{
+    makeOutlineTemplate('tpl-de', (g)=>{
       rect(g,0,0,44,26,'none',strokeOutline,1.5);
-      line(g,0,8.7,44,8.7,'rgba(37,48,65,0.40)',1.7);
-      line(g,0,17.4,44,17.4,'rgba(37,48,65,0.40)',1.7);
+      line(g,0,8.7,44,8.7,'rgba(37,48,65,0.35)',1.7);
+      line(g,0,17.4,44,17.4,'rgba(37,48,65,0.35)',1.7);
     });
-    mkFlagDef('o-br', (g)=>{
+    makeOutlineTemplate('tpl-br', (g)=>{
       rect(g,0,0,44,26,'none',strokeOutline,1.5);
-      path(g,'M22 3 L39 13 L22 23 L5 13 Z','none','rgba(37,48,65,0.40)',1.7);
-      circle(g,22,13,5,'none','rgba(37,48,65,0.30)',1.2);
-    });
-
-    // Washed color defs
-    mkFlagDef('c-jp', (g)=>{
-      rect(g,0,0,44,26,'rgba(255,255,255,0.18)','rgba(37,48,65,0.25)',1.2);
-      circle(g,22,13,7,'rgba(220,70,70,0.30)','rgba(37,48,65,0.18)',0.9);
-    });
-    mkFlagDef('c-fr', (g)=>{
-      rect(g,0,0,44,26,'rgba(255,255,255,0.15)','rgba(37,48,65,0.22)',1.2);
-      rect(g,0,0,14.7,26,'rgba(70,110,200,0.22)','rgba(0,0,0,0)',0);
-      rect(g,29.3,0,14.7,26,'rgba(220,70,70,0.22)','rgba(0,0,0,0)',0);
-    });
-    mkFlagDef('c-de', (g)=>{
-      rect(g,0,0,44,26,'rgba(255,255,255,0.15)','rgba(37,48,65,0.22)',1.2);
-      rect(g,0,0,44,8.7,'rgba(20,20,20,0.18)','rgba(0,0,0,0)',0);
-      rect(g,0,8.7,44,8.7,'rgba(220,70,70,0.18)','rgba(0,0,0,0)',0);
-      rect(g,0,17.4,44,8.7,'rgba(240,200,70,0.18)','rgba(0,0,0,0)',0);
+      path(g,'M22 3 L39 13 L22 23 L5 13 Z','none','rgba(37,48,65,0.35)',1.7);
+      circle(g,22,13,5,'none','rgba(37,48,65,0.25)',1.2);
     });
 
     footerSvg.appendChild(defs);
 
-    const flagIdsOutline = ['o-us','o-uk','o-jp','o-fr','o-de','o-br'];
-    const flagIdsColor = ['c-jp','c-fr','c-de'];
+    const templates = ['tpl-us','tpl-uk','tpl-jp','tpl-fr','tpl-de','tpl-br'];
 
-    const size = 22;         // ~50% smaller
-    const spacingX = 12;
-    const rowStep = 40;      // "every 40px or so"
-    const scale = size / 44;
-    const approxCount = Math.ceil(w / (size + spacingX)) + 6;
+    // density: "same #" feel — scale with area
+    const flagW = 45;           // requested
+    const spacing = 18;         // average spacing
+    const approxCount = Math.floor((w * h) / ((flagW + spacing) * (flagW + spacing) * 1.55));
+    const count = Math.max(180, Math.min(520, approxCount)); // clamp for perf
 
-    const rows = Math.max(6, Math.floor(h / rowStep) + 2);
+    // choose which indices are colored: ~10% of field
+    const coloredCount = Math.max(1, Math.floor(count * 0.10));
+    const coloredIdx = new Set();
+    while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(Math.random() * count));
 
-    for (let r = 0; r < rows; r++) {
-      const rowG = document.createElementNS('http://www.w3.org/2000/svg','g');
+    function randColor(i){
+      // pseudo-unique-ish palette: hash i into HSL
+      const h1 = (i * 137.508) % 360; // golden angle
+      const s = 55 + (i % 20);        // 55..74
+      const l = 60;                   // washed
+      return `hsla(${h1}, ${s}%, ${l}%, 0.28)`;
+    }
 
-      const rowOffset = Math.floor(Math.random() * 120) - 60;
-      const y = Math.floor(r * rowStep + (Math.random() * 8 - 4));
+    for (let i = 0; i < count; i++) {
+      const id = pick(templates);
+      const useColored = coloredIdx.has(i);
 
-      // how many colored flags in this row
-      const coloredCount = 4 + Math.floor(Math.random() * 6);
-      const coloredSlots = new Set();
-      while (coloredSlots.size < Math.min(coloredCount, approxCount)) {
-        coloredSlots.add(Math.floor(Math.random() * approxCount));
+      const x = Math.random() * (w + 80) - 40;
+      const y = Math.random() * (h + 40) - 20;
+
+      const rot = (Math.random() * 10 - 5);       // slight tilt
+      const scale = flagW / 44 * (0.92 + Math.random() * 0.18);
+
+      // group for each flag so we can tint independently
+      const g = document.createElementNS(NS,'g');
+      g.setAttribute('transform', `translate(${x},${y}) rotate(${rot}) scale(${scale})`);
+
+      // optional colored underlay
+      if (useColored) {
+        // a simple fill wash behind the outline so no two are identical
+        rect(g,0,0,44,26,randColor(i),'rgba(0,0,0,0)',0);
       }
 
-      let x = rowOffset;
-      for (let i = 0; i < approxCount; i++) {
-        const use = document.createElementNS('http://www.w3.org/2000/svg','use');
+      const use = document.createElementNS(NS,'use');
+      use.setAttribute('href', `#${id}`);
+      g.appendChild(use);
 
-        const isColored = coloredSlots.has(i);
-        const id = isColored ? pick(flagIdsColor) : pick(flagIdsOutline);
+      // fade slightly as it goes upward
+      const alpha = 0.20 + (y / h) * 0.55; // more visible at bottom
+      g.setAttribute('opacity', String(Math.max(0.06, Math.min(0.70, alpha))));
 
-        use.setAttribute('href', `#${id}`);
-        use.setAttribute('transform', `translate(${x},${y}) scale(${scale})`);
-
-        rowG.appendChild(use);
-        x += (size + spacingX);
-      }
-
-      // fade rows as they go up
-      const alpha = Math.max(0.05, 0.62 - (r * 0.02));
-      rowG.setAttribute('opacity', String(alpha));
-      footerSvg.appendChild(rowG);
+      footerSvg.appendChild(g);
     }
   }
 
@@ -1259,8 +1239,6 @@
 
   // Boot
   async function loadCountries() {
-    setStatus('Loading countries…', true);
-
     const res = await fetch(
       'https://restcountries.com/v3.1/all?fields=name,flags,altSpellings,population,region,subregion,cca3,borders'
     );
@@ -1288,14 +1266,12 @@
 
     rounds = buildRoundsSmart(countries);
 
-    setStatus('Ready');
     buildFooter();
     restart();
   }
 
   loadCountries().catch(err => {
     console.error(err);
-    setStatus('Load failed');
     renderMsg('fail','FAIL WHALE',`Couldn’t load country data.`, `${String(err.message || err)}`);
   });
 
