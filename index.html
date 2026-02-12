@@ -145,9 +145,9 @@
       box-sizing: border-box;
     }
 
-    /* Main flag: big again + no aspect distortion */
+    /* Main flag: ~50% bigger + no aspect distortion */
     .flag{
-      max-width: min(520px, 92%);
+      max-width: min(780px, 96%);
       max-height: calc(var(--flagStageH) - 18px);
       width: auto;
       height: auto;
@@ -211,13 +211,13 @@
     .hintHotkeyLine{
       width: min(520px, 92%);
       text-align: left;
-      font-size: 15px; /* +15% from 13px */
+      font-size: 15px; /* +15% */
       color: rgba(233,238,252,0.74);
       margin-top: -2px;
       font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
       font-weight: 300;
     }
-    .hintHotkeyLine b{ color: rgba(233,238,252,0.92); font-weight: 650; }
+    .hintHotkeyLine b{ color: rgba(233,238,252,0.92); font-weight: 600; }
 
     .suggestBox{
       position: absolute;
@@ -275,72 +275,103 @@
       padding-top: 2px;
     }
 
-    /* Keep icon space; no images; text blends with bg */
+    /* Comic-burst icon tile (no image assets) */
     .iconSq{
       width: 132px;
       height: 132px;
       border-radius: 18px;
       border: none;
       background: transparent;
-      overflow: hidden;
+      overflow: visible;
       display: grid;
       place-items: center;
       box-shadow: none;
+      position: relative;
+    }
+
+    .iconBurst{
+      position: absolute;
+      inset: 6px;
+      border-radius: 14px;
+      background: transparent;
+      pointer-events: none;
+    }
+
+    /* Burst shape + outline */
+    .iconBurst::before{
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      clip-path: polygon(
+        50% 2%,
+        62% 12%,
+        78% 6%,
+        82% 22%,
+        98% 30%,
+        86% 42%,
+        98% 56%,
+        82% 62%,
+        88% 82%,
+        70% 76%,
+        62% 96%,
+        50% 86%,
+        38% 96%,
+        30% 76%,
+        12% 82%,
+        18% 62%,
+        2% 56%,
+        14% 42%,
+        2% 30%,
+        18% 22%,
+        22% 6%,
+        38% 12%
+      );
+      background: radial-gradient(circle at 35% 30%, rgba(255,245,170,0.98), rgba(255,210,85,0.94) 38%, rgba(255,145,35,0.92) 72%);
+      border: 5px solid rgba(10,12,18,0.92);
+      box-shadow: 0 14px 26px rgba(0,0,0,0.18);
+    }
+
+    /* Halftone dots */
+    .iconBurst::after{
+      content: "";
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: -6px;
+      height: 44px;
+      border-radius: 14px;
+      background:
+        radial-gradient(rgba(10,12,18,0.55) 1.2px, rgba(0,0,0,0) 1.4px) 0 0/8px 8px;
+      opacity: 0.34;
+      filter: blur(0.2px);
+      transform: rotate(-2deg);
     }
 
     .iconWord{
-      font-family: "Calligraffitti", "Snell Roundhand", "Apple Chancery", "Segoe Script", cursive;
-      font-size: 44px;
-      line-height: 0.95;
-      letter-spacing: 0.2px;
-
-      /* “Aliased” into background: subtle stroke + soft shadow */
-      color: rgba(37,48,65,0.92);
+      font-family: Impact, Haettenschweiler, "Arial Black", "Helvetica Neue", Arial, sans-serif;
+      font-size: 42px;
+      letter-spacing: 1px;
+      line-height: 1;
+      transform: rotate(-6deg);
+      text-transform: uppercase;
+      position: relative;
+      z-index: 2;
+      color: #e21b1b;
       text-shadow:
-        0 1px 0 rgba(255,255,255,0.55),
-        0 10px 22px rgba(20,30,50,0.12);
-
-      /* soft outline */
-      -webkit-text-stroke: 1px rgba(255,255,255,0.35);
+        -3px -3px 0 rgba(10,12,18,0.92),
+         3px -3px 0 rgba(10,12,18,0.92),
+        -3px  3px 0 rgba(10,12,18,0.92),
+         3px  3px 0 rgba(10,12,18,0.92),
+         0   10px 18px rgba(0,0,0,0.16);
+      -webkit-text-stroke: 2px rgba(255,255,255,0.85);
       paint-order: stroke fill;
       user-select: none;
     }
+    .iconWord.fail{ color: #e21b1b; }
+    .iconWord.success{ color: #2b2b2b; }
+    .iconWord.default{ color: #e21b1b; }
 
-    /* Colorful but still watercolor-ish (muted) */
-    .iconWord.default{
-      background: linear-gradient(135deg, rgba(40,120,210,0.85), rgba(60,190,160,0.85));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      -webkit-text-stroke: 1px rgba(255,255,255,0.30);
-    }
-    .iconWord.fail{
-      background: linear-gradient(135deg, rgba(230,80,80,0.88), rgba(255,175,70,0.84));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      -webkit-text-stroke: 1px rgba(255,255,255,0.30);
-    }
-    .iconWord.success{
-      background: linear-gradient(135deg, rgba(120,95,235,0.86), rgba(70,180,255,0.86));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      -webkit-text-stroke: 1px rgba(255,255,255,0.30);
-    }
-
-    .iconLabel{
-      font-size: 11px;
-      letter-spacing: 1.4px;
-      font-weight: 500;
-      color: rgba(37,48,65,0.70);
-      text-transform: uppercase;
-      user-select:none;
-      line-height: 1;
-      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
-    }
-
-    /* Messaging typography: 20% smaller + softer bold */
     .msgText{
       text-align: left;
       line-height: 1.25;
@@ -364,12 +395,12 @@
       color: rgba(37,48,65,0.86);
       font-weight: 300;
     }
-    /* Bolded text lighter weight */
-    .msgText b{ font-weight: 520; }
+    /* Bold even lighter */
+    .msgText b{ font-weight: 420; }
     .msgText a{
       color: rgba(30,80,170,0.95);
       text-decoration: underline;
-      font-weight: 520;
+      font-weight: 420;
     }
 
     .bottomArea{
@@ -393,7 +424,6 @@
       font-weight: 300;
     }
 
-    /* Footer begins AFTER message box (JS sets top/height). Fades in from that point. */
     .flagFooter{
       position: fixed;
       left: 0;
@@ -414,8 +444,6 @@
       width: 100%;
       height: 100%;
       opacity: 1;
-
-      /* More gradual fade-in */
       mask-image: linear-gradient(
         to bottom,
         rgba(0,0,0,0.00) 0%,
@@ -463,7 +491,7 @@
       :root{ --iconColW: 140px; --msgH: 300px; }
       .msgText .headline{ font-size: 26px; }
       .msgText .sub{ font-size: 20px; }
-      .iconWord{ font-size: 40px; }
+      .iconWord{ font-size: 38px; }
     }
     @media (max-width: 760px){
       :root{ --iconColW: 132px; --msgH: 290px; }
@@ -471,7 +499,7 @@
       .pill b{ font-size: 18px; }
       .questionTitle{ font-size: 26px; }
       .brandAngle{ font-size: 34px; left: -110px; top: 140px; width: 210px; }
-      .iconWord{ font-size: 38px; }
+      .iconWord{ font-size: 36px; }
     }
   </style>
 </head>
@@ -628,7 +656,7 @@
     return r;
   }
 
-  function renderMsg(kind, iconName, headline, sub){
+  function renderMsg(kind, headline, sub){
     let word = "Let's Go!";
     let cls = "default";
     if (kind === 'fail') { word = "Oh Nawr!"; cls = "fail"; }
@@ -638,9 +666,9 @@
       <div class="msgGrid">
         <div class="iconCol">
           <div class="iconSq" aria-hidden="true">
+            <div class="iconBurst"></div>
             <div class="iconWord ${cls}">${word}</div>
           </div>
-          <div class="iconLabel">${iconName || ""}</div>
         </div>
         <div class="msgText">
           <div class="headline">${headline || ""}</div>
@@ -884,8 +912,7 @@
     guessInput.focus();
     updateHUD();
 
-    // Removed hint CTA duplication from message module
-    renderMsg('neutral','WORLD MAP','', `Type a country name.`);
+    renderMsg('neutral','', `Type a country name.`);
   }
 
   function pointsForTry(tryNumberUsed) {
@@ -974,7 +1001,7 @@
       flagIdx = 0;
 
       if (roundIdx >= rounds.length) {
-        renderMsg('success','TONY TIGER',`🏁 Game complete! Final score: <b>${score}</b> 🎉`, `Hit RESTART to play again.`);
+        renderMsg('success', `🏁 Game complete! Final score: <b>${score}</b> 🎉`, `Hit RESTART to play again.`);
         submitBtn.disabled = true;
         skipBtn.disabled = true;
         guessInput.disabled = true;
@@ -1004,7 +1031,6 @@
     if (triesLeft <= 0) {
       renderMsg(
         'fail',
-        'FAIL WHALE',
         `Out of tries! Answer: <b>${c.name.common}</b>.`,
         `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
       );
@@ -1014,7 +1040,6 @@
 
     renderMsg(
       'neutral',
-      'HELPFUL HIPPO',
       `Hint Used (costs a try!)`,
       `${hint}<br/><br/>You have <b>${triesLeft}</b> tries left.`
     );
@@ -1039,7 +1064,6 @@
       const emoji = pick(["🎉","🥳","✨"]);
       renderMsg(
         'success',
-        'TONY TIGER',
         `Correct! That was <b>${c.name.common}</b>. ${emoji}`,
         `You earned <b>${pts}</b> point${pts === 1 ? '' : 's'}.<br/><br/>Next flag in <b>${Math.round(PAUSE_CORRECT_MS/1000)}s</b>…`
       );
@@ -1053,7 +1077,6 @@
     if (triesLeft <= 0) {
       renderMsg(
         'fail',
-        'FAIL WHALE',
         `Nope. Answer: <b>${c.name.common}</b>.`,
         `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
       );
@@ -1063,7 +1086,6 @@
 
     renderMsg(
       'fail',
-      'FAIL WHALE',
       `Not quite.`,
       `Try again. You have <b>${triesLeft}</b> tries left.`
     );
@@ -1078,7 +1100,6 @@
 
     renderMsg(
       'neutral',
-      'WORLD MAP',
       `Skipped. Answer: <b>${c.name.common}</b>.`,
       `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
     );
@@ -1137,7 +1158,6 @@
     const msgRect = belowMsg.getBoundingClientRect();
     const pad = 10;
 
-    // Start ~50px higher than before
     const topPx = Math.min(
       Math.max(msgRect.bottom + pad - 50, window.innerHeight * 0.60),
       window.innerHeight - 120
@@ -1291,14 +1311,18 @@
     const cols = Math.max(10, Math.floor((w - padX*2) / cellW));
     const rows = Math.max(6, Math.floor((h - padY*2) / cellH));
 
+    // Stronger row offsets to avoid column alignment
     const points = [];
     for (let r = 0; r < rows; r++){
+      const rowShift = (Math.random()*0.8 - 0.4) * (cellW * 0.9);
+
       for (let c = 0; c < cols; c++){
         const yBase = padY + r * cellH;
-        const xBase = padX + c * cellW;
+        const xBase = padX + c * cellW + rowShift;
 
-        const jx = (Math.random()*0.9 - 0.45) * (cellW * 0.55);
-        const jy = (Math.random()*0.9 - 0.45) * (cellH * 0.55);
+        // more scatter jitter
+        const jx = (Math.random()*1.0 - 0.5) * (cellW * 0.95);
+        const jy = (Math.random()*1.0 - 0.5) * (cellH * 0.85);
 
         points.push({ x: xBase + jx, y: yBase + jy });
       }
@@ -1312,7 +1336,7 @@
     const extra = [];
     for (let i = Math.floor(keep.length*0.70); i < keep.length; i += 4){
       const p = keep[i];
-      extra.push({ x: p.x + (Math.random()*5-2.5), y: p.y + (Math.random()*5-2.5) });
+      extra.push({ x: p.x + (Math.random()*7-3.5), y: p.y + (Math.random()*7-3.5) });
     }
     const all = keep.concat(extra);
 
@@ -1320,15 +1344,16 @@
     const coloredIdx = new Set();
     while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(Math.random() * all.length));
 
+    // Slightly stronger color (less washed out)
     function randColor(i){
       const hh = (i * 137.508) % 360;
-      return `hsla(${hh}, 62%, 56%, 0.92)`;
+      return `hsla(${hh}, 74%, 52%, 0.86)`;
     }
 
     const items = all.map((p, i) => {
       const id = templates[Math.floor(Math.random() * templates.length)];
       const useColored = coloredIdx.has(i);
-      const rot = (Math.random() * 10 - 5);
+      const rot = (Math.random() * 12 - 6);
       const scale = scaleBase * (0.98 + Math.random() * 0.22);
       return { i, id, useColored, x: p.x, y: p.y, rot, scale };
     });
@@ -1338,7 +1363,7 @@
     for (const it of items) {
       const g = document.createElementNS(NS,'g');
 
-      // Half as wide at the same height (scaleX only)
+      // half as wide, same height
       g.setAttribute('transform', `translate(${it.x},${it.y}) rotate(${it.rot}) scale(${it.scale * 0.5},${it.scale})`);
 
       rect(g,0,0,44,26,paper,'rgba(0,0,0,0)',0);
@@ -1427,7 +1452,7 @@
 
   loadCountries().catch(err => {
     console.error(err);
-    renderMsg('fail','FAIL WHALE',`Couldn’t load country data.`, `${String(err.message || err)}`);
+    renderMsg('fail', `Couldn’t load country data.`, `${String(err.message || err)}`);
   });
 
   window.addEventListener('resize', () => buildFooter());
