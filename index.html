@@ -338,10 +338,15 @@
       top: 6px;
       width: 138px;
       height: 138px;
+
+      /* CHANGE 2/2: remove the white background by blending against page bg */
+      background-color: var(--bg);
       background-image: url("https://img.freepik.com/free-vector/halftone-style-blank-speech-bubbles-retro-comic-background_1017-51981.jpg?semt=ais_user_personalization&w=740&q=80");
       background-repeat: no-repeat;
       background-size: contain;
       background-position: center;
+      background-blend-mode: multiply;
+
       filter:
         hue-rotate(var(--burstHue, 0deg))
         saturate(var(--burstSat, 1.25))
@@ -656,6 +661,9 @@
   let lastRenderedQuery = "";
 
   let cca3ToCountry = new Map();
+
+  // CHANGE 1/2: store prefetched flag PNG object URLs for the 10% colored tiles
+  let MOSAIC_FLAG_OBJECT_URLS = [];
 
   function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -1216,6 +1224,8 @@
   // ------------------------------------------------------------------------------------------------
   // FLAG MOSAIC (header/footer): most flags uncolored, 10% show actual flag colors (slightly faded)
   // No rotation; scattered (not columns); header is mirrored footer.
+  //
+  // CHANGE 1/2: add "detail" back (subtle internal marks), and keep 10% actual flag color via prefetched PNGs.
   // ------------------------------------------------------------------------------------------------
   function buildFlagMosaic(svgEl, w, h, opts){
     const NS = 'http://www.w3.org/2000/svg';
@@ -1241,6 +1251,8 @@
     svgEl.appendChild(defs);
 
     const strokeOutline = 'rgba(37,48,65,0.28)';
+    const detailStroke  = 'rgba(37,48,65,0.18)';  // subtle inner detail
+    const detailStroke2 = 'rgba(37,48,65,0.12)';  // even lighter detail
     const paper = 'rgba(255,255,255,0.92)';
 
     // Build a set of indices to color
@@ -1252,15 +1264,10 @@
     const coloredIdx = new Set();
     while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(rnd() * total));
 
-    // pick random countries for patterns
-    function pickCountryWithPng(){
-      if (!countries.length) return null;
-      for (let i=0;i<10;i++){
-        const c = countries[Math.floor(rnd() * countries.length)];
-        const url = c?.flags?.png || '';
-        if (url) return c;
-      }
-      return null;
+    // Use prefetched object URLs so SVG <image> works reliably.
+    function pickMosaicFlagUrl(){
+      if (!MOSAIC_FLAG_OBJECT_URLS || !MOSAIC_FLAG_OBJECT_URLS.length) return '';
+      return MOSAIC_FLAG_OBJECT_URLS[Math.floor(rnd() * MOSAIC_FLAG_OBJECT_URLS.length)];
     }
 
     const patterns = new Map(); // url -> patternId
@@ -1282,9 +1289,7 @@
       img.setAttribute('width','1');
       img.setAttribute('height','1');
       img.setAttribute('preserveAspectRatio','none');
-
-      // slight fade so it blends (still recognizable)
-      img.setAttribute('opacity','0.88');
+      img.setAttribute('opacity','0.88'); // slightly faded but recognizable
 
       pat.appendChild(img);
       defs.appendChild(pat);
@@ -1347,10 +1352,9 @@
       base.setAttribute('stroke-width','0');
       g.appendChild(base);
 
-      // colored flag (10%) uses actual PNG pattern
+      // colored flag (10%) uses actual PNG pattern (prefetched object URL)
       if (coloredIdx.has(p.i)) {
-        const cc = pickCountryWithPng();
-        const url = cc?.flags?.png || '';
+        const url = pickMosaicFlagUrl();
         const pid = ensurePatternForFlag(url);
         if (pid) {
           const fill = document.createElementNS(NS,'rect');
@@ -1364,6 +1368,33 @@
           g.appendChild(fill);
         }
       }
+
+      // subtle inner "detail" marks (gives depth without changing size/position)
+      // a couple of faint lines + a tiny emblem mark
+      const d1 = document.createElementNS(NS,'path');
+      const y1 = (flagH * (0.32 + rnd()*0.25)).toFixed(2);
+      d1.setAttribute('d', `M ${(flagW*0.10).toFixed(2)} ${y1} L ${(flagW*0.90).toFixed(2)} ${y1}`);
+      d1.setAttribute('stroke', detailStroke);
+      d1.setAttribute('stroke-width', '1');
+      d1.setAttribute('fill', 'none');
+      g.appendChild(d1);
+
+      const d2 = document.createElementNS(NS,'path');
+      const x2 = (flagW * (0.25 + rnd()*0.5)).toFixed(2);
+      d2.setAttribute('d', `M ${x2} ${(flagH*0.15).toFixed(2)} L ${x2} ${(flagH*0.85).toFixed(2)}`);
+      d2.setAttribute('stroke', detailStroke2);
+      d2.setAttribute('stroke-width', '1');
+      d2.setAttribute('fill', 'none');
+      g.appendChild(d2);
+
+      const emblem = document.createElementNS(NS,'circle');
+      emblem.setAttribute('cx', (flagW * (0.55 + (rnd()*0.22 - 0.11))).toFixed(2));
+      emblem.setAttribute('cy', (flagH * (0.52 + (rnd()*0.18 - 0.09))).toFixed(2));
+      emblem.setAttribute('r', (Math.max(1.2, Math.min(2.0, 1.4 + rnd()*0.8))).toFixed(2));
+      emblem.setAttribute('fill', 'rgba(37,48,65,0.10)');
+      emblem.setAttribute('stroke', 'rgba(37,48,65,0.16)');
+      emblem.setAttribute('stroke-width', '1');
+      g.appendChild(emblem);
 
       // outline always
       const outline = document.createElementNS(NS,'rect');
@@ -1446,6 +1477,32 @@
     guessInput.focus();
   });
 
+  // CHANGE 1/2 helper: prefetch some flag PNGs as same-origin object URLs for SVG <image> patterns
+  async function prefetchMosaicFlags(count = 80) {
+    const urls = countries
+      .map(c => c?.flags?.png)
+      .filter(Boolean);
+
+    // deterministic-ish shuffle
+    const copy = urls.slice();
+    shuffle(copy);
+
+    const picked = copy.slice(0, Math.min(count, copy.length));
+    const out = [];
+
+    for (const u of picked) {
+      try {
+        const r = await fetch(u, { mode: 'cors' });
+        if (!r.ok) continue;
+        const blob = await r.blob();
+        const objUrl = URL.createObjectURL(blob);
+        out.push(objUrl);
+      } catch (_) {}
+    }
+
+    MOSAIC_FLAG_OBJECT_URLS = out;
+  }
+
   // Boot
   async function loadCountries() {
     const res = await fetch(
@@ -1474,6 +1531,9 @@
     }
 
     rounds = buildRoundsSmart(countries);
+
+    // Prefetch before building mosaics so 10% tiles can show true flag colors
+    await prefetchMosaicFlags(90);
 
     buildHeader();
     buildFooter();
