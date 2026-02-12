@@ -15,7 +15,6 @@
       --ink: #253041;
       --card: rgba(11,16,32,0.92);
       --cardBorder: rgba(0,0,0,0.18);
-
       --pillBg: rgba(255,255,255,0.10);
 
       --flagStageH: 340px;
@@ -37,6 +36,34 @@
       display:flex;
       flex-direction: column;
       overflow-x: hidden;
+    }
+
+    /* HEADER FLAGS (new) */
+    .flagHeader{
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 150px;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+      background: none;
+    }
+    .headerSvg{
+      position:absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      /* fade out upward into the top of the page */
+      mask-image: linear-gradient(
+        to top,
+        rgba(0,0,0,0.85) 0%,
+        rgba(0,0,0,0.55) 40%,
+        rgba(0,0,0,0.18) 70%,
+        rgba(0,0,0,0.00) 100%
+      );
     }
 
     .main{
@@ -145,12 +172,12 @@
       box-sizing: border-box;
     }
 
-    /* Main flag: ~50% bigger + no aspect distortion */
+    /* Main flag: 500x300 as requested (no distortion) */
     .flag{
-      max-width: min(780px, 96%);
+      width: 500px;
+      height: 300px;
+      max-width: min(500px, 96%);
       max-height: calc(var(--flagStageH) - 18px);
-      width: auto;
-      height: auto;
       object-fit: contain;
       border-radius: 14px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.35);
@@ -255,6 +282,9 @@
       overflow: hidden;
       z-index: 2;
       position: relative;
+
+      /* 40px less space between bottom of flag card and message module */
+      margin-top: -40px;
     }
 
     .msgGrid{
@@ -275,29 +305,55 @@
       padding-top: 2px;
     }
 
-    /* Comic-burst icon tile (no image assets) */
+    /* Comic-burst icon tile (mimic attached) */
     .iconSq{
-      width: 132px;
-      height: 132px;
+      width: 136px;
+      height: 136px;
       border-radius: 18px;
-      border: none;
       background: transparent;
       overflow: visible;
       display: grid;
       place-items: center;
-      box-shadow: none;
       position: relative;
+    }
+
+    /* per-kind palette */
+    .iconSq[data-kind="boom"]{
+      --word: #7fd0ff;           /* light blue */
+      --burst1: #ff4b3a;         /* red/orange */
+      --burst2: #ffa83b;
+      --burst3: #ffd255;
+      --dots: rgba(0,0,0,0.85);
+    }
+    .iconSq[data-kind="fail"]{
+      --word: #ffd33f;           /* yellow */
+      --burst1: #ff4b3a;         /* red/orange */
+      --burst2: #ffa83b;
+      --burst3: #ffd255;
+      --dots: rgba(0,0,0,0.85);
+    }
+    .iconSq[data-kind="go"]{
+      --word: #4fe07a;           /* green */
+      --burst1: #138b3c;         /* darker green */
+      --burst2: #42d46a;         /* lighter green */
+      --burst3: #f1e46d;         /* green/yellow */
+      --dots: rgba(0,0,0,0.80);
+    }
+    .iconSq[data-kind="hint"]{
+      --word: #7fd0ff;           /* light blue */
+      --burst1: #2d5bd6;         /* darker blue */
+      --burst2: #5a66ff;         /* blue/purple */
+      --burst3: #9b6bff;         /* lighter purple */
+      --dots: rgba(0,0,0,0.72);
     }
 
     .iconBurst{
       position: absolute;
       inset: 6px;
       border-radius: 14px;
-      background: transparent;
       pointer-events: none;
     }
 
-    /* Burst shape + outline */
     .iconBurst::before{
       content: "";
       position: absolute;
@@ -305,73 +361,69 @@
       border-radius: 14px;
       clip-path: polygon(
         50% 2%,
-        62% 12%,
-        78% 6%,
-        82% 22%,
+        63% 12%,
+        80% 6%,
+        84% 22%,
         98% 30%,
-        86% 42%,
-        98% 56%,
-        82% 62%,
-        88% 82%,
-        70% 76%,
+        86% 43%,
+        98% 57%,
+        84% 64%,
+        88% 84%,
+        70% 78%,
         62% 96%,
         50% 86%,
         38% 96%,
-        30% 76%,
-        12% 82%,
-        18% 62%,
-        2% 56%,
-        14% 42%,
+        30% 78%,
+        12% 84%,
+        16% 64%,
+        2% 57%,
+        14% 43%,
         2% 30%,
-        18% 22%,
-        22% 6%,
-        38% 12%
+        16% 22%,
+        20% 6%,
+        37% 12%
       );
-      background: radial-gradient(circle at 35% 30%, rgba(255,245,170,0.98), rgba(255,210,85,0.94) 38%, rgba(255,145,35,0.92) 72%);
-      border: 5px solid rgba(10,12,18,0.92);
-      box-shadow: 0 14px 26px rgba(0,0,0,0.18);
+      background: radial-gradient(circle at 35% 30%, var(--burst3), var(--burst2) 42%, var(--burst1) 78%);
+      border: 6px solid rgba(0,0,0,0.92); /* thick black outline */
+      box-shadow: 0 14px 26px rgba(0,0,0,0.16);
     }
 
-    /* Halftone dots */
     .iconBurst::after{
       content: "";
       position: absolute;
-      left: 10px;
-      right: 10px;
-      bottom: -6px;
-      height: 44px;
-      border-radius: 14px;
-      background:
-        radial-gradient(rgba(10,12,18,0.55) 1.2px, rgba(0,0,0,0) 1.4px) 0 0/8px 8px;
-      opacity: 0.34;
-      filter: blur(0.2px);
-      transform: rotate(-2deg);
+      right: -10px;
+      top: 22px;
+      width: 72px;
+      height: 72px;
+      border-radius: 999px;
+      background: radial-gradient(var(--dots) 2.0px, rgba(0,0,0,0) 2.2px) 0 0/10px 10px;
+      opacity: 0.55;
+      filter: blur(0.15px);
     }
 
     .iconWord{
       font-family: Impact, Haettenschweiler, "Arial Black", "Helvetica Neue", Arial, sans-serif;
-      font-size: 42px;
+      font-size: 44px;
       letter-spacing: 1px;
       line-height: 1;
-      transform: rotate(-6deg);
-      text-transform: uppercase;
       position: relative;
       z-index: 2;
-      color: #e21b1b;
-      text-shadow:
-        -3px -3px 0 rgba(10,12,18,0.92),
-         3px -3px 0 rgba(10,12,18,0.92),
-        -3px  3px 0 rgba(10,12,18,0.92),
-         3px  3px 0 rgba(10,12,18,0.92),
-         0   10px 18px rgba(0,0,0,0.16);
-      -webkit-text-stroke: 2px rgba(255,255,255,0.85);
-      paint-order: stroke fill;
-      user-select: none;
-    }
-    .iconWord.fail{ color: #e21b1b; }
-    .iconWord.success{ color: #2b2b2b; }
-    .iconWord.default{ color: #e21b1b; }
+      color: var(--word);
 
+      /* always black outline, like the reference */
+      text-shadow:
+        -4px -4px 0 rgba(0,0,0,0.95),
+         4px -4px 0 rgba(0,0,0,0.95),
+        -4px  4px 0 rgba(0,0,0,0.95),
+         4px  4px 0 rgba(0,0,0,0.95),
+         0   10px 18px rgba(0,0,0,0.14);
+      -webkit-text-stroke: 0px transparent;
+      user-select: none;
+      transform: rotate(-6deg);
+      text-transform: uppercase;
+    }
+
+    /* 10% smaller message module font (headline + sub) */
     .msgText{
       text-align: left;
       line-height: 1.25;
@@ -381,21 +433,21 @@
       font-weight: 300;
     }
     .msgText .headline{
-      font-size: 29px;
+      font-size: 26px; /* was 29 */
       margin: 0 0 10px;
       min-height: 36px;
       color: rgba(37,48,65,0.92);
       font-weight: 320;
     }
     .msgText .sub{
-      font-size: 22px;
+      font-size: 20px; /* was 22 */
       opacity: 0.92;
       margin: 0;
       min-height: 96px;
       color: rgba(37,48,65,0.86);
       font-weight: 300;
     }
-    /* Bold even lighter */
+    /* Bold lighter */
     .msgText b{ font-weight: 420; }
     .msgText a{
       color: rgba(30,80,170,0.95);
@@ -487,11 +539,9 @@
     @media (max-width: 900px){
       .brandAngle{ left: -122px; top: 130px; font-size: 40px; width: 230px; }
       .questionTitle{ font-size: 30px; }
-      .iconSq{ width: 120px; height: 120px; }
+      .iconSq{ width: 124px; height: 124px; }
       :root{ --iconColW: 140px; --msgH: 300px; }
-      .msgText .headline{ font-size: 26px; }
-      .msgText .sub{ font-size: 20px; }
-      .iconWord{ font-size: 38px; }
+      .iconWord{ font-size: 40px; }
     }
     @media (max-width: 760px){
       :root{ --iconColW: 132px; --msgH: 290px; }
@@ -499,12 +549,17 @@
       .pill b{ font-size: 18px; }
       .questionTitle{ font-size: 26px; }
       .brandAngle{ font-size: 34px; left: -110px; top: 140px; width: 210px; }
-      .iconWord{ font-size: 36px; }
+      .iconWord{ font-size: 38px; }
     }
   </style>
 </head>
 
 <body>
+  <!-- header flags (new) -->
+  <div class="flagHeader" aria-hidden="true">
+    <svg id="headerSvg" class="headerSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
+  </div>
+
   <div class="confettiLayer" id="confettiLayer">
     <canvas id="confettiCanvas" style="width:100%;height:100%"></canvas>
   </div>
@@ -589,6 +644,7 @@
   const belowMsg = document.getElementById('belowMsg');
 
   const footerSvg = document.getElementById('footerSvg');
+  const headerSvg = document.getElementById('headerSvg');
 
   const confettiLayer = document.getElementById('confettiLayer');
   const confettiCanvas = document.getElementById('confettiCanvas');
@@ -657,17 +713,20 @@
   }
 
   function renderMsg(kind, headline, sub){
-    let word = "Let's Go!";
-    let cls = "default";
-    if (kind === 'fail') { word = "Oh Nawr!"; cls = "fail"; }
-    if (kind === 'success') { word = "Boom!"; cls = "success"; }
+    // kind: 'go' | 'fail' | 'boom' | 'hint'
+    let word = "LET'S GO!";
+    let dataKind = "go";
+
+    if (kind === 'fail') { word = "OH NAWR!"; dataKind = "fail"; }
+    if (kind === 'boom') { word = "BOOM!"; dataKind = "boom"; }
+    if (kind === 'hint') { word = "PSSST!"; dataKind = "hint"; }
 
     belowMsg.innerHTML = `
       <div class="msgGrid">
         <div class="iconCol">
-          <div class="iconSq" aria-hidden="true">
+          <div class="iconSq" data-kind="${dataKind}" aria-hidden="true">
             <div class="iconBurst"></div>
-            <div class="iconWord ${cls}">${word}</div>
+            <div class="iconWord">${word}</div>
           </div>
         </div>
         <div class="msgText">
@@ -885,16 +944,6 @@
     const name = c.name.common;
     const n = norm(name).replace(/ /g,'');
     const ends = n.slice(-3);
-    const patterns = [
-      { suffix: 'land', words: ['sand','hand','band','grand'] },
-      { suffix: 'ia', words: ['see-ya','pizzeria','utopia','chia'] },
-      { suffix: 'stan', words: ['plan','fan','can','pan'] },
-      { suffix: 'ana', words: ['banana','cabana','bandana','nirvana'] },
-      { suffix: 'ine', words: ['wine','fine','line','shine'] },
-    ];
-    for (const p of patterns){
-      if (n.endsWith(p.suffix)) return `· <b>Rhymes-ish</b>: ${p.words.join(', ')} 🎶`;
-    }
     return `· <b>Sound clue</b>: ends like “${ends}”… try yelling “${ends}!” dramatically 🎭`;
   }
 
@@ -912,7 +961,7 @@
     guessInput.focus();
     updateHUD();
 
-    renderMsg('neutral','', `Type a country name.`);
+    renderMsg('go','', `Type a country name.`);
   }
 
   function pointsForTry(tryNumberUsed) {
@@ -1001,7 +1050,7 @@
       flagIdx = 0;
 
       if (roundIdx >= rounds.length) {
-        renderMsg('success', `🏁 Game complete! Final score: <b>${score}</b> 🎉`, `Hit RESTART to play again.`);
+        renderMsg('boom', `🏁 Game complete! Final score: <b>${score}</b> 🎉`, `Hit RESTART to play again.`);
         submitBtn.disabled = true;
         skipBtn.disabled = true;
         guessInput.disabled = true;
@@ -1039,7 +1088,7 @@
     }
 
     renderMsg(
-      'neutral',
+      'hint',
       `Hint Used (costs a try!)`,
       `${hint}<br/><br/>You have <b>${triesLeft}</b> tries left.`
     );
@@ -1063,400 +1112,8 @@
 
       const emoji = pick(["🎉","🥳","✨"]);
       renderMsg(
-        'success',
+        'boom',
         `Correct! That was <b>${c.name.common}</b>. ${emoji}`,
         `You earned <b>${pts}</b> point${pts === 1 ? '' : 's'}.<br/><br/>Next flag in <b>${Math.round(PAUSE_CORRECT_MS/1000)}s</b>…`
       );
       setTimeout(() => advanceFlag(), PAUSE_CORRECT_MS);
-      return;
-    }
-
-    triesLeft--;
-    updateHUD();
-
-    if (triesLeft <= 0) {
-      renderMsg(
-        'fail',
-        `Nope. Answer: <b>${c.name.common}</b>.`,
-        `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
-      );
-      setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
-      return;
-    }
-
-    renderMsg(
-      'fail',
-      `Not quite.`,
-      `Try again. You have <b>${triesLeft}</b> tries left.`
-    );
-
-    guessInput.select();
-    guessInput.focus();
-  }
-
-  function skipFlag() {
-    const c = currentCountry();
-    if (!c) return;
-
-    renderMsg(
-      'neutral',
-      `Skipped. Answer: <b>${c.name.common}</b>.`,
-      `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
-    );
-    setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
-  }
-
-  function restart() {
-    roundIdx = 0;
-    flagIdx = 0;
-    triesLeft = TRIES_PER_FLAG;
-    score = 0;
-    submitBtn.disabled = false;
-    skipBtn.disabled = false;
-    guessInput.disabled = false;
-    renderFlag();
-  }
-
-  const WELL_KNOWN = new Set([
-    'United States','Canada','Mexico','Brazil','Argentina','Chile','Colombia','Peru',
-    'United Kingdom','Ireland','France','Spain','Portugal','Italy','Germany','Netherlands','Belgium','Switzerland','Austria','Sweden','Norway','Denmark','Finland','Iceland',
-    'Russia','Ukraine','Poland','Czechia','Greece','Turkey',
-    'China','Japan','South Korea','India','Pakistan','Bangladesh','Sri Lanka','Thailand','Vietnam','Indonesia','Philippines','Malaysia','Singapore',
-    'Australia','New Zealand',
-    'Egypt','South Africa','Nigeria','Kenya','Ethiopia','Ghana','Morocco','Tunisia',
-    'Saudi Arabia','United Arab Emirates','Qatar','Iran','Iraq','Israel','Jordan','Lebanon','Syria'
-  ]);
-
-  function familiarityScore(c) {
-    const pop = Math.max(0, c.population || 0);
-    const popScore = Math.log10(pop + 1);
-    const knownBoost = WELL_KNOWN.has(c.name.common) ? 6 : 0;
-    return popScore + knownBoost;
-  }
-
-  function buildRoundsSmart(countries) {
-    const scored = countries.map(c => ({ c, ease: familiarityScore(c) }));
-    scored.sort((a,b) => b.ease - a.ease);
-
-    const totalPossibleRounds = Math.floor(scored.length / FLAGS_PER_ROUND);
-    const roundsCount = Math.max(6, Math.min(12, totalPossibleRounds));
-    const bandSize = Math.floor(scored.length / roundsCount);
-
-    const out = [];
-    for (let r = 0; r < roundsCount; r++) {
-      const start = r * bandSize;
-      const end = (r === roundsCount - 1) ? scored.length : (r + 1) * bandSize;
-      const band = scored.slice(start, end).map(x => x.c);
-      shuffle(band);
-      out.push(band.slice(0, FLAGS_PER_ROUND));
-    }
-    return out;
-  }
-
-  function buildFooter() {
-    const footerEl = document.querySelector('.flagFooter');
-    const msgRect = belowMsg.getBoundingClientRect();
-    const pad = 10;
-
-    const topPx = Math.min(
-      Math.max(msgRect.bottom + pad - 50, window.innerHeight * 0.60),
-      window.innerHeight - 120
-    );
-
-    footerEl.style.top = `${Math.round(topPx)}px`;
-    footerEl.style.height = `${Math.max(0, Math.round(window.innerHeight - topPx))}px`;
-
-    const w = Math.max(1400, window.innerWidth);
-    const h = Math.max(220, Math.round(window.innerHeight - topPx));
-    footerSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
-    footerSvg.innerHTML = '';
-
-    const NS = 'http://www.w3.org/2000/svg';
-    const defs = document.createElementNS(NS,'defs');
-
-    function makeTemplate(id, drawFn){
-      const g = document.createElementNS(NS,'g');
-      g.setAttribute('id', id);
-      drawFn(g);
-      defs.appendChild(g);
-    }
-
-    function rect(g, x,y,ww,hh, fill, stroke, sw){
-      const r = document.createElementNS(NS,'rect');
-      r.setAttribute('x', x); r.setAttribute('y', y);
-      r.setAttribute('width', ww); r.setAttribute('height', hh);
-      r.setAttribute('rx', 0); r.setAttribute('ry', 0);
-      r.setAttribute('fill', fill);
-      r.setAttribute('stroke', stroke);
-      r.setAttribute('stroke-width', sw);
-      g.appendChild(r);
-      return r;
-    }
-    function line(g, x1,y1,x2,y2, stroke, sw){
-      const l = document.createElementNS(NS,'line');
-      l.setAttribute('x1', x1); l.setAttribute('y1', y1);
-      l.setAttribute('x2', x2); l.setAttribute('y2', y2);
-      l.setAttribute('stroke', stroke);
-      l.setAttribute('stroke-width', sw);
-      l.setAttribute('stroke-linecap','round');
-      g.appendChild(l);
-      return l;
-    }
-    function circle(g, cx,cy,r, fill, stroke, sw){
-      const c = document.createElementNS(NS,'circle');
-      c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', r);
-      c.setAttribute('fill', fill);
-      if (stroke){ c.setAttribute('stroke', stroke); c.setAttribute('stroke-width', sw); }
-      g.appendChild(c);
-      return c;
-    }
-    function path(g, d, fill, stroke, sw){
-      const p = document.createElementNS(NS,'path');
-      p.setAttribute('d', d);
-      p.setAttribute('fill', fill);
-      if (stroke){ p.setAttribute('stroke', stroke); p.setAttribute('stroke-width', sw); }
-      p.setAttribute('stroke-linejoin','round');
-      p.setAttribute('stroke-linecap','round');
-      g.appendChild(p);
-      return p;
-    }
-
-    const strokeOutline = 'rgba(37,48,65,0.32)';
-    const strokeThin    = 'rgba(37,48,65,0.22)';
-    const paper         = 'rgba(255,255,255,0.92)';
-
-    makeTemplate('tpl-tri-vert', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      line(g,14.7,0,14.7,26,strokeThin,1.0);
-      line(g,29.3,0,29.3,26,strokeThin,1.0);
-    });
-
-    makeTemplate('tpl-tri-horz', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      line(g,0,8.7,44,8.7,strokeThin,1.0);
-      line(g,0,17.4,44,17.4,strokeThin,1.0);
-    });
-
-    makeTemplate('tpl-nordic', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      line(g,0,13,44,13,'rgba(37,48,65,0.20)',1.6);
-      line(g,16,0,16,26,'rgba(37,48,65,0.20)',1.6);
-    });
-
-    makeTemplate('tpl-sun', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      circle(g,22,13,7,'rgba(255,255,255,0.0)','rgba(37,48,65,0.22)',1.3);
-    });
-
-    makeTemplate('tpl-diag', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      path(g,'M0 24 L0 20 L40 0 L44 0 L44 6 L6 26 L0 26 Z','rgba(0,0,0,0)','rgba(37,48,65,0.20)',1.2);
-    });
-
-    makeTemplate('tpl-canton', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      rect(g,0,0,18,14,'rgba(255,255,255,0.0)',strokeThin,1.0);
-      for (let y=5;y<=25;y+=5) line(g,0,y,44,y,strokeThin,0.9);
-    });
-
-    makeTemplate('tpl-diamond', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      path(g,'M22 3 L39 13 L22 23 L5 13 Z','rgba(255,255,255,0.0)','rgba(37,48,65,0.20)',1.2);
-      circle(g,22,13,5,'rgba(255,255,255,0.0)','rgba(37,48,65,0.18)',1.0);
-    });
-
-    makeTemplate('tpl-star', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      line(g,22,7,22,19,'rgba(37,48,65,0.20)',1.1);
-      line(g,17,13,27,13,'rgba(37,48,65,0.20)',1.1);
-      line(g,18.5,9.5,25.5,16.5,'rgba(37,48,65,0.20)',1.0);
-      line(g,25.5,9.5,18.5,16.5,'rgba(37,48,65,0.20)',1.0);
-    });
-
-    makeTemplate('tpl-crescent', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      circle(g,22,13,7,'rgba(255,255,255,0.0)','rgba(37,48,65,0.20)',1.1);
-      circle(g,25,13,6,'rgba(255,255,255,0.92)','rgba(0,0,0,0)',0);
-      circle(g,31,11,1.4,'rgba(255,255,255,0.0)','rgba(37,48,65,0.20)',1.0);
-    });
-
-    makeTemplate('tpl-plus', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      line(g,0,13,44,13,'rgba(37,48,65,0.20)',1.4);
-      line(g,22,0,22,26,'rgba(37,48,65,0.20)',1.4);
-    });
-
-    makeTemplate('tpl-bars-5', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      for (let y=4;y<=22;y+=4.6) line(g,0,y,44,y,'rgba(37,48,65,0.18)',0.95);
-    });
-
-    footerSvg.appendChild(defs);
-
-    const templates = [
-      'tpl-tri-vert','tpl-tri-horz','tpl-nordic','tpl-sun','tpl-diag',
-      'tpl-canton','tpl-diamond','tpl-star','tpl-crescent','tpl-plus','tpl-bars-5'
-    ];
-
-    const flagW = 45;
-    const flagH = 26;
-    const scaleBase = flagW / 44;
-
-    const padX = 14;
-    const padY = 10;
-
-    const cellW = flagW * 0.98;
-    const cellH = flagH * 0.98;
-
-    const cols = Math.max(10, Math.floor((w - padX*2) / cellW));
-    const rows = Math.max(6, Math.floor((h - padY*2) / cellH));
-
-    // Stronger row offsets to avoid column alignment
-    const points = [];
-    for (let r = 0; r < rows; r++){
-      const rowShift = (Math.random()*0.8 - 0.4) * (cellW * 0.9);
-
-      for (let c = 0; c < cols; c++){
-        const yBase = padY + r * cellH;
-        const xBase = padX + c * cellW + rowShift;
-
-        // more scatter jitter
-        const jx = (Math.random()*1.0 - 0.5) * (cellW * 0.95);
-        const jy = (Math.random()*1.0 - 0.5) * (cellH * 0.85);
-
-        points.push({ x: xBase + jx, y: yBase + jy });
-      }
-    }
-
-    points.sort((a,b)=> a.y - b.y);
-
-    const keepStart = Math.floor(points.length * 0.22);
-    const keep = points.slice(keepStart);
-
-    const extra = [];
-    for (let i = Math.floor(keep.length*0.70); i < keep.length; i += 4){
-      const p = keep[i];
-      extra.push({ x: p.x + (Math.random()*7-3.5), y: p.y + (Math.random()*7-3.5) });
-    }
-    const all = keep.concat(extra);
-
-    const coloredCount = Math.max(1, Math.floor(all.length * 0.10));
-    const coloredIdx = new Set();
-    while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(Math.random() * all.length));
-
-    // Slightly stronger color (less washed out)
-    function randColor(i){
-      const hh = (i * 137.508) % 360;
-      return `hsla(${hh}, 74%, 52%, 0.86)`;
-    }
-
-    const items = all.map((p, i) => {
-      const id = templates[Math.floor(Math.random() * templates.length)];
-      const useColored = coloredIdx.has(i);
-      const rot = (Math.random() * 12 - 6);
-      const scale = scaleBase * (0.98 + Math.random() * 0.22);
-      return { i, id, useColored, x: p.x, y: p.y, rot, scale };
-    });
-
-    items.sort((a,b)=> a.y - b.y);
-
-    for (const it of items) {
-      const g = document.createElementNS(NS,'g');
-
-      // half as wide, same height
-      g.setAttribute('transform', `translate(${it.x},${it.y}) rotate(${it.rot}) scale(${it.scale * 0.5},${it.scale})`);
-
-      rect(g,0,0,44,26,paper,'rgba(0,0,0,0)',0);
-
-      if (it.useColored) {
-        rect(g,0,0,44,26,randColor(it.i),'rgba(0,0,0,0)',0);
-      }
-
-      const use = document.createElementNS(NS,'use');
-      use.setAttribute('href', `#${it.id}`);
-      g.appendChild(use);
-
-      footerSvg.appendChild(g);
-    }
-  }
-
-  // Events
-  submitBtn.addEventListener('click', submitGuess);
-  skipBtn.addEventListener('click', skipFlag);
-  restartBtnTop.addEventListener('click', () => { restart(); buildFooter(); });
-
-  guessInput.addEventListener('input', (e) => renderSuggestions(e.target.value));
-  guessInput.addEventListener('focus', () => { if (guessInput.value) renderSuggestions(guessInput.value); });
-
-  document.addEventListener('mousedown', (e) => {
-    const inWrap = e.target === guessInput || suggestBox.contains(e.target);
-    if (!inWrap) closeSuggest();
-  });
-
-  guessInput.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowDown') { e.preventDefault(); moveActive(+1); return; }
-    if (e.key === 'ArrowUp') { e.preventDefault(); moveActive(-1); return; }
-    if (e.key === 'Escape') { closeSuggest(); return; }
-
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (suggestBox.style.display === 'block' && currentSuggestions.length) {
-        applySuggestionSelectionToInput();
-      }
-      submitGuess();
-      return;
-    }
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key !== '.') return;
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    const t = e.target;
-    const isTextField = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA') && !t.readOnly && !t.disabled;
-    if (isTextField) e.preventDefault();
-    consumeTryWithHint();
-    guessInput.focus();
-  });
-
-  // Boot
-  async function loadCountries() {
-    const res = await fetch(
-      'https://restcountries.com/v3.1/all?fields=name,flags,altSpellings,population,region,subregion,cca3,borders'
-    );
-    if (!res.ok) throw new Error(`Failed to fetch countries: ${res.status}`);
-
-    const data = await res.json();
-
-    countries = data
-      .filter(c => c?.name?.common && (c?.flags?.png || c?.flags?.svg))
-      .map(c => ({
-        name: c.name,
-        altSpellings: c.altSpellings || [],
-        flags: c.flags,
-        population: c.population || 0,
-        region: c.region || '',
-        subregion: c.subregion || '',
-        cca3: c.cca3 || '',
-        borders: Array.isArray(c.borders) ? c.borders : []
-      }));
-
-    cca3ToCountry = new Map();
-    for (const c of countries) {
-      if (c.cca3) cca3ToCountry.set(c.cca3, c);
-    }
-
-    rounds = buildRoundsSmart(countries);
-    buildFooter();
-    restart();
-  }
-
-  loadCountries().catch(err => {
-    console.error(err);
-    renderMsg('fail', `Couldn’t load country data.`, `${String(err.message || err)}`);
-  });
-
-  window.addEventListener('resize', () => buildFooter());
-})();
-</script>
-</body>
-</html>
