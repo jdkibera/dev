@@ -1117,3 +1117,402 @@
         `You earned <b>${pts}</b> point${pts === 1 ? '' : 's'}.<br/><br/>Next flag in <b>${Math.round(PAUSE_CORRECT_MS/1000)}s</b>…`
       );
       setTimeout(() => advanceFlag(), PAUSE_CORRECT_MS);
+      return;
+    }
+
+    triesLeft--;
+    updateHUD();
+
+    if (triesLeft <= 0) {
+      renderMsg(
+        'fail',
+        `Nope. Answer: <b>${c.name.common}</b>.`,
+        `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+      );
+      setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
+      return;
+    }
+
+    renderMsg(
+      'fail',
+      `Not quite.`,
+      `Try again. You have <b>${triesLeft}</b> tries left.`
+    );
+
+    guessInput.select();
+    guessInput.focus();
+  }
+
+  function skipFlag() {
+    const c = currentCountry();
+    if (!c) return;
+
+    renderMsg(
+      'go',
+      `Skipped. Answer: <b>${c.name.common}</b>.`,
+      `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+    );
+    setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
+  }
+
+  function restart() {
+    roundIdx = 0;
+    flagIdx = 0;
+    triesLeft = TRIES_PER_FLAG;
+    score = 0;
+    submitBtn.disabled = false;
+    skipBtn.disabled = false;
+    guessInput.disabled = false;
+    renderFlag();
+  }
+
+  const WELL_KNOWN = new Set([
+    'United States','Canada','Mexico','Brazil','Argentina','Chile','Colombia','Peru',
+    'United Kingdom','Ireland','France','Spain','Portugal','Italy','Germany','Netherlands','Belgium','Switzerland','Austria','Sweden','Norway','Denmark','Finland','Iceland',
+    'Russia','Ukraine','Poland','Czechia','Greece','Turkey',
+    'China','Japan','South Korea','India','Pakistan','Bangladesh','Sri Lanka','Thailand','Vietnam','Indonesia','Philippines','Malaysia','Singapore',
+    'Australia','New Zealand',
+    'Egypt','South Africa','Nigeria','Kenya','Ethiopia','Ghana','Morocco','Tunisia',
+    'Saudi Arabia','United Arab Emirates','Qatar','Iran','Iraq','Israel','Jordan','Lebanon','Syria'
+  ]);
+
+  function familiarityScore(c) {
+    const pop = Math.max(0, c.population || 0);
+    const popScore = Math.log10(pop + 1);
+    const knownBoost = WELL_KNOWN.has(c.name.common) ? 6 : 0;
+    return popScore + knownBoost;
+  }
+
+  function buildRoundsSmart(countries) {
+    const scored = countries.map(c => ({ c, ease: familiarityScore(c) }));
+    scored.sort((a,b) => b.ease - a.ease);
+
+    const totalPossibleRounds = Math.floor(scored.length / FLAGS_PER_ROUND);
+    const roundsCount = Math.max(6, Math.min(12, totalPossibleRounds));
+    const bandSize = Math.floor(scored.length / roundsCount);
+
+    const out = [];
+    for (let r = 0; r < roundsCount; r++) {
+      const start = r * bandSize;
+      const end = (r === roundsCount - 1) ? scored.length : (r + 1) * bandSize;
+      const band = scored.slice(start, end).map(x => x.c);
+      shuffle(band);
+      out.push(band.slice(0, FLAGS_PER_ROUND));
+    }
+    return out;
+  }
+
+  function buildFlagMosaic(svgEl, w, h, opts) {
+    const NS = 'http://www.w3.org/2000/svg';
+    svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svgEl.innerHTML = '';
+
+    const defs = document.createElementNS(NS,'defs');
+
+    function rect(g, x,y,ww,hh, fill, stroke, sw){
+      const r = document.createElementNS(NS,'rect');
+      r.setAttribute('x', x); r.setAttribute('y', y);
+      r.setAttribute('width', ww); r.setAttribute('height', hh);
+      r.setAttribute('rx', 0); r.setAttribute('ry', 0);
+      r.setAttribute('fill', fill);
+      r.setAttribute('stroke', stroke);
+      r.setAttribute('stroke-width', sw);
+      g.appendChild(r);
+      return r;
+    }
+    function line(g, x1,y1,x2,y2, stroke, sw){
+      const l = document.createElementNS(NS,'line');
+      l.setAttribute('x1', x1); l.setAttribute('y1', y1);
+      l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+      l.setAttribute('stroke', stroke);
+      l.setAttribute('stroke-width', sw);
+      l.setAttribute('stroke-linecap','round');
+      g.appendChild(l);
+      return l;
+    }
+    function circle(g, cx,cy,r, fill, stroke, sw){
+      const c = document.createElementNS(NS,'circle');
+      c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', r);
+      c.setAttribute('fill', fill);
+      if (stroke){ c.setAttribute('stroke', stroke); c.setAttribute('stroke-width', sw); }
+      g.appendChild(c);
+      return c;
+    }
+    function path(g, d, fill, stroke, sw){
+      const p = document.createElementNS(NS,'path');
+      p.setAttribute('d', d);
+      p.setAttribute('fill', fill);
+      if (stroke){ p.setAttribute('stroke', stroke); p.setAttribute('stroke-width', sw); }
+      p.setAttribute('stroke-linejoin','round');
+      p.setAttribute('stroke-linecap','round');
+      g.appendChild(p);
+      return p;
+    }
+
+    const strokeOutline = 'rgba(37,48,65,0.30)';
+    const strokeThin    = 'rgba(37,48,65,0.20)';
+    const paper         = 'rgba(255,255,255,0.92)';
+
+    function makeTemplate(id, drawFn){
+      const g = document.createElementNS(NS,'g');
+      g.setAttribute('id', id);
+      drawFn(g);
+      defs.appendChild(g);
+    }
+
+    makeTemplate('tpl-tri-vert', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      line(g,14.7,0,14.7,26,strokeThin,1.0);
+      line(g,29.3,0,29.3,26,strokeThin,1.0);
+    });
+    makeTemplate('tpl-tri-horz', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      line(g,0,8.7,44,8.7,strokeThin,1.0);
+      line(g,0,17.4,44,17.4,strokeThin,1.0);
+    });
+    makeTemplate('tpl-nordic', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      line(g,0,13,44,13,'rgba(37,48,65,0.18)',1.6);
+      line(g,16,0,16,26,'rgba(37,48,65,0.18)',1.6);
+    });
+    makeTemplate('tpl-sun', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      circle(g,22,13,7,'rgba(255,255,255,0.0)','rgba(37,48,65,0.20)',1.3);
+    });
+    makeTemplate('tpl-diag', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      path(g,'M0 24 L0 20 L40 0 L44 0 L44 6 L6 26 L0 26 Z','rgba(0,0,0,0)','rgba(37,48,65,0.18)',1.2);
+    });
+    makeTemplate('tpl-canton', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      rect(g,0,0,18,14,'rgba(255,255,255,0.0)',strokeThin,1.0);
+      for (let y=5;y<=25;y+=5) line(g,0,y,44,y,strokeThin,0.9);
+    });
+    makeTemplate('tpl-diamond', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      path(g,'M22 3 L39 13 L22 23 L5 13 Z','rgba(255,255,255,0.0)','rgba(37,48,65,0.18)',1.2);
+      circle(g,22,13,5,'rgba(255,255,255,0.0)','rgba(37,48,65,0.16)',1.0);
+    });
+    makeTemplate('tpl-star', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      line(g,22,7,22,19,'rgba(37,48,65,0.18)',1.1);
+      line(g,17,13,27,13,'rgba(37,48,65,0.18)',1.1);
+      line(g,18.5,9.5,25.5,16.5,'rgba(37,48,65,0.18)',1.0);
+      line(g,25.5,9.5,18.5,16.5,'rgba(37,48,65,0.18)',1.0);
+    });
+    makeTemplate('tpl-crescent', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      circle(g,22,13,7,'rgba(255,255,255,0.0)','rgba(37,48,65,0.18)',1.1);
+      circle(g,25,13,6,'rgba(255,255,255,0.92)','rgba(0,0,0,0)',0);
+      circle(g,31,11,1.4,'rgba(255,255,255,0.0)','rgba(37,48,65,0.18)',1.0);
+    });
+    makeTemplate('tpl-plus', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      line(g,0,13,44,13,'rgba(37,48,65,0.18)',1.4);
+      line(g,22,0,22,26,'rgba(37,48,65,0.18)',1.4);
+    });
+    makeTemplate('tpl-bars-5', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      for (let y=4;y<=22;y+=4.6) line(g,0,y,44,y,'rgba(37,48,65,0.16)',0.95);
+    });
+
+    svgEl.appendChild(defs);
+
+    const templates = [
+      'tpl-tri-vert','tpl-tri-horz','tpl-nordic','tpl-sun','tpl-diag',
+      'tpl-canton','tpl-diamond','tpl-star','tpl-crescent','tpl-plus','tpl-bars-5'
+    ];
+
+    const flagW = opts.flagW;
+    const flagH = opts.flagH;
+    const scaleBase = flagW / 44;
+
+    const padX = 14;
+    const padY = 10;
+
+    const cellW = flagW * 0.98;
+    const cellH = flagH * 0.98;
+
+    const cols = Math.max(10, Math.floor((w - padX*2) / cellW));
+    const rows = Math.max(4, Math.floor((h - padY*2) / cellH));
+
+    const points = [];
+    for (let r = 0; r < rows; r++){
+      const rowShift = (Math.random()*0.8 - 0.4) * (cellW * 0.9);
+
+      for (let c = 0; c < cols; c++){
+        const yBase = padY + r * cellH;
+        const xBase = padX + c * cellW + rowShift;
+
+        const jx = (Math.random()*1.0 - 0.5) * (cellW * 0.95);
+        const jy = (Math.random()*1.0 - 0.5) * (cellH * 0.85);
+
+        points.push({ x: xBase + jx, y: yBase + jy });
+      }
+    }
+
+    points.sort((a,b)=> a.y - b.y);
+
+    const keepStart = Math.floor(points.length * opts.cropTopFrac);
+    const keep = points.slice(keepStart);
+
+    const coloredCount = Math.max(1, Math.floor(keep.length * opts.colorFrac));
+    const coloredIdx = new Set();
+    while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(Math.random() * keep.length));
+
+    // MUCH stronger color
+    function randColor(i){
+      const hh = (i * 137.508) % 360;
+      return `hsla(${hh}, 88%, 52%, 0.96)`;
+    }
+
+    const items = keep.map((p, i) => {
+      const id = templates[Math.floor(Math.random() * templates.length)];
+      const useColored = coloredIdx.has(i);
+
+      // IMPORTANT: keep rectangles "regular" (no italic/slant): no rotation
+      const rot = 0;
+
+      const scale = scaleBase * (0.98 + Math.random() * 0.22);
+      return { i, id, useColored, x: p.x, y: p.y, rot, scale };
+    });
+
+    items.sort((a,b)=> a.y - b.y);
+
+    for (const it of items) {
+      const g = document.createElementNS(NS,'g');
+
+      // half as wide, same height
+      g.setAttribute('transform', `translate(${it.x},${it.y}) rotate(${it.rot}) scale(${it.scale * 0.5},${it.scale})`);
+
+      rect(g,0,0,44,26,paper,'rgba(0,0,0,0)',0);
+
+      if (it.useColored) {
+        rect(g,0,0,44,26,randColor(it.i),'rgba(0,0,0,0)',0);
+      }
+
+      const use = document.createElementNS(NS,'use');
+      use.setAttribute('href', `#${it.id}`);
+      g.appendChild(use);
+
+      svgEl.appendChild(g);
+    }
+  }
+
+  function buildFooter() {
+    const footerEl = document.querySelector('.flagFooter');
+    const msgRect = belowMsg.getBoundingClientRect();
+    const pad = 10;
+
+    const topPx = Math.min(
+      Math.max(msgRect.bottom + pad - 50, window.innerHeight * 0.60),
+      window.innerHeight - 120
+    );
+
+    footerEl.style.top = `${Math.round(topPx)}px`;
+    footerEl.style.height = `${Math.max(0, Math.round(window.innerHeight - topPx))}px`;
+
+    const w = Math.max(1400, window.innerWidth);
+    const h = Math.max(220, Math.round(window.innerHeight - topPx));
+
+    buildFlagMosaic(footerSvg, w, h, {
+      flagW: 45,
+      flagH: 26,
+      cropTopFrac: 0.22,
+      colorFrac: 0.14   // stronger presence of colored flags too
+    });
+  }
+
+  function buildHeader() {
+    const w = Math.max(1400, window.innerWidth);
+    const h = 150;
+
+    buildFlagMosaic(headerSvg, w, h, {
+      flagW: 45,
+      flagH: 26,
+      cropTopFrac: 0.0,
+      colorFrac: 0.12
+    });
+  }
+
+  // Events
+  submitBtn.addEventListener('click', submitGuess);
+  skipBtn.addEventListener('click', skipFlag);
+  restartBtnTop.addEventListener('click', () => { restart(); buildFooter(); buildHeader(); });
+
+  guessInput.addEventListener('input', (e) => renderSuggestions(e.target.value));
+  guessInput.addEventListener('focus', () => { if (guessInput.value) renderSuggestions(guessInput.value); });
+
+  document.addEventListener('mousedown', (e) => {
+    const inWrap = e.target === guessInput || suggestBox.contains(e.target);
+    if (!inWrap) closeSuggest();
+  });
+
+  guessInput.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); moveActive(+1); return; }
+    if (e.key === 'ArrowUp') { e.preventDefault(); moveActive(-1); return; }
+    if (e.key === 'Escape') { closeSuggest(); return; }
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (suggestBox.style.display === 'block' && currentSuggestions.length) {
+        applySuggestionSelectionToInput();
+      }
+      submitGuess();
+      return;
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== '.') return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const t = e.target;
+    const isTextField = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA') && !t.readOnly && !t.disabled;
+    if (isTextField) e.preventDefault();
+    consumeTryWithHint();
+    guessInput.focus();
+  });
+
+  // Boot
+  async function loadCountries() {
+    const res = await fetch(
+      'https://restcountries.com/v3.1/all?fields=name,flags,altSpellings,population,region,subregion,cca3,borders'
+    );
+    if (!res.ok) throw new Error(`Failed to fetch countries: ${res.status}`);
+
+    const data = await res.json();
+
+    countries = data
+      .filter(c => c?.name?.common && (c?.flags?.png || c?.flags?.svg))
+      .map(c => ({
+        name: c.name,
+        altSpellings: c.altSpellings || [],
+        flags: c.flags,
+        population: c.population || 0,
+        region: c.region || '',
+        subregion: c.subregion || '',
+        cca3: c.cca3 || '',
+        borders: Array.isArray(c.borders) ? c.borders : []
+      }));
+
+    cca3ToCountry = new Map();
+    for (const c of countries) {
+      if (c.cca3) cca3ToCountry.set(c.cca3, c);
+    }
+
+    rounds = buildRoundsSmart(countries);
+    buildHeader();
+    buildFooter();
+    restart();
+  }
+
+  loadCountries().catch(err => {
+    console.error(err);
+    renderMsg('fail', `Couldn’t load country data.`, `${String(err.message || err)}`);
+  });
+
+  window.addEventListener('resize', () => { buildHeader(); buildFooter(); });
+})();
+</script>
+</body>
+</html>
