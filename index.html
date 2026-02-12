@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Flag Gauntlet</title>
+  <title>Kibera's Flag Gauntlet</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,7 +53,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 14px;
+      gap: 10px; /* was 14px: slightly tighter overall */
       position: relative;
     }
 
@@ -144,14 +144,19 @@
       padding: 6px 0 12px;
       box-sizing: border-box;
     }
+
+    /* FIX: prevent vertical squish by avoiding fixed width + max-height clamp */
     .flag{
-      width: min(520px, 92%);
+      max-width: min(520px, 92%);
       max-height: calc(var(--flagStageH) - 18px);
+      width: auto;
+      height: auto;
       object-fit: contain;
       border-radius: 14px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.35);
       border: 1px solid rgba(255,255,255,0.12);
       background: rgba(255,255,255,0.04);
+      display: block;
     }
 
     .controls{
@@ -246,10 +251,13 @@
       width: min(900px, 100%);
       height: var(--msgH);
       display: grid;
-      place-items: center;
+      justify-items: center;
+      align-items: start;     /* was centered: moves message up */
+      padding-top: 14px;      /* tunes “gap” to ~40px feel */
       overflow: hidden;
       z-index: 2;
       position: relative;
+      box-sizing: border-box;
     }
 
     .msgGrid{
@@ -281,19 +289,11 @@
       place-items: center;
       box-shadow: none;
     }
-
-    /* NEW: watercolor icon images (slight unification via subtle filter) */
     .iconSq img{
       width: 100%;
       height: 100%;
-      display: block;
+      display:block;
       object-fit: contain;
-      user-select: none;
-      pointer-events: none;
-
-      /* tiny “style alignment” pass */
-      filter: saturate(1.03) contrast(1.03) brightness(1.01);
-      opacity: 0.98;
     }
 
     .iconLabel{
@@ -317,21 +317,21 @@
       font-weight: 300;
     }
     .msgText .headline{
-      font-size: 29px;   /* was 36 */
+      font-size: 29px;
       margin: 0 0 10px;
-      min-height: 36px;  /* was 42 */
+      min-height: 36px;
       color: rgba(37,48,65,0.92);
       font-weight: 320;
     }
     .msgText .sub{
-      font-size: 22px;   /* was 28 */
+      font-size: 22px;
       opacity: 0.92;
       margin: 0;
-      min-height: 96px;  /* tuned for smaller text */
+      min-height: 96px;
       color: rgba(37,48,65,0.86);
       font-weight: 300;
     }
-    .msgText b{ font-weight: 650; } /* was 800 */
+    .msgText b{ font-weight: 650; }
     .msgText a{
       color: rgba(30,80,170,0.95);
       text-decoration: underline;
@@ -365,12 +365,12 @@
       left: 0;
       width: 100vw;
       bottom: 0;
-      top: auto;           /* JS will set top */
-      height: 0px;         /* JS will set height */
+      top: auto;
+      height: 0px;
       z-index: 0;
       overflow: hidden;
       pointer-events: none;
-      background: none;    /* fade handled by mask */
+      background: none;
     }
 
     .footerSvg{
@@ -380,8 +380,6 @@
       width: 100%;
       height: 100%;
       opacity: 1;
-
-      /* fade-in AFTER the message box: top is transparent -> visible below */
       mask-image: linear-gradient(
         to bottom,
         rgba(0,0,0,0.00) 0%,
@@ -592,24 +590,21 @@
     return r;
   }
 
-  // --- NEW: watercolor icon assets (put these files next to this HTML) ---
+  // Icons (images)
   const ICONS = {
     neutral: 'earth.jpg',
     success: 'tiger.png',
-    hint:    'hippo.png',
-    fail:    'whale.png'
+    hint: 'hippo.png',
+    fail: 'whale.png'
   };
 
-  function iconUrl(kind){
-    return ICONS[kind] || ICONS.neutral;
-  }
-
   function renderMsg(kind, iconName, headline, sub){
+    const src = ICONS[kind] || ICONS.neutral;
     belowMsg.innerHTML = `
       <div class="msgGrid">
         <div class="iconCol">
           <div class="iconSq" aria-hidden="true">
-            <img src="${iconUrl(kind)}" alt="" draggable="false" />
+            <img src="${src}" alt="" />
           </div>
           <div class="iconLabel">${iconName || ""}</div>
         </div>
@@ -865,7 +860,6 @@
     return 0;
   }
 
-  // Confetti stays as-is from your last rev; leaving unchanged.
   function confettiBurst(ms=3600){
     const dpr = window.devicePixelRatio || 1;
     const w = Math.floor(window.innerWidth * dpr);
@@ -1103,242 +1097,230 @@
     return out;
   }
 
-function buildFooter() {
-  // --- Position footer so it STARTS AFTER the message box ---
-  const footerEl = document.querySelector('.flagFooter');
-  const msgRect = belowMsg.getBoundingClientRect();
-  const pad = 10; // little breathing room under message box
+  function buildFooter() {
+    // --- Position footer so it STARTS AFTER the message box ---
+    const footerEl = document.querySelector('.flagFooter');
+    const msgRect = belowMsg.getBoundingClientRect();
+    const pad = 10;
 
-  // Start AFTER message box (clamped so it doesn't go too high/low)
-  const topPx = Math.min(
-    Math.max(msgRect.bottom + pad, window.innerHeight * 0.64), // at least lower-ish
-    window.innerHeight - 120                                   // never consume entire screen
-  );
+    const topPx = Math.min(
+      Math.max(msgRect.bottom + pad, window.innerHeight * 0.64),
+      window.innerHeight - 120
+    );
 
-  footerEl.style.top = `${Math.round(topPx)}px`;
-  footerEl.style.height = `${Math.max(0, Math.round(window.innerHeight - topPx))}px`;
+    footerEl.style.top = `${Math.round(topPx)}px`;
+    footerEl.style.height = `${Math.max(0, Math.round(window.innerHeight - topPx))}px`;
 
-  // --- SVG sizing ---
-  const w = Math.max(1400, window.innerWidth);
-  const h = Math.max(220, Math.round(window.innerHeight - topPx));
-  footerSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
-  footerSvg.innerHTML = '';
+    const w = Math.max(1400, window.innerWidth);
+    const h = Math.max(220, Math.round(window.innerHeight - topPx));
+    footerSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    footerSvg.innerHTML = '';
 
-  const NS = 'http://www.w3.org/2000/svg';
-  const defs = document.createElementNS(NS,'defs');
+    const NS = 'http://www.w3.org/2000/svg';
+    const defs = document.createElementNS(NS,'defs');
 
-  function makeTemplate(id, drawFn){
-    const g = document.createElementNS(NS,'g');
-    g.setAttribute('id', id);
-    drawFn(g);
-    defs.appendChild(g);
-  }
-
-  function rect(g, x,y,ww,hh, fill, stroke, sw){
-    const r = document.createElementNS(NS,'rect');
-    r.setAttribute('x', x); r.setAttribute('y', y);
-    r.setAttribute('width', ww); r.setAttribute('height', hh);
-    r.setAttribute('rx', 0); r.setAttribute('ry', 0);
-    r.setAttribute('fill', fill);
-    r.setAttribute('stroke', stroke);
-    r.setAttribute('stroke-width', sw);
-    g.appendChild(r);
-    return r;
-  }
-  function line(g, x1,y1,x2,y2, stroke, sw){
-    const l = document.createElementNS(NS,'line');
-    l.setAttribute('x1', x1); l.setAttribute('y1', y1);
-    l.setAttribute('x2', x2); l.setAttribute('y2', y2);
-    l.setAttribute('stroke', stroke);
-    l.setAttribute('stroke-width', sw);
-    l.setAttribute('stroke-linecap','round');
-    g.appendChild(l);
-    return l;
-  }
-  function circle(g, cx,cy,r, fill, stroke, sw){
-    const c = document.createElementNS(NS,'circle');
-    c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', r);
-    c.setAttribute('fill', fill);
-    if (stroke){ c.setAttribute('stroke', stroke); c.setAttribute('stroke-width', sw); }
-    g.appendChild(c);
-    return c;
-  }
-  function path(g, d, fill, stroke, sw){
-    const p = document.createElementNS(NS,'path');
-    p.setAttribute('d', d);
-    p.setAttribute('fill', fill);
-    if (stroke){ p.setAttribute('stroke', stroke); p.setAttribute('stroke-width', sw); }
-    p.setAttribute('stroke-linejoin','round');
-    p.setAttribute('stroke-linecap','round');
-    g.appendChild(p);
-    return p;
-  }
-
-  // Lighter + thinner outline
-  const strokeOutline = 'rgba(37,48,65,0.32)';
-  const strokeThin    = 'rgba(37,48,65,0.22)';
-  const paper         = 'rgba(255,255,255,0.92)'; // opaque so occludes properly
-
-  // --- MORE VARIETY of simplified flag archetypes ---
-  makeTemplate('tpl-tri-vert', (g)=>{
-    rect(g,0,0,44,26,paper,strokeOutline,1.0);
-    line(g,14.7,0,14.7,26,strokeThin,1.0);
-    line(g,29.3,0,29.3,26,strokeThin,1.0);
-  });
-
-  makeTemplate('tpl-tri-horz', (g)=>{
-    rect(g,0,0,44,26,paper,strokeOutline,1.0);
-    line(g,0,8.7,44,8.7,strokeThin,1.0);
-    line(g,0,17.4,44,17.4,strokeThin,1.0);
-  });
-
-  makeTemplate('tpl-nordic', (g)=>{
-    rect(g,0,0,44,26,paper,strokeOutline,1.0);
-    line(g,0,13,44,13,'rgba(37,48,65,0.20)',1.6);
-    line(g,16,0,16,26,'rgba(37,48,65,0.20)',1.6);
-  });
-
-  makeTemplate('tpl-sun', (g)=>{
-    rect(g,0,0,44,26,paper,strokeOutline,1.0);
-    circle(g,22,13,7,'rgba(255,255,255,0.0)','rgba(37,48,65,0.22)',1.3);
-  });
-
-  makeTemplate('tpl-diag', (g)=>{
-    rect(g,0,0,44,26,paper,strokeOutline,1.0);
-    path(g,'M0 24 L0 20 L40 0 L44 0 L44 6 L6 26 L0 26 Z','rgba(0,0,0,0)','rgba(37,48,65,0.20)',1.2);
-  });
-
-  makeTemplate('tpl-canton', (g)=>{
-    rect(g,0,0,44,26,paper,strokeOutline,1.0);
-    rect(g,0,0,18,14,'rgba(255,255,255,0.0)',strokeThin,1.0);
-    for (let y=5;y<=25;y+=5) line(g,0,y,44,y,strokeThin,0.9);
-  });
-
-  makeTemplate('tpl-diamond', (g)=>{
-    rect(g,0,0,44,26,paper,strokeOutline,1.0);
-    path(g,'M22 3 L39 13 L22 23 L5 13 Z','rgba(255,255,255,0.0)','rgba(37,48,65,0.20)',1.2);
-    circle(g,22,13,5,'rgba(255,255,255,0.0)','rgba(37,48,65,0.18)',1.0);
-  });
-
-  makeTemplate('tpl-star', (g)=>{
-    rect(g,0,0,44,26,paper,strokeOutline,1.0);
-    // little star-ish asterisk
-    line(g,22,7,22,19,'rgba(37,48,65,0.20)',1.1);
-    line(g,17,13,27,13,'rgba(37,48,65,0.20)',1.1);
-    line(g,18.5,9.5,25.5,16.5,'rgba(37,48,65,0.20)',1.0);
-    line(g,25.5,9.5,18.5,16.5,'rgba(37,48,65,0.20)',1.0);
-  });
-
-  makeTemplate('tpl-crescent', (g)=>{
-    rect(g,0,0,44,26,paper,strokeOutline,1.0);
-    // crescent via two circles outline
-    circle(g,22,13,7,'rgba(255,255,255,0.0)','rgba(37,48,65,0.20)',1.1);
-    circle(g,25,13,6,'rgba(255,255,255,0.92)','rgba(0,0,0,0)',0);
-    circle(g,31,11,1.4,'rgba(255,255,255,0.0)','rgba(37,48,65,0.20)',1.0);
-  });
-
-  makeTemplate('tpl-plus', (g)=>{
-    rect(g,0,0,44,26,paper,strokeOutline,1.0);
-    line(g,0,13,44,13,'rgba(37,48,65,0.20)',1.4);
-    line(g,22,0,22,26,'rgba(37,48,65,0.20)',1.4);
-  });
-
-  makeTemplate('tpl-bars-5', (g)=>{
-    rect(g,0,0,44,26,paper,strokeOutline,1.0);
-    for (let y=4;y<=22;y+=4.6) line(g,0,y,44,y,'rgba(37,48,65,0.18)',0.95);
-  });
-
-  footerSvg.appendChild(defs);
-
-  const templates = [
-    'tpl-tri-vert','tpl-tri-horz','tpl-nordic','tpl-sun','tpl-diag',
-    'tpl-canton','tpl-diamond','tpl-star','tpl-crescent','tpl-plus','tpl-bars-5'
-  ];
-
-  // --- Density tuning: a bit LESS dense, still "pile" vibe ---
-  const flagW = 45;
-  const flagH = 26;
-  const scaleBase = flagW / 44;
-
-  const padX = 14;
-  const padY = 10;
-
-  // Increase spacing slightly (less dense) + smaller overlap
-  const cellW = flagW * 0.98;
-  const cellH = flagH * 0.98;
-
-  const cols = Math.max(10, Math.floor((w - padX*2) / cellW));
-  const rows = Math.max(6, Math.floor((h - padY*2) / cellH));
-
-  // Generate jittered grid, then keep lower portion for "mountain"
-  const points = [];
-  for (let r = 0; r < rows; r++){
-    for (let c = 0; c < cols; c++){
-      const yBase = padY + r * cellH;
-      const xBase = padX + c * cellW;
-
-      const jx = (Math.random()*0.9 - 0.45) * (cellW * 0.55);
-      const jy = (Math.random()*0.9 - 0.45) * (cellH * 0.55);
-
-      points.push({ x: xBase + jx, y: yBase + jy });
-    }
-  }
-
-  points.sort((a,b)=> a.y - b.y);
-
-  // Start lower inside the footer area (no "creeping up")
-  const keepStart = Math.floor(points.length * 0.22);
-  const keep = points.slice(keepStart);
-
-  // Lightly boost bottom density (NOT crazy), with tiny offsets
-  const extra = [];
-  for (let i = Math.floor(keep.length*0.70); i < keep.length; i += 4){
-    const p = keep[i];
-    extra.push({ x: p.x + (Math.random()*5-2.5), y: p.y + (Math.random()*5-2.5) });
-  }
-  const all = keep.concat(extra);
-
-  // Color: randomly color ~10% of ALL items, but make them more prominent
-  const coloredCount = Math.max(1, Math.floor(all.length * 0.10));
-  const coloredIdx = new Set();
-  while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(Math.random() * all.length));
-
-  function randColor(i){
-    const hh = (i * 137.508) % 360;
-    // more prominent (less washed out than before)
-    return `hsla(${hh}, 62%, 56%, 0.92)`;
-  }
-
-  // Draw top-to-bottom for occlusion (later = on top)
-  const items = all.map((p, i) => {
-    const id = templates[Math.floor(Math.random() * templates.length)];
-    const useColored = coloredIdx.has(i);
-    const rot = (Math.random() * 10 - 5);
-    const scale = scaleBase * (0.98 + Math.random() * 0.22);
-    return { i, id, useColored, x: p.x, y: p.y, rot, scale };
-  });
-
-  items.sort((a,b)=> a.y - b.y);
-
-  for (const it of items) {
-    const g = document.createElementNS(NS,'g');
-    g.setAttribute('transform', `translate(${it.x},${it.y}) rotate(${it.rot}) scale(${it.scale})`);
-
-    // Paper base ALWAYS (opaque)
-    rect(g,0,0,44,26,paper,'rgba(0,0,0,0)',0);
-
-    // Color wash on top of paper for “prominent color”
-    if (it.useColored) {
-      rect(g,0,0,44,26,randColor(it.i),'rgba(0,0,0,0)',0);
+    function makeTemplate(id, drawFn){
+      const g = document.createElementNS(NS,'g');
+      g.setAttribute('id', id);
+      drawFn(g);
+      defs.appendChild(g);
     }
 
-    const use = document.createElementNS(NS,'use');
-    use.setAttribute('href', `#${it.id}`);
-    g.appendChild(use);
+    function rect(g, x,y,ww,hh, fill, stroke, sw){
+      const r = document.createElementNS(NS,'rect');
+      r.setAttribute('x', x); r.setAttribute('y', y);
+      r.setAttribute('width', ww); r.setAttribute('height', hh);
+      r.setAttribute('rx', 0); r.setAttribute('ry', 0);
+      r.setAttribute('fill', fill);
+      r.setAttribute('stroke', stroke);
+      r.setAttribute('stroke-width', sw);
+      g.appendChild(r);
+      return r;
+    }
+    function line(g, x1,y1,x2,y2, stroke, sw){
+      const l = document.createElementNS(NS,'line');
+      l.setAttribute('x1', x1); l.setAttribute('y1', y1);
+      l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+      l.setAttribute('stroke', stroke);
+      l.setAttribute('stroke-width', sw);
+      l.setAttribute('stroke-linecap','round');
+      g.appendChild(l);
+      return l;
+    }
+    function circle(g, cx,cy,r, fill, stroke, sw){
+      const c = document.createElementNS(NS,'circle');
+      c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', r);
+      c.setAttribute('fill', fill);
+      if (stroke){ c.setAttribute('stroke', stroke); c.setAttribute('stroke-width', sw); }
+      g.appendChild(c);
+      return c;
+    }
+    function path(g, d, fill, stroke, sw){
+      const p = document.createElementNS(NS,'path');
+      p.setAttribute('d', d);
+      p.setAttribute('fill', fill);
+      if (stroke){ p.setAttribute('stroke', stroke); p.setAttribute('stroke-width', sw); }
+      p.setAttribute('stroke-linejoin','round');
+      p.setAttribute('stroke-linecap','round');
+      g.appendChild(p);
+      return p;
+    }
 
-    footerSvg.appendChild(g);
+    const strokeOutline = 'rgba(37,48,65,0.32)';
+    const strokeThin    = 'rgba(37,48,65,0.22)';
+    const paper         = 'rgba(255,255,255,0.92)';
+
+    makeTemplate('tpl-tri-vert', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      line(g,14.7,0,14.7,26,strokeThin,1.0);
+      line(g,29.3,0,29.3,26,strokeThin,1.0);
+    });
+
+    makeTemplate('tpl-tri-horz', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      line(g,0,8.7,44,8.7,strokeThin,1.0);
+      line(g,0,17.4,44,17.4,strokeThin,1.0);
+    });
+
+    makeTemplate('tpl-nordic', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      line(g,0,13,44,13,'rgba(37,48,65,0.20)',1.6);
+      line(g,16,0,16,26,'rgba(37,48,65,0.20)',1.6);
+    });
+
+    makeTemplate('tpl-sun', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      circle(g,22,13,7,'rgba(255,255,255,0.0)','rgba(37,48,65,0.22)',1.3);
+    });
+
+    makeTemplate('tpl-diag', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      path(g,'M0 24 L0 20 L40 0 L44 0 L44 6 L6 26 L0 26 Z','rgba(0,0,0,0)','rgba(37,48,65,0.20)',1.2);
+    });
+
+    makeTemplate('tpl-canton', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      rect(g,0,0,18,14,'rgba(255,255,255,0.0)',strokeThin,1.0);
+      for (let y=5;y<=25;y+=5) line(g,0,y,44,y,strokeThin,0.9);
+    });
+
+    makeTemplate('tpl-diamond', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      path(g,'M22 3 L39 13 L22 23 L5 13 Z','rgba(255,255,255,0.0)','rgba(37,48,65,0.20)',1.2);
+      circle(g,22,13,5,'rgba(255,255,255,0.0)','rgba(37,48,65,0.18)',1.0);
+    });
+
+    makeTemplate('tpl-star', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      line(g,22,7,22,19,'rgba(37,48,65,0.20)',1.1);
+      line(g,17,13,27,13,'rgba(37,48,65,0.20)',1.1);
+      line(g,18.5,9.5,25.5,16.5,'rgba(37,48,65,0.20)',1.0);
+      line(g,25.5,9.5,18.5,16.5,'rgba(37,48,65,0.20)',1.0);
+    });
+
+    makeTemplate('tpl-crescent', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      circle(g,22,13,7,'rgba(255,255,255,0.0)','rgba(37,48,65,0.20)',1.1);
+      circle(g,25,13,6,'rgba(255,255,255,0.92)','rgba(0,0,0,0)',0);
+      circle(g,31,11,1.4,'rgba(255,255,255,0.0)','rgba(37,48,65,0.20)',1.0);
+    });
+
+    makeTemplate('tpl-plus', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      line(g,0,13,44,13,'rgba(37,48,65,0.20)',1.4);
+      line(g,22,0,22,26,'rgba(37,48,65,0.20)',1.4);
+    });
+
+    makeTemplate('tpl-bars-5', (g)=>{
+      rect(g,0,0,44,26,paper,strokeOutline,1.0);
+      for (let y=4;y<=22;y+=4.6) line(g,0,y,44,y,'rgba(37,48,65,0.18)',0.95);
+    });
+
+    footerSvg.appendChild(defs);
+
+    const templates = [
+      'tpl-tri-vert','tpl-tri-horz','tpl-nordic','tpl-sun','tpl-diag',
+      'tpl-canton','tpl-diamond','tpl-star','tpl-crescent','tpl-plus','tpl-bars-5'
+    ];
+
+    // Smaller flags + less overlap
+    const flagW = 40;                 // was 45
+    const scaleBase = flagW / 44;
+    const flagH = 26 * scaleBase;
+
+    const padX = 14;
+    const padY = 10;
+
+    // More spacing (less overlap)
+    const cellW = flagW * 1.12;       // was ~0.98x
+    const cellH = flagH * 1.12;
+
+    const cols = Math.max(10, Math.floor((w - padX*2) / cellW));
+    const rows = Math.max(6, Math.floor((h - padY*2) / cellH));
+
+    const points = [];
+    for (let r = 0; r < rows; r++){
+      for (let c = 0; c < cols; c++){
+        const yBase = padY + r * cellH;
+        const xBase = padX + c * cellW;
+
+        const jx = (Math.random()*0.9 - 0.45) * (cellW * 0.55);
+        const jy = (Math.random()*0.9 - 0.45) * (cellH * 0.55);
+
+        points.push({ x: xBase + jx, y: yBase + jy });
+      }
+    }
+
+    points.sort((a,b)=> a.y - b.y);
+
+    const keepStart = Math.floor(points.length * 0.22);
+    const keep = points.slice(keepStart);
+
+    // Lighter bottom boost
+    const extra = [];
+    for (let i = Math.floor(keep.length*0.75); i < keep.length; i += 7){
+      const p = keep[i];
+      extra.push({ x: p.x + (Math.random()*5-2.5), y: p.y + (Math.random()*5-2.5) });
+    }
+    const all = keep.concat(extra);
+
+    // Slightly fewer colored tiles
+    const coloredCount = Math.max(1, Math.floor(all.length * 0.08)); // was 0.10
+    const coloredIdx = new Set();
+    while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(Math.random() * all.length));
+
+    function randColor(i){
+      const hh = (i * 137.508) % 360;
+      return `hsla(${hh}, 62%, 56%, 0.92)`;
+    }
+
+    const items = all.map((p, i) => {
+      const id = templates[Math.floor(Math.random() * templates.length)];
+      const useColored = coloredIdx.has(i);
+      const rot = (Math.random() * 10 - 5);
+      const scale = scaleBase * (0.98 + Math.random() * 0.22);
+      return { i, id, useColored, x: p.x, y: p.y, rot, scale };
+    });
+
+    items.sort((a,b)=> a.y - b.y);
+
+    for (const it of items) {
+      const g = document.createElementNS(NS,'g');
+      g.setAttribute('transform', `translate(${it.x},${it.y}) rotate(${it.rot}) scale(${it.scale})`);
+
+      rect(g,0,0,44,26,paper,'rgba(0,0,0,0)',0);
+
+      if (it.useColored) {
+        rect(g,0,0,44,26,randColor(it.i),'rgba(0,0,0,0)',0);
+      }
+
+      const use = document.createElementNS(NS,'use');
+      use.setAttribute('href', `#${it.id}`);
+      g.appendChild(use);
+
+      footerSvg.appendChild(g);
+    }
   }
-}
 
   // Events
   submitBtn.addEventListener('click', submitGuess);
