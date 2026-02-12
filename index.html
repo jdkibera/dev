@@ -281,11 +281,21 @@
       place-items: center;
       box-shadow: none;
     }
-    .iconSq svg{
+
+    /* NEW: watercolor icon images (slight unification via subtle filter) */
+    .iconSq img{
       width: 100%;
       height: 100%;
-      display:block;
+      display: block;
+      object-fit: contain;
+      user-select: none;
+      pointer-events: none;
+
+      /* tiny “style alignment” pass */
+      filter: saturate(1.03) contrast(1.03) brightness(1.01);
+      opacity: 0.98;
     }
+
     .iconLabel{
       font-size: 11px;
       letter-spacing: 1.4px;
@@ -307,21 +317,21 @@
       font-weight: 300;
     }
     .msgText .headline{
-      font-size: 29px;
+      font-size: 29px;   /* was 36 */
       margin: 0 0 10px;
-      min-height: 36px;
+      min-height: 36px;  /* was 42 */
       color: rgba(37,48,65,0.92);
       font-weight: 320;
     }
     .msgText .sub{
-      font-size: 22px;
+      font-size: 22px;   /* was 28 */
       opacity: 0.92;
       margin: 0;
-      min-height: 96px;
+      min-height: 96px;  /* tuned for smaller text */
       color: rgba(37,48,65,0.86);
       font-weight: 300;
     }
-    .msgText b{ font-weight: 650; }
+    .msgText b{ font-weight: 650; } /* was 800 */
     .msgText a{
       color: rgba(30,80,170,0.95);
       text-decoration: underline;
@@ -355,12 +365,12 @@
       left: 0;
       width: 100vw;
       bottom: 0;
-      top: auto;
-      height: 0px;
+      top: auto;           /* JS will set top */
+      height: 0px;         /* JS will set height */
       z-index: 0;
       overflow: hidden;
       pointer-events: none;
-      background: none;
+      background: none;    /* fade handled by mask */
     }
 
     .footerSvg{
@@ -372,14 +382,6 @@
       opacity: 1;
 
       /* fade-in AFTER the message box: top is transparent -> visible below */
-      -webkit-mask-image: linear-gradient(
-        to bottom,
-        rgba(0,0,0,0.00) 0%,
-        rgba(0,0,0,0.00) 12%,
-        rgba(0,0,0,0.35) 28%,
-        rgba(0,0,0,1.00) 55%,
-        rgba(0,0,0,1.00) 100%
-      );
       mask-image: linear-gradient(
         to bottom,
         rgba(0,0,0,0.00) 0%,
@@ -523,7 +525,6 @@
   const belowMsg = document.getElementById('belowMsg');
 
   const footerSvg = document.getElementById('footerSvg');
-  const footerEl = document.querySelector('.flagFooter');
 
   const confettiLayer = document.getElementById('confettiLayer');
   const confettiCanvas = document.getElementById('confettiCanvas');
@@ -591,128 +592,25 @@
     return r;
   }
 
-  // --- Much more hand-drawn icon set: wobble filter + double-stroke + scribbles ---
-  function iconSVG(kind) {
-    const strokeA = "rgba(18,22,26,0.85)";
-    const strokeB = "rgba(18,22,26,0.45)";
-    const wash = "rgba(120,155,200,0.20)";
-    const paper = "rgba(255,255,255,0.76)";
+  // --- NEW: watercolor icon assets (put these files next to this HTML) ---
+  const ICONS = {
+    neutral: 'earth.jpg',
+    success: 'tiger.png',
+    hint:    'hippo.png',
+    fail:    'whale.png'
+  };
 
-    const defs = `
-      <defs>
-        <filter id="wobble">
-          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="2" seed="7" result="noise"/>
-          <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.0" xChannelSelector="R" yChannelSelector="G"/>
-        </filter>
-
-        <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(22)">
-          <line x1="0" y1="0" x2="0" y2="10" stroke="rgba(18,22,26,0.14)" stroke-width="2"/>
-        </pattern>
-      </defs>
-    `;
-
-    function dblPath(d, fill="none", sw=3.2){
-      return `
-        <path d="${d}" fill="${fill}" stroke="${strokeA}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="${d}" fill="none" stroke="${strokeB}" stroke-width="${Math.max(1.4, sw-1.4)}" stroke-linecap="round" stroke-linejoin="round"
-              transform="translate(0.9,0.6)"/>
-      `;
-    }
-    function scribble(x1,y1,x2,y2){
-      return `<path d="M${x1} ${y1} C${(x1+x2)/2} ${y1-6}, ${(x1+x2)/2} ${y2+6}, ${x2} ${y2}"
-                fill="none" stroke="rgba(18,22,26,0.18)" stroke-width="2.2" stroke-linecap="round"/>`;
-    }
-
-    // Globe (WORLD MAP)
-    if (kind === 'neutral') {
-      return `
-      <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-        ${defs}
-        <rect width="110" height="110" rx="18" fill="${paper}"/>
-        <g filter="url(#wobble)">
-          ${dblPath("M55 20 A35 35 0 1 1 54.9 20", "url(#hatch)", 3.6)}
-          ${dblPath("M20 55 H90", "none", 3.0)}
-          ${dblPath("M55 20 V90", "none", 2.6)}
-          ${dblPath("M30 35 C40 28, 46 28, 52 34 C48 42, 40 45, 34 42 C32 40, 31 38, 30 35", wash, 2.6)}
-          ${dblPath("M62 40 C70 34, 78 36, 82 44 C80 52, 73 55, 66 52 C63 50, 62 46, 62 40", wash, 2.6)}
-          ${dblPath("M36 66 C42 60, 48 60, 52 66 C48 72, 42 74, 38 72 C36 70, 35 68, 36 66", wash, 2.4)}
-          ${scribble(30,82,80,78)}
-          ${scribble(28,28,78,30)}
-        </g>
-      </svg>`;
-    }
-
-    // Fail whale
-    if (kind === 'fail') {
-      return `
-      <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-        ${defs}
-        <rect width="110" height="110" rx="18" fill="${paper}"/>
-        <g filter="url(#wobble)">
-          ${dblPath("M18 66 C22 50, 36 40, 54 42 C68 44, 82 38, 92 46 C98 52, 98 62, 90 68 C82 74, 70 78, 54 78 C38 78, 26 74, 18 66", "url(#hatch)", 3.6)}
-          ${dblPath("M86 54 C96 48, 102 54, 100 64 C94 64, 90 60, 86 54", wash, 2.8)}
-          ${dblPath("M34 58 C40 56, 46 56, 52 58", "none", 2.6)}
-          <circle cx="42" cy="56" r="2.8" fill="rgba(18,22,26,0.78)"/>
-          ${dblPath("M44 69 C52 74, 62 74, 70 69", "none", 2.8)}
-          ${dblPath("M58 36 C60 30, 64 30, 66 36", "none", 2.6)}
-          ${dblPath("M62 36 C66 28, 70 28, 72 36", "none", 2.3)}
-          ${scribble(22,86,88,82)}
-        </g>
-      </svg>`;
-    }
-
-    // Tony tiger (stylized tiger face)
-    if (kind === 'success') {
-      return `
-      <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-        ${defs}
-        <rect width="110" height="110" rx="18" fill="${paper}"/>
-        <g filter="url(#wobble)">
-          ${dblPath("M26 45 C18 34, 22 24, 36 22 L44 34 C38 40, 32 44, 26 45", wash, 3.0)}
-          ${dblPath("M84 45 C92 34, 88 24, 74 22 L66 34 C72 40, 78 44, 84 45", wash, 3.0)}
-          ${dblPath("M25 60 C25 42, 39 30, 55 30 C71 30, 85 42, 85 60 C85 78, 72 88, 55 88 C38 88, 25 78, 25 60", "url(#hatch)", 3.6)}
-          ${dblPath("M37 62 C37 52, 45 46, 55 46 C65 46, 73 52, 73 62 C73 72, 65 78, 55 78 C45 78, 37 72, 37 62", paper, 3.0)}
-          <circle cx="46" cy="60" r="2.8" fill="rgba(18,22,26,0.78)"/>
-          <circle cx="64" cy="60" r="2.8" fill="rgba(18,22,26,0.78)"/>
-          ${dblPath("M55 64 C52 66, 50 68, 49 70 C55 72, 61 72, 67 70 C66 68, 64 66, 55 64", wash, 2.8)}
-          ${dblPath("M40 52 L46 56", "none", 2.6)}
-          ${dblPath("M70 52 L64 56", "none", 2.6)}
-          ${dblPath("M44 48 L50 54", "none", 2.2)}
-          ${dblPath("M66 48 L60 54", "none", 2.2)}
-          ${scribble(28,84,82,86)}
-        </g>
-      </svg>`;
-    }
-
-    // Helpful hippo (hippo face)
-    if (kind === 'hint') {
-      return `
-      <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-        ${defs}
-        <rect width="110" height="110" rx="18" fill="${paper}"/>
-        <g filter="url(#wobble)">
-          ${dblPath("M25 62 C25 44, 39 32, 55 32 C71 32, 85 44, 85 62 C85 80, 72 90, 55 90 C38 90, 25 80, 25 62", "url(#hatch)", 3.6)}
-          ${dblPath("M33 48 C29 38, 34 30, 44 32 C46 38, 42 46, 33 48", wash, 2.8)}
-          ${dblPath("M77 48 C81 38, 76 30, 66 32 C64 38, 68 46, 77 48", wash, 2.8)}
-          ${dblPath("M36 70 C36 60, 44 54, 55 54 C66 54, 74 60, 74 70 C74 80, 66 84, 55 84 C44 84, 36 80, 36 70", paper, 3.0)}
-          <circle cx="46" cy="64" r="2.8" fill="rgba(18,22,26,0.78)"/>
-          <circle cx="64" cy="64" r="2.8" fill="rgba(18,22,26,0.78)"/>
-          ${dblPath("M55 74 C50 78, 45 78, 40 74", "none", 2.6)}
-          ${dblPath("M55 74 C60 78, 65 78, 70 74", "none", 2.6)}
-          ${dblPath("M83 28 L89 28 M86 25 L86 31", "none", 2.6)}
-          ${scribble(26,86,84,82)}
-        </g>
-      </svg>`;
-    }
-
-    return '';
+  function iconUrl(kind){
+    return ICONS[kind] || ICONS.neutral;
   }
 
   function renderMsg(kind, iconName, headline, sub){
     belowMsg.innerHTML = `
       <div class="msgGrid">
         <div class="iconCol">
-          <div class="iconSq" aria-hidden="true">${iconSVG(kind)}</div>
+          <div class="iconSq" aria-hidden="true">
+            <img src="${iconUrl(kind)}" alt="" draggable="false" />
+          </div>
           <div class="iconLabel">${iconName || ""}</div>
         </div>
         <div class="msgText">
@@ -967,7 +865,7 @@
     return 0;
   }
 
-  // Confetti stays as-is from your last rev; leaving unchanged (minor color typo fixed).
+  // Confetti stays as-is from your last rev; leaving unchanged.
   function confettiBurst(ms=3600){
     const dpr = window.devicePixelRatio || 1;
     const w = Math.floor(window.innerWidth * dpr);
@@ -978,7 +876,7 @@
 
     const ctx = confettiCanvas.getContext('2d');
     const pieces = [];
-    const colors = ['#ff6b6b','#ffd93d','#6bcbef','#6bff95','#b36bff','#ff9f43'];
+    const colors = ['#ff6b6b','#ffd93d','#6bcBef','#6bff95','#b36bff','#ff9f43'];
 
     const count = 220;
     for (let i=0;i<count;i++){
@@ -1205,242 +1103,247 @@
     return out;
   }
 
-  function buildFooter() {
-    // --- Position footer so it STARTS AFTER the message box ---
-    const msgRect = belowMsg.getBoundingClientRect();
-    const pad = 10;
+function buildFooter() {
+  // --- Position footer so it STARTS AFTER the message box ---
+  const footerEl = document.querySelector('.flagFooter');
+  const msgRect = belowMsg.getBoundingClientRect();
+  const pad = 10; // little breathing room under message box
 
-    const topPx = Math.min(
-      Math.max(msgRect.bottom + pad, window.innerHeight * 0.64),
-      window.innerHeight - 120
-    );
+  // Start AFTER message box (clamped so it doesn't go too high/low)
+  const topPx = Math.min(
+    Math.max(msgRect.bottom + pad, window.innerHeight * 0.64), // at least lower-ish
+    window.innerHeight - 120                                   // never consume entire screen
+  );
 
-    footerEl.style.top = `${Math.round(topPx)}px`;
-    footerEl.style.height = `${Math.max(0, Math.round(window.innerHeight - topPx))}px`;
+  footerEl.style.top = `${Math.round(topPx)}px`;
+  footerEl.style.height = `${Math.max(0, Math.round(window.innerHeight - topPx))}px`;
 
-    const w = Math.max(1400, window.innerWidth);
-    const h = Math.max(220, Math.round(window.innerHeight - topPx));
-    footerSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
-    footerSvg.innerHTML = '';
+  // --- SVG sizing ---
+  const w = Math.max(1400, window.innerWidth);
+  const h = Math.max(220, Math.round(window.innerHeight - topPx));
+  footerSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  footerSvg.innerHTML = '';
 
-    const NS = 'http://www.w3.org/2000/svg';
-    const XLINK_NS = 'http://www.w3.org/1999/xlink';
-    const defs = document.createElementNS(NS,'defs');
+  const NS = 'http://www.w3.org/2000/svg';
+  const defs = document.createElementNS(NS,'defs');
 
-    function makeTemplate(id, drawFn){
-      const g = document.createElementNS(NS,'g');
-      g.setAttribute('id', id);
-      drawFn(g);
-      defs.appendChild(g);
-    }
+  function makeTemplate(id, drawFn){
+    const g = document.createElementNS(NS,'g');
+    g.setAttribute('id', id);
+    drawFn(g);
+    defs.appendChild(g);
+  }
 
-    function rect(g, x,y,ww,hh, fill, stroke, sw){
-      const r = document.createElementNS(NS,'rect');
-      r.setAttribute('x', x); r.setAttribute('y', y);
-      r.setAttribute('width', ww); r.setAttribute('height', hh);
-      r.setAttribute('rx', 0); r.setAttribute('ry', 0);
-      r.setAttribute('fill', fill);
-      r.setAttribute('stroke', stroke);
-      r.setAttribute('stroke-width', sw);
-      g.appendChild(r);
-      return r;
-    }
-    function line(g, x1,y1,x2,y2, stroke, sw){
-      const l = document.createElementNS(NS,'line');
-      l.setAttribute('x1', x1); l.setAttribute('y1', y1);
-      l.setAttribute('x2', x2); l.setAttribute('y2', y2);
-      l.setAttribute('stroke', stroke);
-      l.setAttribute('stroke-width', sw);
-      l.setAttribute('stroke-linecap','round');
-      g.appendChild(l);
-      return l;
-    }
-    function circle(g, cx,cy,r, fill, stroke, sw){
-      const c = document.createElementNS(NS,'circle');
-      c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', r);
-      c.setAttribute('fill', fill);
-      if (stroke){ c.setAttribute('stroke', stroke); c.setAttribute('stroke-width', sw); }
-      g.appendChild(c);
-      return c;
-    }
-    function path(g, d, fill, stroke, sw){
-      const p = document.createElementNS(NS,'path');
-      p.setAttribute('d', d);
-      p.setAttribute('fill', fill);
-      if (stroke){ p.setAttribute('stroke', stroke); p.setAttribute('stroke-width', sw); }
-      p.setAttribute('stroke-linejoin','round');
-      p.setAttribute('stroke-linecap','round');
-      g.appendChild(p);
-      return p;
-    }
+  function rect(g, x,y,ww,hh, fill, stroke, sw){
+    const r = document.createElementNS(NS,'rect');
+    r.setAttribute('x', x); r.setAttribute('y', y);
+    r.setAttribute('width', ww); r.setAttribute('height', hh);
+    r.setAttribute('rx', 0); r.setAttribute('ry', 0);
+    r.setAttribute('fill', fill);
+    r.setAttribute('stroke', stroke);
+    r.setAttribute('stroke-width', sw);
+    g.appendChild(r);
+    return r;
+  }
+  function line(g, x1,y1,x2,y2, stroke, sw){
+    const l = document.createElementNS(NS,'line');
+    l.setAttribute('x1', x1); l.setAttribute('y1', y1);
+    l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+    l.setAttribute('stroke', stroke);
+    l.setAttribute('stroke-width', sw);
+    l.setAttribute('stroke-linecap','round');
+    g.appendChild(l);
+    return l;
+  }
+  function circle(g, cx,cy,r, fill, stroke, sw){
+    const c = document.createElementNS(NS,'circle');
+    c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', r);
+    c.setAttribute('fill', fill);
+    if (stroke){ c.setAttribute('stroke', stroke); c.setAttribute('stroke-width', sw); }
+    g.appendChild(c);
+    return c;
+  }
+  function path(g, d, fill, stroke, sw){
+    const p = document.createElementNS(NS,'path');
+    p.setAttribute('d', d);
+    p.setAttribute('fill', fill);
+    if (stroke){ p.setAttribute('stroke', stroke); p.setAttribute('stroke-width', sw); }
+    p.setAttribute('stroke-linejoin','round');
+    p.setAttribute('stroke-linecap','round');
+    g.appendChild(p);
+    return p;
+  }
 
-    const strokeOutline = 'rgba(37,48,65,0.32)';
-    const strokeThin    = 'rgba(37,48,65,0.22)';
-    const paper         = 'rgba(255,255,255,0.92)';
+  // Lighter + thinner outline
+  const strokeOutline = 'rgba(37,48,65,0.32)';
+  const strokeThin    = 'rgba(37,48,65,0.22)';
+  const paper         = 'rgba(255,255,255,0.92)'; // opaque so occludes properly
 
-    makeTemplate('tpl-tri-vert', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      line(g,14.7,0,14.7,26,strokeThin,1.0);
-      line(g,29.3,0,29.3,26,strokeThin,1.0);
-    });
+  // --- MORE VARIETY of simplified flag archetypes ---
+  makeTemplate('tpl-tri-vert', (g)=>{
+    rect(g,0,0,44,26,paper,strokeOutline,1.0);
+    line(g,14.7,0,14.7,26,strokeThin,1.0);
+    line(g,29.3,0,29.3,26,strokeThin,1.0);
+  });
 
-    makeTemplate('tpl-tri-horz', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      line(g,0,8.7,44,8.7,strokeThin,1.0);
-      line(g,0,17.4,44,17.4,strokeThin,1.0);
-    });
+  makeTemplate('tpl-tri-horz', (g)=>{
+    rect(g,0,0,44,26,paper,strokeOutline,1.0);
+    line(g,0,8.7,44,8.7,strokeThin,1.0);
+    line(g,0,17.4,44,17.4,strokeThin,1.0);
+  });
 
-    makeTemplate('tpl-nordic', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      line(g,0,13,44,13,'rgba(37,48,65,0.20)',1.6);
-      line(g,16,0,16,26,'rgba(37,48,65,0.20)',1.6);
-    });
+  makeTemplate('tpl-nordic', (g)=>{
+    rect(g,0,0,44,26,paper,strokeOutline,1.0);
+    line(g,0,13,44,13,'rgba(37,48,65,0.20)',1.6);
+    line(g,16,0,16,26,'rgba(37,48,65,0.20)',1.6);
+  });
 
-    makeTemplate('tpl-sun', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      circle(g,22,13,7,'rgba(255,255,255,0.0)','rgba(37,48,65,0.22)',1.3);
-    });
+  makeTemplate('tpl-sun', (g)=>{
+    rect(g,0,0,44,26,paper,strokeOutline,1.0);
+    circle(g,22,13,7,'rgba(255,255,255,0.0)','rgba(37,48,65,0.22)',1.3);
+  });
 
-    makeTemplate('tpl-diag', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      path(g,'M0 24 L0 20 L40 0 L44 0 L44 6 L6 26 L0 26 Z','rgba(0,0,0,0)','rgba(37,48,65,0.20)',1.2);
-    });
+  makeTemplate('tpl-diag', (g)=>{
+    rect(g,0,0,44,26,paper,strokeOutline,1.0);
+    path(g,'M0 24 L0 20 L40 0 L44 0 L44 6 L6 26 L0 26 Z','rgba(0,0,0,0)','rgba(37,48,65,0.20)',1.2);
+  });
 
-    makeTemplate('tpl-canton', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      rect(g,0,0,18,14,'rgba(255,255,255,0.0)',strokeThin,1.0);
-      for (let y=5;y<=25;y+=5) line(g,0,y,44,y,strokeThin,0.9);
-    });
+  makeTemplate('tpl-canton', (g)=>{
+    rect(g,0,0,44,26,paper,strokeOutline,1.0);
+    rect(g,0,0,18,14,'rgba(255,255,255,0.0)',strokeThin,1.0);
+    for (let y=5;y<=25;y+=5) line(g,0,y,44,y,strokeThin,0.9);
+  });
 
-    makeTemplate('tpl-diamond', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      path(g,'M22 3 L39 13 L22 23 L5 13 Z','rgba(255,255,255,0.0)','rgba(37,48,65,0.20)',1.2);
-      circle(g,22,13,5,'rgba(255,255,255,0.0)','rgba(37,48,65,0.18)',1.0);
-    });
+  makeTemplate('tpl-diamond', (g)=>{
+    rect(g,0,0,44,26,paper,strokeOutline,1.0);
+    path(g,'M22 3 L39 13 L22 23 L5 13 Z','rgba(255,255,255,0.0)','rgba(37,48,65,0.20)',1.2);
+    circle(g,22,13,5,'rgba(255,255,255,0.0)','rgba(37,48,65,0.18)',1.0);
+  });
 
-    makeTemplate('tpl-star', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      line(g,22,7,22,19,'rgba(37,48,65,0.20)',1.1);
-      line(g,17,13,27,13,'rgba(37,48,65,0.20)',1.1);
-      line(g,18.5,9.5,25.5,16.5,'rgba(37,48,65,0.20)',1.0);
-      line(g,25.5,9.5,18.5,16.5,'rgba(37,48,65,0.20)',1.0);
-    });
+  makeTemplate('tpl-star', (g)=>{
+    rect(g,0,0,44,26,paper,strokeOutline,1.0);
+    // little star-ish asterisk
+    line(g,22,7,22,19,'rgba(37,48,65,0.20)',1.1);
+    line(g,17,13,27,13,'rgba(37,48,65,0.20)',1.1);
+    line(g,18.5,9.5,25.5,16.5,'rgba(37,48,65,0.20)',1.0);
+    line(g,25.5,9.5,18.5,16.5,'rgba(37,48,65,0.20)',1.0);
+  });
 
-    makeTemplate('tpl-crescent', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      circle(g,22,13,7,'rgba(255,255,255,0.0)','rgba(37,48,65,0.20)',1.1);
-      circle(g,25,13,6,'rgba(255,255,255,0.92)','rgba(0,0,0,0)',0);
-      circle(g,31,11,1.4,'rgba(255,255,255,0.0)','rgba(37,48,65,0.20)',1.0);
-    });
+  makeTemplate('tpl-crescent', (g)=>{
+    rect(g,0,0,44,26,paper,strokeOutline,1.0);
+    // crescent via two circles outline
+    circle(g,22,13,7,'rgba(255,255,255,0.0)','rgba(37,48,65,0.20)',1.1);
+    circle(g,25,13,6,'rgba(255,255,255,0.92)','rgba(0,0,0,0)',0);
+    circle(g,31,11,1.4,'rgba(255,255,255,0.0)','rgba(37,48,65,0.20)',1.0);
+  });
 
-    makeTemplate('tpl-plus', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      line(g,0,13,44,13,'rgba(37,48,65,0.20)',1.4);
-      line(g,22,0,22,26,'rgba(37,48,65,0.20)',1.4);
-    });
+  makeTemplate('tpl-plus', (g)=>{
+    rect(g,0,0,44,26,paper,strokeOutline,1.0);
+    line(g,0,13,44,13,'rgba(37,48,65,0.20)',1.4);
+    line(g,22,0,22,26,'rgba(37,48,65,0.20)',1.4);
+  });
 
-    makeTemplate('tpl-bars-5', (g)=>{
-      rect(g,0,0,44,26,paper,strokeOutline,1.0);
-      for (let y=4;y<=22;y+=4.6) line(g,0,y,44,y,'rgba(37,48,65,0.18)',0.95);
-    });
+  makeTemplate('tpl-bars-5', (g)=>{
+    rect(g,0,0,44,26,paper,strokeOutline,1.0);
+    for (let y=4;y<=22;y+=4.6) line(g,0,y,44,y,'rgba(37,48,65,0.18)',0.95);
+  });
 
-    footerSvg.appendChild(defs);
+  footerSvg.appendChild(defs);
 
-    const templates = [
-      'tpl-tri-vert','tpl-tri-horz','tpl-nordic','tpl-sun','tpl-diag',
-      'tpl-canton','tpl-diamond','tpl-star','tpl-crescent','tpl-plus','tpl-bars-5'
-    ];
+  const templates = [
+    'tpl-tri-vert','tpl-tri-horz','tpl-nordic','tpl-sun','tpl-diag',
+    'tpl-canton','tpl-diamond','tpl-star','tpl-crescent','tpl-plus','tpl-bars-5'
+  ];
 
-    const flagW = 45;
-    const flagH = 26;
-    const scaleBase = flagW / 44;
+  // --- Density tuning: a bit LESS dense, still "pile" vibe ---
+  const flagW = 45;
+  const flagH = 26;
+  const scaleBase = flagW / 44;
 
-    const padX = 14;
-    const padY = 10;
+  const padX = 14;
+  const padY = 10;
 
-    const cellW = flagW * 0.98;
-    const cellH = flagH * 0.98;
+  // Increase spacing slightly (less dense) + smaller overlap
+  const cellW = flagW * 0.98;
+  const cellH = flagH * 0.98;
 
-    const cols = Math.max(10, Math.floor((w - padX*2) / cellW));
-    const rows = Math.max(6, Math.floor((h - padY*2) / cellH));
+  const cols = Math.max(10, Math.floor((w - padX*2) / cellW));
+  const rows = Math.max(6, Math.floor((h - padY*2) / cellH));
 
-    const points = [];
-    for (let r = 0; r < rows; r++){
-      for (let c = 0; c < cols; c++){
-        const yBase = padY + r * cellH;
-        const xBase = padX + c * cellW;
+  // Generate jittered grid, then keep lower portion for "mountain"
+  const points = [];
+  for (let r = 0; r < rows; r++){
+    for (let c = 0; c < cols; c++){
+      const yBase = padY + r * cellH;
+      const xBase = padX + c * cellW;
 
-        const jx = (Math.random()*0.9 - 0.45) * (cellW * 0.55);
-        const jy = (Math.random()*0.9 - 0.45) * (cellH * 0.55);
+      const jx = (Math.random()*0.9 - 0.45) * (cellW * 0.55);
+      const jy = (Math.random()*0.9 - 0.45) * (cellH * 0.55);
 
-        points.push({ x: xBase + jx, y: yBase + jy });
-      }
-    }
-
-    points.sort((a,b)=> a.y - b.y);
-
-    const keepStart = Math.floor(points.length * 0.22);
-    const keep = points.slice(keepStart);
-
-    const extra = [];
-    for (let i = Math.floor(keep.length*0.70); i < keep.length; i += 4){
-      const p = keep[i];
-      extra.push({ x: p.x + (Math.random()*5-2.5), y: p.y + (Math.random()*5-2.5) });
-    }
-    const all = keep.concat(extra);
-
-    const coloredCount = Math.max(1, Math.floor(all.length * 0.10));
-    const coloredIdx = new Set();
-    while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(Math.random() * all.length));
-
-    function randColor(i){
-      const hh = (i * 137.508) % 360;
-      return `hsla(${hh}, 62%, 56%, 0.92)`;
-    }
-
-    const items = all.map((p, i) => {
-      const id = templates[Math.floor(Math.random() * templates.length)];
-      const useColored = coloredIdx.has(i);
-      const rot = (Math.random() * 10 - 5);
-      const scale = scaleBase * (0.98 + Math.random() * 0.22);
-      return { i, id, useColored, x: p.x, y: p.y, rot, scale };
-    });
-
-    items.sort((a,b)=> a.y - b.y);
-
-    for (const it of items) {
-      const g = document.createElementNS(NS,'g');
-      g.setAttribute('transform', `translate(${it.x},${it.y}) rotate(${it.rot}) scale(${it.scale})`);
-
-      rect(g,0,0,44,26,paper,'rgba(0,0,0,0)',0);
-
-      if (it.useColored) {
-        rect(g,0,0,44,26,randColor(it.i),'rgba(0,0,0,0)',0);
-      }
-
-      const use = document.createElementNS(NS,'use');
-      use.setAttribute('href', `#${it.id}`);
-      use.setAttributeNS(XLINK_NS, 'xlink:href', `#${it.id}`);
-      g.appendChild(use);
-
-      footerSvg.appendChild(g);
+      points.push({ x: xBase + jx, y: yBase + jy });
     }
   }
 
-  // Debounced footer rebuild (resize + restart)
-  let footerTimer = null;
-  function scheduleBuildFooter(){
-    if (footerTimer) clearTimeout(footerTimer);
-    footerTimer = setTimeout(() => {
-      footerTimer = null;
-      buildFooter();
-    }, 90);
+  points.sort((a,b)=> a.y - b.y);
+
+  // Start lower inside the footer area (no "creeping up")
+  const keepStart = Math.floor(points.length * 0.22);
+  const keep = points.slice(keepStart);
+
+  // Lightly boost bottom density (NOT crazy), with tiny offsets
+  const extra = [];
+  for (let i = Math.floor(keep.length*0.70); i < keep.length; i += 4){
+    const p = keep[i];
+    extra.push({ x: p.x + (Math.random()*5-2.5), y: p.y + (Math.random()*5-2.5) });
   }
+  const all = keep.concat(extra);
+
+  // Color: randomly color ~10% of ALL items, but make them more prominent
+  const coloredCount = Math.max(1, Math.floor(all.length * 0.10));
+  const coloredIdx = new Set();
+  while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(Math.random() * all.length));
+
+  function randColor(i){
+    const hh = (i * 137.508) % 360;
+    // more prominent (less washed out than before)
+    return `hsla(${hh}, 62%, 56%, 0.92)`;
+  }
+
+  // Draw top-to-bottom for occlusion (later = on top)
+  const items = all.map((p, i) => {
+    const id = templates[Math.floor(Math.random() * templates.length)];
+    const useColored = coloredIdx.has(i);
+    const rot = (Math.random() * 10 - 5);
+    const scale = scaleBase * (0.98 + Math.random() * 0.22);
+    return { i, id, useColored, x: p.x, y: p.y, rot, scale };
+  });
+
+  items.sort((a,b)=> a.y - b.y);
+
+  for (const it of items) {
+    const g = document.createElementNS(NS,'g');
+    g.setAttribute('transform', `translate(${it.x},${it.y}) rotate(${it.rot}) scale(${it.scale})`);
+
+    // Paper base ALWAYS (opaque)
+    rect(g,0,0,44,26,paper,'rgba(0,0,0,0)',0);
+
+    // Color wash on top of paper for “prominent color”
+    if (it.useColored) {
+      rect(g,0,0,44,26,randColor(it.i),'rgba(0,0,0,0)',0);
+    }
+
+    const use = document.createElementNS(NS,'use');
+    use.setAttribute('href', `#${it.id}`);
+    g.appendChild(use);
+
+    footerSvg.appendChild(g);
+  }
+}
 
   // Events
   submitBtn.addEventListener('click', submitGuess);
   skipBtn.addEventListener('click', skipFlag);
-  restartBtnTop.addEventListener('click', () => { restart(); scheduleBuildFooter(); });
+  restartBtnTop.addEventListener('click', () => { restart(); buildFooter(); });
 
   guessInput.addEventListener('input', (e) => renderSuggestions(e.target.value));
   guessInput.addEventListener('focus', () => { if (guessInput.value) renderSuggestions(guessInput.value); });
@@ -1512,7 +1415,7 @@
     renderMsg('fail','FAIL WHALE',`Couldn’t load country data.`, `${String(err.message || err)}`);
   });
 
-  window.addEventListener('resize', scheduleBuildFooter);
+  window.addEventListener('resize', () => buildFooter());
 })();
 </script>
 </body>
