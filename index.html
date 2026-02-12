@@ -5,26 +5,32 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Kibera's Flag Gauntlet</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Calligraffitti&display=swap" rel="stylesheet">
+
   <style>
     :root{
-      --bg: #E1E8F3;
+      --bg: #dfe8f4;
       --ink: #253041;
       --card: rgba(11,16,32,0.92);
       --cardBorder: rgba(0,0,0,0.18);
 
       --pillBg: rgba(255,255,255,0.10);
 
-      /* Flag module */
       --flagStageH: 340px;
 
-      /* Messaging area */
+      /* Messaging area: fixed layout so nothing jumps */
       --msgH: 320px;
-      --iconColW: 170px;
+      --iconColW: 150px;
 
       --brandBlueGrey: rgba(80, 110, 140, 0.42);
 
-      /* Banner heights */
-      --bannerH: 190px;
+      /* --- Comic burst + fonts --- */
+      --burstOutline: rgba(0,0,0,0.88);
+      --burstShadow: rgba(0,0,0,0.30);
+      --burstDot: rgba(0,0,0,0.26);
+      --burstTextShadow: rgba(0,0,0,0.18);
     }
 
     html, body { height: 100%; }
@@ -39,49 +45,16 @@
       overflow-x: hidden;
     }
 
-    /* ORIGINAL ASK: stylized script / signature vibe (locked) */
-    .brandAngle{
-      position: absolute;
-      left: -132px;
-      top: 118px;
-      transform: rotate(-45deg);
-      transform-origin: left top;
-      font-family: "Calligraffitti", "Snell Roundhand", "Apple Chancery", "Segoe Script", cursive;
-      font-size: 46px;
+    /* =============================================================================================
+       SECTION: FONT LOADING (BAZINGA)
+       - NOTE: Place a Bazinga webfont at /fonts/Bazinga.woff2 (or adjust URL below).
+       ============================================================================================= */
+    @font-face{
+      font-family: "Bazinga";
+      src: url("./fonts/Bazinga.woff2") format("woff2");
       font-weight: 400;
-      color: var(--brandBlueGrey);
-      user-select: none;
-      pointer-events: none;
-      z-index: 10;
-      line-height: 0.92;
-      text-align: center;
-      width: 250px;
-    }
-
-    .flagHeader{
-      position: fixed;
-      left: 0;
-      top: 0;
-      width: 100vw;
-      height: var(--bannerH);
-      z-index: 0;
-      pointer-events: none;
-      overflow: hidden;
-    }
-    .headerSvg{
-      position:absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 1;
-      /* Solid at top, fades OUT to bg by the time it reaches the content */
-      mask-image: linear-gradient(
-        to bottom,
-        rgba(0,0,0,1.00) 0%,
-        rgba(0,0,0,1.00) 35%,
-        rgba(0,0,0,0.55) 62%,
-        rgba(0,0,0,0.00) 100%
-      );
+      font-style: normal;
+      font-display: swap;
     }
 
     .main{
@@ -102,6 +75,24 @@
       position: relative;
     }
 
+    .brandAngle{
+      position: absolute;
+      left: -132px;
+      top: 118px;
+      transform: rotate(-45deg);
+      transform-origin: left top;
+      font-family: "Calligraffitti", "Snell Roundhand", "Apple Chancery", "Segoe Script", cursive;
+      font-size: 46px;
+      font-weight: 400;
+      color: var(--brandBlueGrey);
+      user-select: none;
+      pointer-events: none;
+      z-index: 10;
+      line-height: 0.92;
+      text-align: center;
+      width: 250px;
+    }
+
     .topbar{
       width: min(900px, 100%);
       display:flex;
@@ -110,8 +101,6 @@
       align-items: center;
       justify-content: center;
       margin-bottom: 2px;
-      position: relative;
-      z-index: 3;
     }
 
     .pill{
@@ -173,18 +162,14 @@
       padding: 6px 0 12px;
       box-sizing: border-box;
     }
-
-    /* Flag size per your spec */
     .flag{
-      width: 500px;
-      height: 300px;
+      width: min(520px, 92%);
+      max-height: calc(var(--flagStageH) - 18px);
       object-fit: contain;
       border-radius: 14px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.35);
       border: 1px solid rgba(255,255,255,0.12);
       background: rgba(255,255,255,0.04);
-      max-width: min(520px, 92%);
-      max-height: calc(var(--flagStageH) - 18px);
     }
 
     .controls{
@@ -236,17 +221,17 @@
     button:hover{ background: rgba(90,140,255,0.33); }
     button:disabled{ opacity: 0.55; cursor: not-allowed; }
 
-    /* Only hint CTA below input (and +15% font) */
+    /* Hint CTA: shown ONLY here (kept); requested copy */
     .hintHotkeyLine{
       width: min(520px, 92%);
       text-align: left;
-      font-size: 15px;
-      color: rgba(233,238,252,0.78);
+      font-size: 15px; /* ~15% larger than 13px */
+      color: rgba(233,238,252,0.76);
       margin-top: -2px;
       font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
       font-weight: 300;
     }
-    .hintHotkeyLine b{ color: rgba(233,238,252,0.92); font-weight: 600; }
+    .hintHotkeyLine b{ color: rgba(233,238,252,0.92); font-weight: 650; }
 
     .suggestBox{
       position: absolute;
@@ -275,6 +260,7 @@
     .sgItem:hover, .sgItem.active{ background: rgba(90,140,255,0.22); }
     .sgMeta{ font-size: 12px; opacity: 0.70; white-space: nowrap; }
 
+    /* Messaging area: fixed layout so nothing jumps */
     .belowMsg{
       width: min(900px, 100%);
       height: var(--msgH);
@@ -283,7 +269,6 @@
       overflow: hidden;
       z-index: 2;
       position: relative;
-      margin-top: 0px;
     }
 
     .msgGrid{
@@ -300,29 +285,28 @@
       display:flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       padding-top: 2px;
     }
 
     .iconSq{
-      width: 150px;
-      height: 150px;
-      border-radius: 0;
+      width: 132px;
+      height: 132px;
+      border-radius: 18px;
       border: none;
-      background: transparent;
+      background: rgba(255,255,255,0.0);
       overflow: visible;
       display: grid;
       place-items: center;
       box-shadow: none;
     }
     .iconSq svg{
-      width: 150px;
-      height: 150px;
+      width: 132px;
+      height: 132px;
       display:block;
-      overflow: visible;
-      background: transparent;
     }
 
+    /* Messaging typography */
     .msgText{
       text-align: left;
       line-height: 1.25;
@@ -330,9 +314,6 @@
       padding-top: 6px;
       font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
       font-weight: 300;
-      /* 10% smaller overall */
-      transform: scale(0.90);
-      transform-origin: left top;
     }
     .msgText .headline{
       font-size: 29px;
@@ -349,7 +330,7 @@
       color: rgba(37,48,65,0.86);
       font-weight: 300;
     }
-    /* Bold lighter */
+    /* Requested: bold lighter weight (Continent, Food etc.) */
     .msgText b{ font-weight: 520; }
     .msgText a{
       color: rgba(30,80,170,0.95);
@@ -378,13 +359,49 @@
       font-weight: 300;
     }
 
+    /* =============================================================================================
+       SECTION: HEADER + FOOTER FLAG BANDS (SVG)
+       - Footer: fades IN as you move down.
+       - Header: solid at top, fades OUT as you move down into the page.
+       ============================================================================================= */
+
+    .flagHeader{
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 210px;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .headerSvg{
+      position:absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 1;
+
+      /* solid at top -> transparent toward bottom (fade OUT into bg) */
+      mask-image: linear-gradient(
+        to bottom,
+        rgba(0,0,0,1.00) 0%,
+        rgba(0,0,0,1.00) 40%,
+        rgba(0,0,0,0.65) 62%,
+        rgba(0,0,0,0.25) 80%,
+        rgba(0,0,0,0.00) 100%
+      );
+    }
+
+    /* Footer begins AFTER message box (JS sets top/height). Fades in from that point. */
     .flagFooter{
       position: fixed;
       left: 0;
       width: 100vw;
       bottom: 0;
-      top: auto;
-      height: 0px; /* JS sets */
+      top: auto;           /* JS will set top */
+      height: 0px;         /* JS will set height */
       z-index: 0;
       overflow: hidden;
       pointer-events: none;
@@ -397,13 +414,14 @@
       width: 100%;
       height: 100%;
       opacity: 1;
-      /* bottom fade stays correct: transparent near top -> solid towards bottom */
+
+      /* fade-in AFTER the message box: top is transparent -> visible below */
       mask-image: linear-gradient(
         to bottom,
         rgba(0,0,0,0.00) 0%,
-        rgba(0,0,0,0.18) 18%,
-        rgba(0,0,0,0.55) 40%,
-        rgba(0,0,0,1.00) 75%,
+        rgba(0,0,0,0.00) 12%,
+        rgba(0,0,0,0.35) 28%,
+        rgba(0,0,0,1.00) 55%,
         rgba(0,0,0,1.00) 100%
       );
     }
@@ -426,46 +444,50 @@
       text-align: center;
     }
     .roundOverlay .big{
-      font-family: "Impact", "Haettenschweiler", "Arial Black", sans-serif;
-      font-weight: 900;
-      font-size: min(140px, 16vw);
+      font-family: "Bazinga", "Bangers", "Impact", system-ui, sans-serif;
+      font-weight: 400;
+      font-size: min(170px, 18vw);
       line-height: 0.95;
-      color: rgba(0,0,0,0.88);
+      color: rgba(0,0,0,0.0);
       padding: 0;
       border-radius: 0;
       background: transparent;
       border: none;
+      text-shadow: none;
     }
 
     @media (max-width: 900px){
       .brandAngle{ left: -122px; top: 130px; font-size: 40px; width: 230px; }
       .questionTitle{ font-size: 30px; }
-      :root{ --iconColW: 170px; --msgH: 300px; }
+      .iconSq{ width: 120px; height: 120px; }
+      :root{ --iconColW: 140px; --msgH: 300px; }
+      .msgText .headline{ font-size: 26px; }
+      .msgText .sub{ font-size: 20px; }
+      .flagHeader{ height: 190px; }
     }
     @media (max-width: 760px){
-      :root{ --iconColW: 160px; --msgH: 290px; }
+      :root{ --iconColW: 132px; --msgH: 290px; }
       .pill{ font-size: 16px; }
       .pill b{ font-size: 18px; }
       .questionTitle{ font-size: 26px; }
       .brandAngle{ font-size: 34px; left: -110px; top: 140px; width: 210px; }
-      .iconSq{ width: 140px; height: 140px; }
-      .iconSq svg{ width: 140px; height: 140px; }
+      .flagHeader{ height: 175px; }
     }
   </style>
 </head>
 
 <body>
-  <!-- Header banner -->
-  <div class="flagHeader" aria-hidden="true">
-    <svg id="headerSvg" class="headerSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
-  </div>
-
   <div class="confettiLayer" id="confettiLayer">
     <canvas id="confettiCanvas" style="width:100%;height:100%"></canvas>
   </div>
 
   <div class="roundOverlay" id="roundOverlay">
     <div class="big" id="roundOverlayText"></div>
+  </div>
+
+  <!-- Header flags (mirror/invert of footer logic; same drawing code, different mask) -->
+  <div class="flagHeader" aria-hidden="true">
+    <svg id="headerSvg" class="headerSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
   </div>
 
   <div class="main">
@@ -544,8 +566,8 @@
   const suggestBox = document.getElementById('suggestBox');
   const belowMsg = document.getElementById('belowMsg');
 
-  const headerSvg = document.getElementById('headerSvg');
   const footerSvg = document.getElementById('footerSvg');
+  const headerSvg = document.getElementById('headerSvg');
 
   const confettiLayer = document.getElementById('confettiLayer');
   const confettiCanvas = document.getElementById('confettiCanvas');
@@ -566,9 +588,6 @@
   let lastRenderedQuery = "";
 
   let cca3ToCountry = new Map();
-
-  // Banner cache (so header/footer are identical mirrors)
-  let bannerLayout = null;
 
   function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -616,95 +635,104 @@
     return r;
   }
 
-  // ------------------------------------------------------------------------------------
-  // COMIC BURST ICONS — transparent outside the burst; reduce outline weight by 50%
-  // ------------------------------------------------------------------------------------
-  function burstIconSVG(kind, text){
+  /* =============================================================================================
+     SECTION: ICONS / COMIC BURSTS (TRANSPARENT BACKGROUND)
+     - Uses Bazinga font (via @font-face).
+     - Transparent background (no fill behind burst).
+     - Burst closer to referenced halftone comic bubble feel.
+     ============================================================================================= */
+
+  function burstSVG(kind, word) {
+    // Color presets requested:
+    // default ("Let's Go!") -> green text, burst darker green + light green/yellow
+    // fail ("Oh Nawr!") -> yellow text, burst red/orange
+    // success ("Boom!") -> light blue text, burst red/orange
+    // hint ("Pssst!") -> light blue text, burst blue/purple
+
+    let textFill = "#38d27b";
+    let burstA = "#1b7a40";
+    let burstB = "#b7f27b";
+    let burstC = "#ffd65a";
+
+    if (kind === 'fail') {
+      textFill = "#ffe45b";
+      burstA = "#ff3a2e";
+      burstB = "#ff9b3d";
+      burstC = "#ffd65a";
+    } else if (kind === 'success') {
+      textFill = "#8dd7ff";
+      burstA = "#ff3a2e";
+      burstB = "#ff9b3d";
+      burstC = "#ffd65a";
+    } else if (kind === 'hint') {
+      textFill = "#8dd7ff";
+      burstA = "#5b44ff";
+      burstB = "#8a6bff";
+      burstC = "#ff6ad6";
+    } else if (kind === 'neutral') {
+      // Default message bubble: keep "Let's Go!" look (green)
+      textFill = "#38d27b";
+      burstA = "#1b7a40";
+      burstB = "#b7f27b";
+      burstC = "#ffd65a";
+    }
+
+    // Thinner outline (requested: reduce outline weight by 50% vs prior)
     const outline = "rgba(0,0,0,0.88)";
-    const textStrokeW = 2.5;     // was ~5.0
-    const burstStrokeW = 3.0;    // was ~6.0
+    const outlineW = 2.2;
 
-    const burstD = "M55 6 L64 20 L82 10 L79 30 L98 26 L86 42 L104 50 L86 56 L98 74 L79 70 L82 90 L64 80 L55 104 L46 80 L28 90 L31 70 L12 74 L24 56 L6 50 L24 42 L12 26 L31 30 L28 10 L46 20 Z";
+    // A more "real" jagged burst (hand-tuned)
+    const burstPathOuter =
+      "M66 8 L78 20 L94 14 L90 32 L108 38 L92 50 L110 62 L90 68 L96 86 L78 78 L66 96 L58 80 L40 96 L42 78 L20 86 L26 68 L6 62 L24 50 L8 38 L26 32 L22 14 L40 20 L50 8 L58 24 Z";
+    const burstPathInner =
+      "M66 18 L74 26 L86 22 L84 34 L98 38 L86 46 L98 56 L84 58 L88 72 L74 66 L66 78 L60 66 L48 78 L50 66 L36 72 L40 58 L26 56 L38 46 L26 38 L40 34 L38 22 L48 26 L56 18 L60 30 Z";
 
-    let outer = "#ff3b30";
-    let inner = "#ffd60a";
-    let wordFill = "#38d66b";
-
-    if (kind === "default") { // LET'S GO!
-      outer = "#0f7a2e";
-      inner = "#b8f06a";
-      wordFill = "#38d66b";
-    }
-    if (kind === "fail") { // OH NAWR!
-      outer = "#ff3b30";
-      inner = "#ffd60a";
-      wordFill = "#ffd60a";
-    }
-    if (kind === "success") { // BOOM!
-      outer = "#ff3b30";
-      inner = "#ffd60a";
-      wordFill = "#9ad0ff";
-    }
-    if (kind === "hint") { // PSSSST!
-      outer = "#2b6cff";
-      inner = "#a7c8ff";
-      wordFill = "#9ad0ff";
-    }
-
+    // Halftone dots clipped to outer burst-ish region (no background fill)
     return `
-      <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <svg viewBox="0 0 116 104" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
-          <radialGradient id="g-${kind}" cx="48%" cy="45%" r="70%">
-            <stop offset="0%" stop-color="${inner}"/>
-            <stop offset="100%" stop-color="${outer}"/>
-          </radialGradient>
-          <pattern id="dots-${kind}" width="10" height="10" patternUnits="userSpaceOnUse">
-            <circle cx="2" cy="2" r="1.6" fill="rgba(0,0,0,0.22)"/>
+          <pattern id="dotPat" width="8" height="8" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1.4" fill="rgba(0,0,0,0.22)"></circle>
           </pattern>
-          <filter id="soft-${kind}">
+          <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
             <feDropShadow dx="0" dy="2" stdDeviation="1.2" flood-color="rgba(0,0,0,0.22)"/>
           </filter>
         </defs>
 
-        <path d="${burstD}" fill="url(#g-${kind})" stroke="${outline}" stroke-width="${burstStrokeW}" stroke-linejoin="round" filter="url(#soft-${kind})"/>
-        <path d="${burstD}" fill="url(#dots-${kind})" opacity="0.55"/>
+        <g filter="url(#softShadow)">
+          <path d="${burstPathOuter}" fill="${burstA}" stroke="${outline}" stroke-width="${outlineW}" stroke-linejoin="round"/>
+          <path d="${burstPathInner}" fill="${burstB}" stroke="${outline}" stroke-width="${outlineW * 0.85}" stroke-linejoin="round" opacity="0.95"/>
+          <path d="${burstPathInner}" fill="url(#dotPat)" opacity="0.55"/>
+          <path d="${burstPathInner}" fill="${burstC}" opacity="0.20"/>
 
-        <g stroke="${outline}" stroke-width="2" stroke-linecap="round" opacity="0.9">
-          <line x1="12" y1="18" x2="0" y2="6"/>
-          <line x1="20" y1="10" x2="14" y2="0"/>
-          <line x1="94" y1="18" x2="110" y2="6"/>
-          <line x1="90" y1="10" x2="96" y2="0"/>
-          <line x1="12" y1="86" x2="0" y2="104"/>
-          <line x1="94" y1="86" x2="110" y2="104"/>
-        </g>
-
-        <g transform="translate(55 62) rotate(-7)">
-          <text text-anchor="middle"
-                font-family="Impact, Haettenschweiler, 'Arial Black', sans-serif"
-                font-size="${text.length >= 7 ? 30 : 34}"
-                font-weight="900"
-                fill="${wordFill}"
-                stroke="${outline}"
-                stroke-width="${textStrokeW}"
-                paint-order="stroke fill">
-            ${text}
-          </text>
+          <text x="58" y="58"
+            text-anchor="middle"
+            dominant-baseline="middle"
+            font-family="Bazinga, Bangers, Impact, system-ui, sans-serif"
+            font-size="30"
+            fill="${textFill}"
+            stroke="${outline}"
+            stroke-width="2.6"
+            paint-order="stroke"
+            style="letter-spacing: 1px;"
+          >${String(word || '').toUpperCase()}</text>
         </g>
       </svg>
     `;
   }
 
   function renderMsg(kind, headline, sub){
-    let label = "LET'S GO!";
-    let k = "default";
-    if (kind === "fail") { label = "OH NAWR!"; k = "fail"; }
-    if (kind === "success") { label = "BOOM!"; k = "success"; }
-    if (kind === "hint") { label = "PSSSST!"; k = "hint"; }
+    // No extra all-caps labels; just burst + text.
+    let burstWord = "LET'S GO!";
+    if (kind === 'fail') burstWord = "OH NAWR!";
+    if (kind === 'success') burstWord = "BOOM!";
+    if (kind === 'hint') burstWord = "PSSSST!";
+    if (kind === 'neutral') burstWord = "LET'S GO!";
 
     belowMsg.innerHTML = `
       <div class="msgGrid">
         <div class="iconCol">
-          <div class="iconSq">${burstIconSVG(k, label)}</div>
+          <div class="iconSq" aria-hidden="true">${burstSVG(kind, burstWord)}</div>
         </div>
         <div class="msgText">
           <div class="headline">${headline || ""}</div>
@@ -713,6 +741,10 @@
       </div>
     `;
   }
+
+  /* =============================================================================================
+     SECTION: SUGGESTIONS (UNCHANGED)
+     ============================================================================================= */
 
   function closeSuggest() {
     suggestBox.style.display = 'none';
@@ -948,7 +980,8 @@
     guessInput.focus();
     updateHUD();
 
-    renderMsg('default', '', `Type a country name.`);
+    // IMPORTANT: only hint CTA is under input; keep this neutral text simple (no hint CTA repeat)
+    renderMsg('neutral','', `Type a country name.`);
   }
 
   function pointsForTry(tryNumberUsed) {
@@ -957,6 +990,12 @@
     if (tryNumberUsed === 3) return 1;
     return 0;
   }
+
+  /* =============================================================================================
+     SECTION: CONFETTI + ROUND OVERLAY
+     - Confetti: more volume, 3s fall.
+     - Round overlay: comic burst growth from vanishing point.
+     ============================================================================================= */
 
   function confettiBurst(ms=3000){
     const dpr = window.devicePixelRatio || 1;
@@ -970,13 +1009,13 @@
     const pieces = [];
     const colors = ['#ff6b6b','#ffd93d','#6bcBef','#6bff95','#b36bff','#ff9f43'];
 
-    const count = 520;
+    const count = 520; // more volume
     for (let i=0;i<count;i++){
       pieces.push({
         x: Math.random()*w,
         y: -60 - Math.random()*h*0.35,
         vx: (Math.random()*2-1) * dpr * 2.0,
-        vy: (Math.random()*1+1.2) * dpr * 2.2,
+        vy: (Math.random()*1+1.2) * dpr * 2.6,
         r: (Math.random()*4+3) * dpr,
         rot: Math.random()*Math.PI,
         vr: (Math.random()*0.18-0.09),
@@ -998,9 +1037,9 @@
         s.x += s.vx;
         s.y += s.vy;
         s.rot += s.vr;
-        s.vy += 0.020 * dpr;
-        s.vx *= 0.994;
-        s.vy *= 0.997;
+        s.vy += 0.028 * dpr;
+        s.vx *= 0.992;
+        s.vy *= 0.996;
 
         const alpha = Math.max(0, fade * s.life);
 
@@ -1009,7 +1048,7 @@
         ctx.rotate(s.rot);
         ctx.globalAlpha = alpha;
         ctx.fillStyle = s.c;
-        ctx.fillRect(-s.r, -s.r, s.r*2.2, s.r*1.2);
+        ctx.fillRect(-s.r, -s.r, s.r*2.4, s.r*1.3);
         ctx.restore();
       }
 
@@ -1019,26 +1058,70 @@
     requestAnimationFrame(tick);
   }
 
+  function roundBurstSVG(text){
+    // Big center burst (transparent background)
+    return `
+      <svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="dotBig" width="16" height="16" patternUnits="userSpaceOnUse">
+            <circle cx="4" cy="4" r="2.5" fill="rgba(0,0,0,0.24)"></circle>
+          </pattern>
+          <filter id="drop" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="rgba(0,0,0,0.25)"/>
+          </filter>
+        </defs>
+
+        <g filter="url(#drop)" transform="translate(600 350)">
+          <path d="M0 -280 L80 -200 L220 -240 L180 -120 L310 -80 L190 0 L320 90 L180 120 L220 250 L80 200 L0 280 L-70 200 L-220 250 L-180 120 L-310 90 L-190 0 L-310 -80 L-180 -120 L-220 -240 L-70 -200 Z"
+                fill="#ff3a2e" stroke="rgba(0,0,0,0.9)" stroke-width="10" stroke-linejoin="round"/>
+          <path d="M0 -220 L70 -160 L170 -185 L145 -95 L235 -65 L150 0 L240 75 L145 95 L170 190 L70 160 L0 220 L-60 160 L-170 190 L-145 95 L-235 75 L-150 0 L-235 -65 L-145 -95 L-170 -185 L-60 -160 Z"
+                fill="#ffd65a" stroke="rgba(0,0,0,0.9)" stroke-width="10" stroke-linejoin="round"/>
+          <path d="M0 -210 L70 -150 L170 -175 L145 -95 L230 -65 L150 0 L235 75 L145 95 L170 185 L70 155 L0 215 L-60 155 L-170 185 L-145 95 L-235 75 L-150 0 L-235 -65 L-145 -95 L-170 -175 L-60 -150 Z"
+                fill="url(#dotBig)" opacity="0.65"/>
+          <text x="0" y="18" text-anchor="middle" dominant-baseline="middle"
+                font-family="Bazinga, Bangers, Impact, system-ui, sans-serif"
+                font-size="140"
+                fill="#ffffff"
+                stroke="rgba(0,0,0,0.92)"
+                stroke-width="18"
+                paint-order="stroke"
+                style="letter-spacing: 3px;"
+          >${String(text||'').toUpperCase()}</text>
+        </g>
+      </svg>
+    `;
+  }
+
   function roundTransition(nextRoundNumber){
-    roundOverlayText.textContent = `ROUND ${nextRoundNumber}!`;
+    roundOverlayText.innerHTML = roundBurstSVG(`ROUND ${nextRoundNumber}!`);
     roundOverlay.style.display = 'grid';
 
+    // grow from vanishing point
+    roundOverlayText.style.transformOrigin = '50% 50%';
     roundOverlayText.style.transform = 'scale(0.05)';
     roundOverlayText.style.opacity = '0.0';
-    roundOverlayText.style.transition = 'transform 700ms cubic-bezier(.2,.9,.2,1), opacity 350ms ease';
 
     requestAnimationFrame(() => {
-      roundOverlayText.style.opacity = '1.0';
+      roundOverlayText.style.transition = 'transform 520ms cubic-bezier(.2,.9,.2,1), opacity 240ms ease';
       roundOverlayText.style.transform = 'scale(1.0)';
+      roundOverlayText.style.opacity = '1.0';
     });
 
     confettiBurst(3000);
 
     setTimeout(() => {
-      roundOverlay.style.display = 'none';
-      renderFlag();
-    }, 2400);
+      roundOverlayText.style.transition = 'opacity 220ms ease';
+      roundOverlayText.style.opacity = '0';
+      setTimeout(() => {
+        roundOverlay.style.display = 'none';
+        renderFlag();
+      }, 220);
+    }, 1900);
   }
+
+  /* =============================================================================================
+     SECTION: GAME FLOW (UNCHANGED LOGIC; messages updated only via renderMsg)
+     ============================================================================================= */
 
   function advanceFlag() {
     flagIdx++;
@@ -1086,7 +1169,7 @@
 
     renderMsg(
       'hint',
-      `Hint used (costs a try!)`,
+      `Hint Used (costs a try!)`,
       `${hint}<br/><br/>You have <b>${triesLeft}</b> tries left.`
     );
   }
@@ -1133,7 +1216,7 @@
     renderMsg(
       'fail',
       `Not quite.`,
-      `Try again. You have <b>${triesLeft}</b> tries left. (Hit <b>.</b> for a hint — it costs a try.)`
+      `Try again. You have <b>${triesLeft}</b> tries left.`
     );
 
     guessInput.select();
@@ -1145,7 +1228,7 @@
     if (!c) return;
 
     renderMsg(
-      'default',
+      'neutral',
       `Skipped. Answer: <b>${c.name.common}</b>.`,
       `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
     );
@@ -1199,69 +1282,199 @@
     return out;
   }
 
-  // ------------------------------------------------------------------------------------
-  // HEADER/FOOTER FLAGS
-  // - Colored flags: wash out ~10% (slightly faded)
-  // - B&W flags: grey OUTLINE style (not grayscale photos)
-  // ------------------------------------------------------------------------------------
-  function seededRng(seed){
-    let t = seed >>> 0;
-    return function(){
-      t += 0x6D2B79F5;
-      let x = Math.imul(t ^ (t >>> 15), 1 | t);
-      x ^= x + Math.imul(x ^ (x >>> 7), 61 | x);
-      return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
-    };
+  /* =============================================================================================
+     SECTION: FLAG BANDS (HEADER + FOOTER)
+     - 10% colored, washed out 50% (opacity 0.5).
+     - Remaining 90%: grey outline “line-art” derived from actual flag image via SVG filters.
+     - Top-to-bottom draw order ensures correct occlusion.
+     - Footer positioning logic unchanged; header is fixed height.
+     ============================================================================================= */
+
+  function _ensureFlagFilters(svgEl){
+    const NS = 'http://www.w3.org/2000/svg';
+    svgEl.innerHTML = '';
+
+    const defs = document.createElementNS(NS,'defs');
+
+    // Outline / line-art filter from the real flag image:
+    // - grayscale -> edge detection -> threshold-ish -> tint to grey.
+    const f = document.createElementNS(NS,'filter');
+    f.setAttribute('id','flagOutline');
+    f.setAttribute('x','-20%'); f.setAttribute('y','-20%');
+    f.setAttribute('width','140%'); f.setAttribute('height','140%');
+
+    const cm = document.createElementNS(NS,'feColorMatrix');
+    cm.setAttribute('type','matrix');
+    cm.setAttribute('values', `
+      0.333 0.333 0.333 0 0
+      0.333 0.333 0.333 0 0
+      0.333 0.333 0.333 0 0
+      0     0     0     1 0
+    `.trim().replace(/\s+/g,' '));
+    cm.setAttribute('result','gray');
+    f.appendChild(cm);
+
+    const conv = document.createElementNS(NS,'feConvolveMatrix');
+    conv.setAttribute('in','gray');
+    conv.setAttribute('order','3');
+    conv.setAttribute('kernelMatrix','-1 -1 -1 -1 8 -1 -1 -1 -1');
+    conv.setAttribute('result','edge');
+    f.appendChild(conv);
+
+    const comp = document.createElementNS(NS,'feComponentTransfer');
+    comp.setAttribute('in','edge');
+    const fnR = document.createElementNS(NS,'feFuncR'); fnR.setAttribute('type','gamma'); fnR.setAttribute('amplitude','1'); fnR.setAttribute('exponent','0.85'); fnR.setAttribute('offset','0');
+    const fnG = document.createElementNS(NS,'feFuncG'); fnG.setAttribute('type','gamma'); fnG.setAttribute('amplitude','1'); fnG.setAttribute('exponent','0.85'); fnG.setAttribute('offset','0');
+    const fnB = document.createElementNS(NS,'feFuncB'); fnB.setAttribute('type','gamma'); fnB.setAttribute('amplitude','1'); fnB.setAttribute('exponent','0.85'); fnB.setAttribute('offset','0');
+    comp.appendChild(fnR); comp.appendChild(fnG); comp.appendChild(fnB);
+    f.appendChild(comp);
+
+    const tint = document.createElementNS(NS,'feColorMatrix');
+    tint.setAttribute('type','matrix');
+    tint.setAttribute('values', `
+      0 0 0 0 0.20
+      0 0 0 0 0.24
+      0 0 0 0 0.30
+      0 0 0 1 0
+    `.trim().replace(/\s+/g,' '));
+    tint.setAttribute('result','tint');
+    f.appendChild(tint);
+
+    defs.appendChild(f);
+
+    // subtle shadow so overlaps read as “stacked”
+    const sh = document.createElementNS(NS,'filter');
+    sh.setAttribute('id','flagShadow');
+    sh.setAttribute('x','-20%'); sh.setAttribute('y','-20%');
+    sh.setAttribute('width','140%'); sh.setAttribute('height','140%');
+    const ds = document.createElementNS(NS,'feDropShadow');
+    ds.setAttribute('dx','0'); ds.setAttribute('dy','2'); ds.setAttribute('stdDeviation','1.4');
+    ds.setAttribute('flood-color','rgba(0,0,0,0.22)');
+    sh.appendChild(ds);
+    defs.appendChild(sh);
+
+    svgEl.appendChild(defs);
   }
 
-  function computeBannerLayout(w, h, seed){
-    const rand = seededRng(seed);
+  function _drawFlagBand(svgEl, bandH, mode){
+    // mode: 'header' or 'footer' (affects “keepStart” / distribution; shapes identical)
+    const NS = 'http://www.w3.org/2000/svg';
+    _ensureFlagFilters(svgEl);
 
-    const padX = 16;
-    const padY = 12;
+    const w = Math.max(1400, window.innerWidth);
+    const h = Math.max(220, Math.round(bandH));
 
-    const flagW = 44;
-    const flagH = 26;
+    svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+
+    // Choose a pool of countries to sample flags from (more variety).
+    const pool = countries.filter(c => c?.flags?.png).slice();
+    shuffle(pool);
+
+    // Placement tuned to preserve current “look” (do not change size/spacing elsewhere):
+    const flagW = 64;
+    const flagH = 36;
+
+    const padX = 14;
+    const padY = 10;
 
     const cellW = flagW * 1.20;
-    const cellH = flagH * 1.34;
+    const cellH = flagH * 1.18;
 
     const cols = Math.max(10, Math.floor((w - padX*2) / cellW));
-    const rows = Math.max(5, Math.floor((h - padY*2) / cellH));
+    const rows = Math.max(4, Math.floor((h - padY*2) / cellH));
 
-    const pts = [];
+    const points = [];
     for (let r = 0; r < rows; r++){
       for (let c = 0; c < cols; c++){
         const xBase = padX + c * cellW;
         const yBase = padY + r * cellH;
 
-        const jx = (rand()*2 - 1) * (cellW * 0.60);
-        const jy = (rand()*2 - 1) * (cellH * 0.75);
+        // Stronger scatter (avoid columns)
+        const jx = (Math.random()*1.0 - 0.5) * (cellW * 0.85);
+        const jy = (Math.random()*1.0 - 0.5) * (cellH * 0.75);
 
-        pts.push({ x: xBase + jx, y: yBase + jy });
+        points.push({ x: xBase + jx, y: yBase + jy });
       }
     }
-    pts.sort((a,b)=> a.y - b.y);
 
-    const keepStart = Math.floor(pts.length * 0.20);
-    const keep = pts.slice(keepStart);
+    // Keep all points; order by y for occlusion
+    points.sort((a,b)=> a.y - b.y);
 
-    const extra = [];
-    for (let i = Math.floor(keep.length*0.70); i < keep.length; i += 4){
-      const p = keep[i];
-      extra.push({ x: p.x + (rand()*8-4), y: p.y + (rand()*8-4) });
-    }
+    // For header: keep more near top; for footer: keep more near bottom.
+    let keepStart = 0;
+    if (mode === 'footer') keepStart = Math.floor(points.length * 0.18);
+    if (mode === 'header') keepStart = Math.floor(points.length * 0.02);
+    const keep = points.slice(keepStart);
 
-    const all = keep.concat(extra);
-
-    const coloredCount = Math.max(1, Math.floor(all.length * 0.10));
+    // 10% colored
+    const coloredCount = Math.max(1, Math.floor(keep.length * 0.10));
     const coloredIdx = new Set();
-    while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(rand() * all.length));
+    while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(Math.random() * keep.length));
 
-    return { all, coloredIdx, flagW, flagH };
+    // Draw top-to-bottom for occlusion (later = on top)
+    const items = keep.map((p, i) => {
+      const c = pool[i % pool.length];
+      const rot = (Math.random() * 8 - 4);
+      // IMPORTANT: rectangles only (no italics / skew); keep scale ~1
+      const scale = 1.0;
+      const isColored = coloredIdx.has(i);
+      return { i, c, isColored, x: p.x, y: p.y, rot, scale };
+    });
+
+    items.sort((a,b)=> a.y - b.y);
+
+    for (const it of items) {
+      const g = document.createElementNS(NS,'g');
+      g.setAttribute('transform', `translate(${it.x},${it.y}) rotate(${it.rot}) scale(${it.scale})`);
+      g.setAttribute('filter', 'url(#flagShadow)');
+
+      // clip to rounded-ish rect? keep square corners as requested
+      const clipId = `clip_${mode}_${it.i}`;
+      const defs = svgEl.querySelector('defs');
+      const clip = document.createElementNS(NS,'clipPath');
+      clip.setAttribute('id', clipId);
+      const cr = document.createElementNS(NS,'rect');
+      cr.setAttribute('x','0'); cr.setAttribute('y','0');
+      cr.setAttribute('width', String(flagW));
+      cr.setAttribute('height', String(flagH));
+      cr.setAttribute('rx','0'); cr.setAttribute('ry','0');
+      clip.appendChild(cr);
+      defs.appendChild(clip);
+
+      // base border (very light)
+      const border = document.createElementNS(NS,'rect');
+      border.setAttribute('x','0'); border.setAttribute('y','0');
+      border.setAttribute('width', String(flagW));
+      border.setAttribute('height', String(flagH));
+      border.setAttribute('fill','rgba(255,255,255,0.85)');
+      border.setAttribute('stroke','rgba(37,48,65,0.22)');
+      border.setAttribute('stroke-width','1.0');
+      g.appendChild(border);
+
+      const img = document.createElementNS(NS,'image');
+      img.setAttribute('href', it.c.flags.png);
+      img.setAttribute('x','0');
+      img.setAttribute('y','0');
+      img.setAttribute('width', String(flagW));
+      img.setAttribute('height', String(flagH));
+      img.setAttribute('preserveAspectRatio','none');
+      img.setAttribute('clip-path', `url(#${clipId})`);
+
+      if (it.isColored) {
+        // Colored flags: wash out 50%
+        img.setAttribute('opacity','0.50');
+      } else {
+        // Line-art outline flags: derived from actual flag image with detail
+        img.setAttribute('filter','url(#flagOutline)');
+        img.setAttribute('opacity','0.38'); // slight fade but recognizable
+      }
+
+      g.appendChild(img);
+      svgEl.appendChild(g);
+    }
   }
 
-  function buildFlagBanners(){
+  function buildFooter() {
     const footerEl = document.querySelector('.flagFooter');
     const msgRect = belowMsg.getBoundingClientRect();
     const pad = 10;
@@ -1274,139 +1487,22 @@
     footerEl.style.top = `${Math.round(topPx)}px`;
     footerEl.style.height = `${Math.max(0, Math.round(window.innerHeight - topPx))}px`;
 
-    const w = Math.max(1400, window.innerWidth);
-
-    const headerH = Math.round(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bannerH')) || 190);
-    const footerH = Math.max(220, Math.round(window.innerHeight - topPx));
-
-    headerSvg.setAttribute('viewBox', `0 0 ${w} ${headerH}`);
-    footerSvg.setAttribute('viewBox', `0 0 ${w} ${footerH}`);
-
-    headerSvg.innerHTML = '';
-    footerSvg.innerHTML = '';
-
-    const pool = countries.filter(c => c.flags && (c.flags.svg || c.flags.png));
-    if (!pool.length) return;
-
-    if (!bannerLayout || bannerLayout.w !== w || bannerLayout.headerH !== headerH || bannerLayout.footerH !== footerH) {
-      const base = computeBannerLayout(w, footerH, 1337);
-      bannerLayout = { w, headerH, footerH, ...base };
-    }
-
-    const NS = 'http://www.w3.org/2000/svg';
-
-    function defsFor(svg){
-      const defs = document.createElementNS(NS,'defs');
-
-      /* Outline style: edge-detect -> tint to grey -> keep only edges */
-      const fOutline = document.createElementNS(NS,'filter');
-      fOutline.setAttribute('id','flagOutline');
-      fOutline.setAttribute('x','-20%');
-      fOutline.setAttribute('y','-20%');
-      fOutline.setAttribute('width','140%');
-      fOutline.setAttribute('height','140%');
-      fOutline.innerHTML = `
-        <feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"/>
-        <feComponentTransfer in="gray" result="hi">
-          <feFuncR type="gamma" amplitude="1" exponent="0.7" offset="0.05"/>
-          <feFuncG type="gamma" amplitude="1" exponent="0.7" offset="0.05"/>
-          <feFuncB type="gamma" amplitude="1" exponent="0.7" offset="0.05"/>
-        </feComponentTransfer>
-
-        <feConvolveMatrix in="hi" order="3 3"
-          kernelMatrix="
-            -1 -1 -1
-            -1  8 -1
-            -1 -1 -1"
-          divisor="1" bias="0" edgeMode="duplicate" result="edges"/>
-
-        <feColorMatrix in="edges" type="matrix"
-          values="
-            0 0 0 0 0.55
-            0 0 0 0 0.60
-            0 0 0 0 0.66
-            0 0 0 1 0"
-          result="tinted"/>
-
-        <feComponentTransfer in="tinted" result="alphaBoost">
-          <feFuncA type="gamma" amplitude="1" exponent="0.55" offset="0"/>
-        </feComponentTransfer>
-
-        <feMerge>
-          <feMergeNode in="alphaBoost"/>
-        </feMerge>
-      `;
-      defs.appendChild(fOutline);
-
-      /* Color wash-out (10% colored flags): slightly faded, but recognizable */
-      const fColor = document.createElementNS(NS,'filter');
-      fColor.setAttribute('id','colorWash');
-      fColor.innerHTML = `
-        <feColorMatrix type="matrix"
-          values="
-            0.92 0.00 0.00 0 0.03
-            0.00 0.92 0.00 0 0.03
-            0.00 0.00 0.92 0 0.03
-            0    0    0    1 0"/>
-      `;
-      defs.appendChild(fColor);
-
-      svg.appendChild(defs);
-    }
-
-    defsFor(headerSvg);
-    defsFor(footerSvg);
-
-    const { all, coloredIdx, flagW, flagH } = bannerLayout;
-
-    function addFlag(svg, x, y, isColored, idx){
-      const c = pool[idx % pool.length];
-      const href = c.flags.svg || c.flags.png;
-
-      const img = document.createElementNS(NS, 'image');
-      img.setAttribute('href', href);
-      img.setAttribute('x', x);
-      img.setAttribute('y', y);
-      img.setAttribute('width', flagW);
-      img.setAttribute('height', flagH);
-      img.setAttribute('preserveAspectRatio','xMidYMid meet');
-
-      if (!isColored){
-        img.setAttribute('filter','url(#flagOutline)');
-        img.setAttribute('opacity','0.72');
-      } else {
-        img.setAttribute('filter','url(#colorWash)');
-        img.setAttribute('opacity','0.82');  // washed out a bit
-      }
-      svg.appendChild(img);
-    }
-
-    const orderRand = seededRng(424242);
-    const order = all.map((_, i) => i);
-    for (let i = order.length - 1; i > 0; i--) {
-      const j = Math.floor(orderRand() * (i + 1));
-      [order[i], order[j]] = [order[j], order[i]];
-    }
-
-    const footerItems = all.map((p, i) => ({
-      i, x: p.x, y: p.y, colored: coloredIdx.has(i)
-    })).sort((a,b)=> a.y - b.y);
-
-    const headerItems = footerItems.map(it => ({
-      i: it.i,
-      x: it.x,
-      y: Math.max(0, bannerLayout.headerH - it.y - flagH),
-      colored: it.colored
-    })).sort((a,b)=> a.y - b.y);
-
-    footerItems.forEach((it, k) => addFlag(footerSvg, it.x, it.y, it.colored, order[k]));
-    headerItems.forEach((it, k) => addFlag(headerSvg, it.x, it.y, it.colored, order[k]));
+    const bandH = Math.max(220, Math.round(window.innerHeight - topPx));
+    _drawFlagBand(footerSvg, bandH, 'footer');
   }
 
-  // Events
+  function buildHeader() {
+    const bandH = Math.max(175, Math.round(document.querySelector('.flagHeader').getBoundingClientRect().height));
+    _drawFlagBand(headerSvg, bandH, 'header');
+  }
+
+  /* =============================================================================================
+     SECTION: EVENTS (UNCHANGED)
+     ============================================================================================= */
+
   submitBtn.addEventListener('click', submitGuess);
   skipBtn.addEventListener('click', skipFlag);
-  restartBtnTop.addEventListener('click', () => { restart(); buildFlagBanners(); });
+  restartBtnTop.addEventListener('click', () => { restart(); buildFooter(); buildHeader(); });
 
   guessInput.addEventListener('input', (e) => renderSuggestions(e.target.value));
   guessInput.addEventListener('focus', () => { if (guessInput.value) renderSuggestions(guessInput.value); });
@@ -1441,7 +1537,10 @@
     guessInput.focus();
   });
 
-  // Boot
+  /* =============================================================================================
+     SECTION: BOOT / DATA LOAD (UNCHANGED)
+     ============================================================================================= */
+
   async function loadCountries() {
     const res = await fetch(
       'https://restcountries.com/v3.1/all?fields=name,flags,altSpellings,population,region,subregion,cca3,borders'
@@ -1469,8 +1568,8 @@
     }
 
     rounds = buildRoundsSmart(countries);
-
-    buildFlagBanners();
+    buildHeader();
+    buildFooter();
     restart();
   }
 
@@ -1479,7 +1578,7 @@
     renderMsg('fail', `Couldn’t load country data.`, `${String(err.message || err)}`);
   });
 
-  window.addEventListener('resize', () => buildFlagBanners());
+  window.addEventListener('resize', () => { buildHeader(); buildFooter(); });
 })();
 </script>
 </body>
