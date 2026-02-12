@@ -39,6 +39,25 @@
       overflow-x: hidden;
     }
 
+    /* ORIGINAL ASK: stylized script / signature vibe (locked) */
+    .brandAngle{
+      position: absolute;
+      left: -132px;
+      top: 118px;
+      transform: rotate(-45deg);
+      transform-origin: left top;
+      font-family: "Calligraffitti", "Snell Roundhand", "Apple Chancery", "Segoe Script", cursive;
+      font-size: 46px;
+      font-weight: 400;
+      color: var(--brandBlueGrey);
+      user-select: none;
+      pointer-events: none;
+      z-index: 10;
+      line-height: 0.92;
+      text-align: center;
+      width: 250px;
+    }
+
     .flagHeader{
       position: fixed;
       left: 0;
@@ -81,24 +100,6 @@
       align-items: center;
       gap: 14px;
       position: relative;
-    }
-
-    .brandAngle{
-      position: absolute;
-      left: -132px;
-      top: 118px;
-      transform: rotate(-45deg);
-      transform-origin: left top;
-      font-family: "Calligraffitti", "Snell Roundhand", "Apple Chancery", "Segoe Script", cursive;
-      font-size: 46px;
-      font-weight: 400;
-      color: var(--brandBlueGrey);
-      user-select: none;
-      pointer-events: none;
-      z-index: 10;
-      line-height: 0.92;
-      text-align: center;
-      width: 250px;
     }
 
     .topbar{
@@ -616,18 +617,15 @@
   }
 
   // ------------------------------------------------------------------------------------
-  // COMIC BURST ICONS — transparent outside the burst (no background blocks)
+  // COMIC BURST ICONS — transparent outside the burst; reduce outline weight by 50%
   // ------------------------------------------------------------------------------------
   function burstIconSVG(kind, text){
-    // Important: no rect background; only burst + halftone + text.
     const outline = "rgba(0,0,0,0.88)";
-    const textStrokeW = 5.0;  // slightly thinner than before per request
-    const burstStrokeW = 6.0;
+    const textStrokeW = 2.5;     // was ~5.0
+    const burstStrokeW = 3.0;    // was ~6.0
 
-    // Shape closely matching the “ROLL!” style burst
     const burstD = "M55 6 L64 20 L82 10 L79 30 L98 26 L86 42 L104 50 L86 56 L98 74 L79 70 L82 90 L64 80 L55 104 L46 80 L28 90 L31 70 L12 74 L24 56 L6 50 L24 42 L12 26 L31 30 L28 10 L46 20 Z";
 
-    // Color schemes
     let outer = "#ff3b30";
     let inner = "#ffd60a";
     let wordFill = "#38d66b";
@@ -668,13 +666,10 @@
           </filter>
         </defs>
 
-        <!-- burst -->
         <path d="${burstD}" fill="url(#g-${kind})" stroke="${outline}" stroke-width="${burstStrokeW}" stroke-linejoin="round" filter="url(#soft-${kind})"/>
-        <!-- halftone on burst only -->
         <path d="${burstD}" fill="url(#dots-${kind})" opacity="0.55"/>
 
-        <!-- action lines (no background) -->
-        <g stroke="${outline}" stroke-width="4" stroke-linecap="round" opacity="0.9">
+        <g stroke="${outline}" stroke-width="2" stroke-linecap="round" opacity="0.9">
           <line x1="12" y1="18" x2="0" y2="6"/>
           <line x1="20" y1="10" x2="14" y2="0"/>
           <line x1="94" y1="18" x2="110" y2="6"/>
@@ -683,7 +678,6 @@
           <line x1="94" y1="86" x2="110" y2="104"/>
         </g>
 
-        <!-- text -->
         <g transform="translate(55 62) rotate(-7)">
           <text text-anchor="middle"
                 font-family="Impact, Haettenschweiler, 'Arial Black', sans-serif"
@@ -964,7 +958,6 @@
     return 0;
   }
 
-  // Confetti: more volume, 3s
   function confettiBurst(ms=3000){
     const dpr = window.devicePixelRatio || 1;
     const w = Math.floor(window.innerWidth * dpr);
@@ -1026,7 +1019,6 @@
     requestAnimationFrame(tick);
   }
 
-  // Round overlay: comic burst zoom from vanishing point
   function roundTransition(nextRoundNumber){
     roundOverlayText.textContent = `ROUND ${nextRoundNumber}!`;
     roundOverlay.style.display = 'grid';
@@ -1208,9 +1200,9 @@
   }
 
   // ------------------------------------------------------------------------------------
-  // HEADER/FOOTER FLAGS — add detail back using real country flag SVGs,
-  // and color only ~10% (rest are grey “outline-ish” via filter).
-  // Layout is mirrored: header is an inverted mirror of footer with identical proportions.
+  // HEADER/FOOTER FLAGS
+  // - Colored flags: wash out ~10% (slightly faded)
+  // - B&W flags: grey OUTLINE style (not grayscale photos)
   // ------------------------------------------------------------------------------------
   function seededRng(seed){
     let t = seed >>> 0;
@@ -1231,7 +1223,6 @@
     const flagW = 44;
     const flagH = 26;
 
-    // Slightly larger row spacing + more jitter so it looks scattered, not columns
     const cellW = flagW * 1.20;
     const cellH = flagH * 1.34;
 
@@ -1252,11 +1243,9 @@
     }
     pts.sort((a,b)=> a.y - b.y);
 
-    // Keep a "mountain" bias: footer uses lower portion; header mirrors it.
     const keepStart = Math.floor(pts.length * 0.20);
     const keep = pts.slice(keepStart);
 
-    // Light extra density near bottom
     const extra = [];
     for (let i = Math.floor(keep.length*0.70); i < keep.length; i += 4){
       const p = keep[i];
@@ -1265,7 +1254,6 @@
 
     const all = keep.concat(extra);
 
-    // Select 10% to be colored
     const coloredCount = Math.max(1, Math.floor(all.length * 0.10));
     const coloredIdx = new Set();
     while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(rand() * all.length));
@@ -1278,7 +1266,6 @@
     const msgRect = belowMsg.getBoundingClientRect();
     const pad = 10;
 
-    // footer starts after message box
     const topPx = Math.min(
       Math.max(msgRect.bottom + pad, window.innerHeight * 0.64),
       window.innerHeight - 120
@@ -1287,7 +1274,6 @@
     footerEl.style.top = `${Math.round(topPx)}px`;
     footerEl.style.height = `${Math.max(0, Math.round(window.innerHeight - topPx))}px`;
 
-    // banner SVG sizing
     const w = Math.max(1400, window.innerWidth);
 
     const headerH = Math.round(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bannerH')) || 190);
@@ -1299,13 +1285,10 @@
     headerSvg.innerHTML = '';
     footerSvg.innerHTML = '';
 
-    // choose a pool of flags (use real flag SVGs for detail)
     const pool = countries.filter(c => c.flags && (c.flags.svg || c.flags.png));
     if (!pool.length) return;
 
-    // layout cached so header/footer are identical mirrors
     if (!bannerLayout || bannerLayout.w !== w || bannerLayout.headerH !== headerH || bannerLayout.footerH !== footerH) {
-      // One layout computed off the footer height, then mirrored to header
       const base = computeBannerLayout(w, footerH, 1337);
       bannerLayout = { w, headerH, footerH, ...base };
     }
@@ -1315,23 +1298,58 @@
     function defsFor(svg){
       const defs = document.createElementNS(NS,'defs');
 
-      // Grey “outline-ish” filter: desaturate + lift whites + soften color
-      const f = document.createElementNS(NS,'filter');
-      f.setAttribute('id','greyOutline');
-      f.innerHTML = `
+      /* Outline style: edge-detect -> tint to grey -> keep only edges */
+      const fOutline = document.createElementNS(NS,'filter');
+      fOutline.setAttribute('id','flagOutline');
+      fOutline.setAttribute('x','-20%');
+      fOutline.setAttribute('y','-20%');
+      fOutline.setAttribute('width','140%');
+      fOutline.setAttribute('height','140%');
+      fOutline.innerHTML = `
+        <feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"/>
+        <feComponentTransfer in="gray" result="hi">
+          <feFuncR type="gamma" amplitude="1" exponent="0.7" offset="0.05"/>
+          <feFuncG type="gamma" amplitude="1" exponent="0.7" offset="0.05"/>
+          <feFuncB type="gamma" amplitude="1" exponent="0.7" offset="0.05"/>
+        </feComponentTransfer>
+
+        <feConvolveMatrix in="hi" order="3 3"
+          kernelMatrix="
+            -1 -1 -1
+            -1  8 -1
+            -1 -1 -1"
+          divisor="1" bias="0" edgeMode="duplicate" result="edges"/>
+
+        <feColorMatrix in="edges" type="matrix"
+          values="
+            0 0 0 0 0.55
+            0 0 0 0 0.60
+            0 0 0 0 0.66
+            0 0 0 1 0"
+          result="tinted"/>
+
+        <feComponentTransfer in="tinted" result="alphaBoost">
+          <feFuncA type="gamma" amplitude="1" exponent="0.55" offset="0"/>
+        </feComponentTransfer>
+
+        <feMerge>
+          <feMergeNode in="alphaBoost"/>
+        </feMerge>
+      `;
+      defs.appendChild(fOutline);
+
+      /* Color wash-out (10% colored flags): slightly faded, but recognizable */
+      const fColor = document.createElementNS(NS,'filter');
+      fColor.setAttribute('id','colorWash');
+      fColor.innerHTML = `
         <feColorMatrix type="matrix"
           values="
-            0.25 0.25 0.25 0 0
-            0.25 0.25 0.25 0 0
-            0.25 0.25 0.25 0 0
+            0.92 0.00 0.00 0 0.03
+            0.00 0.92 0.00 0 0.03
+            0.00 0.00 0.92 0 0.03
             0    0    0    1 0"/>
-        <feComponentTransfer>
-          <feFuncR type="gamma" amplitude="1" exponent="0.85" offset="0.06"/>
-          <feFuncG type="gamma" amplitude="1" exponent="0.85" offset="0.06"/>
-          <feFuncB type="gamma" amplitude="1" exponent="0.85" offset="0.06"/>
-        </feComponentTransfer>
       `;
-      defs.appendChild(f);
+      defs.appendChild(fColor);
 
       svg.appendChild(defs);
     }
@@ -1341,10 +1359,10 @@
 
     const { all, coloredIdx, flagW, flagH } = bannerLayout;
 
-    // Helper to append one image flag
     function addFlag(svg, x, y, isColored, idx){
       const c = pool[idx % pool.length];
       const href = c.flags.svg || c.flags.png;
+
       const img = document.createElementNS(NS, 'image');
       img.setAttribute('href', href);
       img.setAttribute('x', x);
@@ -1354,16 +1372,15 @@
       img.setAttribute('preserveAspectRatio','xMidYMid meet');
 
       if (!isColored){
-        img.setAttribute('filter','url(#greyOutline)');
-        img.setAttribute('opacity','0.70');
+        img.setAttribute('filter','url(#flagOutline)');
+        img.setAttribute('opacity','0.72');
       } else {
-        // Slightly faded but recognizable
-        img.setAttribute('opacity','0.86');
+        img.setAttribute('filter','url(#colorWash)');
+        img.setAttribute('opacity','0.82');  // washed out a bit
       }
       svg.appendChild(img);
     }
 
-    // Deterministic order for “same flags top & bottom”
     const orderRand = seededRng(424242);
     const order = all.map((_, i) => i);
     for (let i = order.length - 1; i > 0; i--) {
@@ -1371,15 +1388,10 @@
       [order[i], order[j]] = [order[j], order[i]];
     }
 
-    // Footer: draw top->bottom for occlusion
     const footerItems = all.map((p, i) => ({
-      i,
-      x: p.x,
-      y: p.y,
-      colored: coloredIdx.has(i)
+      i, x: p.x, y: p.y, colored: coloredIdx.has(i)
     })).sort((a,b)=> a.y - b.y);
 
-    // Header: exact mirror vertically, identical proportions
     const headerItems = footerItems.map(it => ({
       i: it.i,
       x: it.x,
@@ -1387,7 +1399,6 @@
       colored: it.colored
     })).sort((a,b)=> a.y - b.y);
 
-    // Draw
     footerItems.forEach((it, k) => addFlag(footerSvg, it.x, it.y, it.colored, order[k]));
     headerItems.forEach((it, k) => addFlag(headerSvg, it.x, it.y, it.colored, order[k]));
   }
@@ -1459,9 +1470,7 @@
 
     rounds = buildRoundsSmart(countries);
 
-    // Build banners (adds detail + 10% true color)
     buildFlagBanners();
-
     restart();
   }
 
