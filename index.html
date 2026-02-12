@@ -5,30 +5,26 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Kibera's Flag Gauntlet</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <!-- Header script font -->
-  <link href="https://fonts.googleapis.com/css2?family=Calligraffitti&display=swap" rel="stylesheet">
-  <!-- Comic-y fallback if “Bazinga” isn't available locally -->
-  <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
-
   <style>
     :root{
-      --bg: #dfe8f4;
+      --bg: #E1E8F3;
       --ink: #253041;
       --card: rgba(11,16,32,0.92);
       --cardBorder: rgba(0,0,0,0.18);
 
       --pillBg: rgba(255,255,255,0.10);
 
+      /* Flag module */
       --flagStageH: 340px;
 
-      /* Messaging area: fixed layout so nothing jumps */
+      /* Messaging area */
       --msgH: 320px;
       --iconColW: 170px;
 
       --brandBlueGrey: rgba(80, 110, 140, 0.42);
+
+      /* Banner heights */
+      --bannerH: 190px;
     }
 
     html, body { height: 100%; }
@@ -43,29 +39,28 @@
       overflow-x: hidden;
     }
 
-    /* HEADER FLAGS */
     .flagHeader{
       position: fixed;
       left: 0;
       top: 0;
       width: 100vw;
-      height: 150px;
+      height: var(--bannerH);
       z-index: 0;
-      overflow: hidden;
       pointer-events: none;
-      background: none;
+      overflow: hidden;
     }
     .headerSvg{
       position:absolute;
-      left: 0;
-      top: 0;
+      inset: 0;
       width: 100%;
       height: 100%;
+      opacity: 1;
+      /* Solid at top, fades OUT to bg by the time it reaches the content */
       mask-image: linear-gradient(
-        to top,
-        rgba(0,0,0,0.85) 0%,
-        rgba(0,0,0,0.55) 45%,
-        rgba(0,0,0,0.15) 75%,
+        to bottom,
+        rgba(0,0,0,1.00) 0%,
+        rgba(0,0,0,1.00) 35%,
+        rgba(0,0,0,0.55) 62%,
         rgba(0,0,0,0.00) 100%
       );
     }
@@ -156,7 +151,6 @@
       color: #e9eefc;
       box-shadow: 0 18px 45px rgba(0,0,0,0.25);
       position: relative;
-      z-index: 3;
     }
 
     .questionTitle{
@@ -178,16 +172,18 @@
       padding: 6px 0 12px;
       box-sizing: border-box;
     }
+
+    /* Flag size per your spec */
     .flag{
-      width: 500px;     /* requested */
-      height: 300px;    /* requested */
-      max-width: 92%;
-      max-height: calc(var(--flagStageH) - 18px);
+      width: 500px;
+      height: 300px;
       object-fit: contain;
       border-radius: 14px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.35);
       border: 1px solid rgba(255,255,255,0.12);
       background: rgba(255,255,255,0.04);
+      max-width: min(520px, 92%);
+      max-height: calc(var(--flagStageH) - 18px);
     }
 
     .controls{
@@ -239,12 +235,12 @@
     button:hover{ background: rgba(90,140,255,0.33); }
     button:disabled{ opacity: 0.55; cursor: not-allowed; }
 
-    /* Hint CTA shown ONLY below input */
+    /* Only hint CTA below input (and +15% font) */
     .hintHotkeyLine{
       width: min(520px, 92%);
       text-align: left;
-      font-size: 15px; /* ~15% larger */
-      color: rgba(233,238,252,0.74);
+      font-size: 15px;
+      color: rgba(233,238,252,0.78);
       margin-top: -2px;
       font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
       font-weight: 300;
@@ -278,7 +274,6 @@
     .sgItem:hover, .sgItem.active{ background: rgba(90,140,255,0.22); }
     .sgMeta{ font-size: 12px; opacity: 0.70; white-space: nowrap; }
 
-    /* Messaging area: fixed layout so nothing jumps */
     .belowMsg{
       width: min(900px, 100%);
       height: var(--msgH);
@@ -287,7 +282,7 @@
       overflow: hidden;
       z-index: 2;
       position: relative;
-      margin-top: -40px; /* 40px less space */
+      margin-top: 0px;
     }
 
     .msgGrid{
@@ -304,128 +299,61 @@
       display:flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
+      gap: 8px;
       padding-top: 2px;
     }
 
-    /* Comic burst block */
     .iconSq{
       width: 150px;
       height: 150px;
-      position: relative;
-      border-radius: 18px;
-      background: rgba(255,255,255,0.0);
+      border-radius: 0;
+      border: none;
+      background: transparent;
+      overflow: visible;
       display: grid;
       place-items: center;
-      overflow: visible;
+      box-shadow: none;
     }
-
-    .iconBurst{
+    .iconSq svg{
       width: 150px;
       height: 150px;
-      position: relative;
-      display:grid;
-      place-items:center;
-      user-select: none;
-      pointer-events: none;
+      display:block;
+      overflow: visible;
+      background: transparent;
     }
 
-    /* Use the exact Freepik burst background (tinted per state) */
-    .iconBurst::before{
-      content: "";
-      position: absolute;
-      left: 6px;
-      top: 6px;
-      width: 138px;
-      height: 138px;
-
-      /* CHANGE 2/2: remove the white background by blending against page bg */
-      background-color: var(--bg);
-      background-image: url("https://img.freepik.com/free-vector/halftone-style-blank-speech-bubbles-retro-comic-background_1017-51981.jpg?semt=ais_user_personalization&w=740&q=80");
-      background-repeat: no-repeat;
-      background-size: contain;
-      background-position: center;
-      background-blend-mode: multiply;
-
-      filter:
-        hue-rotate(var(--burstHue, 0deg))
-        saturate(var(--burstSat, 1.25))
-        brightness(var(--burstBri, 1.02))
-        contrast(1.05);
-      opacity: 1;
-    }
-
-    .burstWord{
-      position: relative;
-      z-index: 2;
-      font-family: "Bazinga", "Bangers", "Impact", system-ui, sans-serif;
-      letter-spacing: 1px;
-      font-size: 44px;
-      line-height: 0.95;
-      transform: rotate(-6deg);
-      color: var(--word, #1a1a1a);
-      -webkit-text-stroke: 2px rgba(0,0,0,0.92); /* slightly thinner outline */
-      text-shadow:
-        0 2px 0 rgba(0,0,0,0.35),
-        0 0 0 rgba(0,0,0,0.0);
-    }
-
-    /* State colors (requested) */
-    .iconSq[data-kind="boom"]{
-      --word: #7fd0ff;     /* light blue text */
-      --burstHue: 14deg;   /* red/orange */
-      --burstSat: 1.55;
-      --burstBri: 1.00;
-    }
-    .iconSq[data-kind="fail"]{
-      --word: #ffd33f;     /* yellow text */
-      --burstHue: 14deg;   /* red/orange */
-      --burstSat: 1.55;
-      --burstBri: 1.00;
-    }
-    .iconSq[data-kind="go"]{
-      --word: #49dd7a;     /* green text */
-      --burstHue: 105deg;  /* green-ish burst */
-      --burstSat: 1.65;
-      --burstBri: 0.98;
-    }
-    .iconSq[data-kind="hint"]{
-      --word: #7fd0ff;     /* light blue text */
-      --burstHue: 230deg;  /* blue/purple burst */
-      --burstSat: 1.55;
-      --burstBri: 1.02;
-    }
-
-    /* Message typography: 10% smaller */
     .msgText{
       text-align: left;
       line-height: 1.25;
       align-self: start;
-      padding-top: 8px;
+      padding-top: 6px;
       font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
       font-weight: 300;
+      /* 10% smaller overall */
+      transform: scale(0.90);
+      transform-origin: left top;
     }
     .msgText .headline{
-      font-size: 26px;
-      margin: 0 0 9px;
-      min-height: 34px;
+      font-size: 29px;
+      margin: 0 0 10px;
+      min-height: 36px;
       color: rgba(37,48,65,0.92);
       font-weight: 320;
     }
     .msgText .sub{
-      font-size: 20px;
+      font-size: 22px;
       opacity: 0.92;
       margin: 0;
       min-height: 96px;
       color: rgba(37,48,65,0.86);
       font-weight: 300;
     }
-    /* Bold lighter weight */
-    .msgText b{ font-weight: 550; }
+    /* Bold lighter */
+    .msgText b{ font-weight: 520; }
     .msgText a{
       color: rgba(30,80,170,0.95);
       text-decoration: underline;
-      font-weight: 600;
+      font-weight: 520;
     }
 
     .bottomArea{
@@ -449,13 +377,13 @@
       font-weight: 300;
     }
 
-    /* FOOTER FLAGS */
     .flagFooter{
       position: fixed;
       left: 0;
-      right: 0;
+      width: 100vw;
       bottom: 0;
-      height: 230px;
+      top: auto;
+      height: 0px; /* JS sets */
       z-index: 0;
       overflow: hidden;
       pointer-events: none;
@@ -468,12 +396,14 @@
       width: 100%;
       height: 100%;
       opacity: 1;
+      /* bottom fade stays correct: transparent near top -> solid towards bottom */
       mask-image: linear-gradient(
         to bottom,
         rgba(0,0,0,0.00) 0%,
-        rgba(0,0,0,0.10) 22%,
-        rgba(0,0,0,0.45) 55%,
-        rgba(0,0,0,0.92) 100%
+        rgba(0,0,0,0.18) 18%,
+        rgba(0,0,0,0.55) 40%,
+        rgba(0,0,0,1.00) 75%,
+        rgba(0,0,0,1.00) 100%
       );
     }
 
@@ -485,7 +415,6 @@
       display: none;
     }
 
-    /* Round overlay now comic burst growth */
     .roundOverlay{
       position: fixed;
       inset: 0;
@@ -495,39 +424,22 @@
       place-items: center;
       text-align: center;
     }
-    .roundBurstWrap{
-      transform-origin: 50% 60%;
-      animation: none;
-    }
-    .roundOverlay.show .roundBurstWrap{
-      animation: burstGrow 0.75s ease-out forwards;
-    }
-    .roundOverlay.fade .roundBurstWrap{
-      animation: burstFade 0.35s ease-in forwards;
-    }
-    @keyframes burstGrow{
-      0% { transform: translateY(40px) scale(0.08); opacity: 0.0; }
-      20%{ opacity: 1.0; }
-      100%{ transform: translateY(0px) scale(1.08); opacity: 1.0; }
-    }
-    @keyframes burstFade{
-      0% { transform: scale(1.08); opacity: 1.0; }
-      100%{ transform: scale(1.14); opacity: 0.0; }
-    }
-    .roundBurstWord{
-      font-size: 74px;
-      transform: rotate(-6deg);
+    .roundOverlay .big{
+      font-family: "Impact", "Haettenschweiler", "Arial Black", sans-serif;
+      font-weight: 900;
+      font-size: min(140px, 16vw);
+      line-height: 0.95;
+      color: rgba(0,0,0,0.88);
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+      border: none;
     }
 
     @media (max-width: 900px){
       .brandAngle{ left: -122px; top: 130px; font-size: 40px; width: 230px; }
       .questionTitle{ font-size: 30px; }
       :root{ --iconColW: 170px; --msgH: 300px; }
-      .msgText .headline{ font-size: 24px; }
-      .msgText .sub{ font-size: 18px; }
-      .iconSq{ width: 140px; height: 140px; }
-      .iconBurst::before{ width: 128px; height: 128px; }
-      .burstWord{ font-size: 40px; }
     }
     @media (max-width: 760px){
       :root{ --iconColW: 160px; --msgH: 290px; }
@@ -535,16 +447,16 @@
       .pill b{ font-size: 18px; }
       .questionTitle{ font-size: 26px; }
       .brandAngle{ font-size: 34px; left: -110px; top: 140px; width: 210px; }
-      .burstWord{ font-size: 38px; }
-      .roundBurstWord{ font-size: 56px; }
+      .iconSq{ width: 140px; height: 140px; }
+      .iconSq svg{ width: 140px; height: 140px; }
     }
   </style>
 </head>
 
 <body>
-  <!-- Header flags (mirror of footer) -->
+  <!-- Header banner -->
   <div class="flagHeader" aria-hidden="true">
-    <svg id="headerSvg" class="headerSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+    <svg id="headerSvg" class="headerSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
   </div>
 
   <div class="confettiLayer" id="confettiLayer">
@@ -552,13 +464,7 @@
   </div>
 
   <div class="roundOverlay" id="roundOverlay">
-    <div class="roundBurstWrap">
-      <div class="iconSq" data-kind="boom">
-        <div class="iconBurst">
-          <div class="burstWord roundBurstWord" id="roundOverlayText">ROUND 2!</div>
-        </div>
-      </div>
-    </div>
+    <div class="big" id="roundOverlayText"></div>
   </div>
 
   <div class="main">
@@ -607,9 +513,8 @@
 
   <div class="bottomArea">
     <div class="copyright">© 2026 Kibera &amp; Co.</div>
-
     <div class="flagFooter" aria-hidden="true">
-      <svg id="footerSvg" class="footerSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+      <svg id="footerSvg" class="footerSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
     </div>
   </div>
 
@@ -643,7 +548,6 @@
 
   const confettiLayer = document.getElementById('confettiLayer');
   const confettiCanvas = document.getElementById('confettiCanvas');
-
   const roundOverlay = document.getElementById('roundOverlay');
   const roundOverlayText = document.getElementById('roundOverlayText');
 
@@ -662,8 +566,8 @@
 
   let cca3ToCountry = new Map();
 
-  // CHANGE 1/2: store prefetched flag PNG object URLs for the 10% colored tiles
-  let MOSAIC_FLAG_OBJECT_URLS = [];
+  // Banner cache (so header/footer are identical mirrors)
+  let bannerLayout = null;
 
   function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -711,21 +615,102 @@
     return r;
   }
 
+  // ------------------------------------------------------------------------------------
+  // COMIC BURST ICONS — transparent outside the burst (no background blocks)
+  // ------------------------------------------------------------------------------------
+  function burstIconSVG(kind, text){
+    // Important: no rect background; only burst + halftone + text.
+    const outline = "rgba(0,0,0,0.88)";
+    const textStrokeW = 5.0;  // slightly thinner than before per request
+    const burstStrokeW = 6.0;
+
+    // Shape closely matching the “ROLL!” style burst
+    const burstD = "M55 6 L64 20 L82 10 L79 30 L98 26 L86 42 L104 50 L86 56 L98 74 L79 70 L82 90 L64 80 L55 104 L46 80 L28 90 L31 70 L12 74 L24 56 L6 50 L24 42 L12 26 L31 30 L28 10 L46 20 Z";
+
+    // Color schemes
+    let outer = "#ff3b30";
+    let inner = "#ffd60a";
+    let wordFill = "#38d66b";
+
+    if (kind === "default") { // LET'S GO!
+      outer = "#0f7a2e";
+      inner = "#b8f06a";
+      wordFill = "#38d66b";
+    }
+    if (kind === "fail") { // OH NAWR!
+      outer = "#ff3b30";
+      inner = "#ffd60a";
+      wordFill = "#ffd60a";
+    }
+    if (kind === "success") { // BOOM!
+      outer = "#ff3b30";
+      inner = "#ffd60a";
+      wordFill = "#9ad0ff";
+    }
+    if (kind === "hint") { // PSSSST!
+      outer = "#2b6cff";
+      inner = "#a7c8ff";
+      wordFill = "#9ad0ff";
+    }
+
+    return `
+      <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <radialGradient id="g-${kind}" cx="48%" cy="45%" r="70%">
+            <stop offset="0%" stop-color="${inner}"/>
+            <stop offset="100%" stop-color="${outer}"/>
+          </radialGradient>
+          <pattern id="dots-${kind}" width="10" height="10" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1.6" fill="rgba(0,0,0,0.22)"/>
+          </pattern>
+          <filter id="soft-${kind}">
+            <feDropShadow dx="0" dy="2" stdDeviation="1.2" flood-color="rgba(0,0,0,0.22)"/>
+          </filter>
+        </defs>
+
+        <!-- burst -->
+        <path d="${burstD}" fill="url(#g-${kind})" stroke="${outline}" stroke-width="${burstStrokeW}" stroke-linejoin="round" filter="url(#soft-${kind})"/>
+        <!-- halftone on burst only -->
+        <path d="${burstD}" fill="url(#dots-${kind})" opacity="0.55"/>
+
+        <!-- action lines (no background) -->
+        <g stroke="${outline}" stroke-width="4" stroke-linecap="round" opacity="0.9">
+          <line x1="12" y1="18" x2="0" y2="6"/>
+          <line x1="20" y1="10" x2="14" y2="0"/>
+          <line x1="94" y1="18" x2="110" y2="6"/>
+          <line x1="90" y1="10" x2="96" y2="0"/>
+          <line x1="12" y1="86" x2="0" y2="104"/>
+          <line x1="94" y1="86" x2="110" y2="104"/>
+        </g>
+
+        <!-- text -->
+        <g transform="translate(55 62) rotate(-7)">
+          <text text-anchor="middle"
+                font-family="Impact, Haettenschweiler, 'Arial Black', sans-serif"
+                font-size="${text.length >= 7 ? 30 : 34}"
+                font-weight="900"
+                fill="${wordFill}"
+                stroke="${outline}"
+                stroke-width="${textStrokeW}"
+                paint-order="stroke fill">
+            ${text}
+          </text>
+        </g>
+      </svg>
+    `;
+  }
+
   function renderMsg(kind, headline, sub){
-    // kind: go | fail | boom | hint
-    const word = (kind === 'fail') ? 'OH NAWR!' :
-                 (kind === 'boom') ? 'BOOM!' :
-                 (kind === 'hint') ? 'PSSST!' :
-                 'LET’S GO!';
+    let label = "LET'S GO!";
+    let k = "default";
+    if (kind === "fail") { label = "OH NAWR!"; k = "fail"; }
+    if (kind === "success") { label = "BOOM!"; k = "success"; }
+    if (kind === "hint") { label = "PSSSST!"; k = "hint"; }
 
     belowMsg.innerHTML = `
       <div class="msgGrid">
         <div class="iconCol">
-          <div class="iconSq" data-kind="${kind}">
-            <div class="iconBurst">
-              <div class="burstWord">${word}</div>
-            </div>
-          </div>
+          <div class="iconSq">${burstIconSVG(k, label)}</div>
         </div>
         <div class="msgText">
           <div class="headline">${headline || ""}</div>
@@ -969,7 +954,7 @@
     guessInput.focus();
     updateHUD();
 
-    renderMsg('go','', `Type a country name — or hit <b>.</b> for a hint (hint uses a try).`);
+    renderMsg('default', '', `Type a country name.`);
   }
 
   function pointsForTry(tryNumberUsed) {
@@ -979,7 +964,7 @@
     return 0;
   }
 
-  // Confetti: 3s, more volume
+  // Confetti: more volume, 3s
   function confettiBurst(ms=3000){
     const dpr = window.devicePixelRatio || 1;
     const w = Math.floor(window.innerWidth * dpr);
@@ -992,12 +977,12 @@
     const pieces = [];
     const colors = ['#ff6b6b','#ffd93d','#6bcBef','#6bff95','#b36bff','#ff9f43'];
 
-    const count = 420;
+    const count = 520;
     for (let i=0;i<count;i++){
       pieces.push({
         x: Math.random()*w,
-        y: -40 - Math.random()*h*0.35,
-        vx: (Math.random()*2-1) * dpr * 1.6,
+        y: -60 - Math.random()*h*0.35,
+        vx: (Math.random()*2-1) * dpr * 2.0,
         vy: (Math.random()*1+1.2) * dpr * 2.2,
         r: (Math.random()*4+3) * dpr,
         rot: Math.random()*Math.PI,
@@ -1013,23 +998,25 @@
     function tick(t){
       const p = Math.min(1, (t-start)/ms);
       ctx.clearRect(0,0,w,h);
+
       const fade = Math.max(0, 1 - p);
 
       for (const s of pieces){
         s.x += s.vx;
         s.y += s.vy;
         s.rot += s.vr;
-        s.vy += 0.02 * dpr;
+        s.vy += 0.020 * dpr;
         s.vx *= 0.994;
-        s.vy *= 0.998;
+        s.vy *= 0.997;
 
         const alpha = Math.max(0, fade * s.life);
+
         ctx.save();
         ctx.translate(s.x, s.y);
         ctx.rotate(s.rot);
         ctx.globalAlpha = alpha;
         ctx.fillStyle = s.c;
-        ctx.fillRect(-s.r, -s.r, s.r*2.3, s.r*1.25);
+        ctx.fillRect(-s.r, -s.r, s.r*2.2, s.r*1.2);
         ctx.restore();
       }
 
@@ -1039,27 +1026,26 @@
     requestAnimationFrame(tick);
   }
 
+  // Round overlay: comic burst zoom from vanishing point
   function roundTransition(nextRoundNumber){
     roundOverlayText.textContent = `ROUND ${nextRoundNumber}!`;
-
-    // show grow
-    roundOverlay.classList.remove('fade');
-    roundOverlay.classList.add('show');
     roundOverlay.style.display = 'grid';
+
+    roundOverlayText.style.transform = 'scale(0.05)';
+    roundOverlayText.style.opacity = '0.0';
+    roundOverlayText.style.transition = 'transform 700ms cubic-bezier(.2,.9,.2,1), opacity 350ms ease';
+
+    requestAnimationFrame(() => {
+      roundOverlayText.style.opacity = '1.0';
+      roundOverlayText.style.transform = 'scale(1.0)';
+    });
 
     confettiBurst(3000);
 
     setTimeout(() => {
-      // fade out
-      roundOverlay.classList.remove('show');
-      roundOverlay.classList.add('fade');
-
-      setTimeout(() => {
-        roundOverlay.style.display = 'none';
-        roundOverlay.classList.remove('fade');
-        renderFlag();
-      }, 350);
-    }, 900);
+      roundOverlay.style.display = 'none';
+      renderFlag();
+    }, 2400);
   }
 
   function advanceFlag() {
@@ -1069,7 +1055,7 @@
       flagIdx = 0;
 
       if (roundIdx >= rounds.length) {
-        renderMsg('boom',`🏁 Game complete! Final score: <b>${score}</b> 🎉`, `Hit RESTART to play again.`);
+        renderMsg('success', `🏁 Game complete! Final score: <b>${score}</b> 🎉`, `Hit RESTART to play again.`);
         submitBtn.disabled = true;
         skipBtn.disabled = true;
         guessInput.disabled = true;
@@ -1131,7 +1117,7 @@
 
       const emoji = pick(["🎉","🥳","✨"]);
       renderMsg(
-        'boom',
+        'success',
         `Correct! That was <b>${c.name.common}</b>. ${emoji}`,
         `You earned <b>${pts}</b> point${pts === 1 ? '' : 's'}.<br/><br/>Next flag in <b>${Math.round(PAUSE_CORRECT_MS/1000)}s</b>…`
       );
@@ -1167,7 +1153,7 @@
     if (!c) return;
 
     renderMsg(
-      'go',
+      'default',
       `Skipped. Answer: <b>${c.name.common}</b>.`,
       `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
     );
@@ -1221,228 +1207,195 @@
     return out;
   }
 
-  // ------------------------------------------------------------------------------------------------
-  // FLAG MOSAIC (header/footer): most flags uncolored, 10% show actual flag colors (slightly faded)
-  // No rotation; scattered (not columns); header is mirrored footer.
-  //
-  // CHANGE 1/2: add "detail" back (subtle internal marks), and keep 10% actual flag color via prefetched PNGs.
-  // ------------------------------------------------------------------------------------------------
-  function buildFlagMosaic(svgEl, w, h, opts){
-    const NS = 'http://www.w3.org/2000/svg';
-    const seed = opts.seed || 1;
-    const flagW = opts.flagW || 45;
-    const flagH = opts.flagH || 26;
-    const colorFrac = Math.max(0, Math.min(1, opts.colorFrac || 0.10));
-    const mirrorY = !!opts.mirrorY;
-    const cropTopFrac = Math.max(0, Math.min(0.6, opts.cropTopFrac || 0));
+  // ------------------------------------------------------------------------------------
+  // HEADER/FOOTER FLAGS — add detail back using real country flag SVGs,
+  // and color only ~10% (rest are grey “outline-ish” via filter).
+  // Layout is mirrored: header is an inverted mirror of footer with identical proportions.
+  // ------------------------------------------------------------------------------------
+  function seededRng(seed){
+    let t = seed >>> 0;
+    return function(){
+      t += 0x6D2B79F5;
+      let x = Math.imul(t ^ (t >>> 15), 1 | t);
+      x ^= x + Math.imul(x ^ (x >>> 7), 61 | x);
+      return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+    };
+  }
 
-    // deterministic-ish RNG from seed
-    let s = seed + (mirrorY ? 97 : 13) + Math.floor(w*0.01) + Math.floor(h*0.01);
-    function rnd(){
-      s = (s * 1664525 + 1013904223) >>> 0;
-      return (s & 0xffffff) / 0x1000000;
+  function computeBannerLayout(w, h, seed){
+    const rand = seededRng(seed);
+
+    const padX = 16;
+    const padY = 12;
+
+    const flagW = 44;
+    const flagH = 26;
+
+    // Slightly larger row spacing + more jitter so it looks scattered, not columns
+    const cellW = flagW * 1.20;
+    const cellH = flagH * 1.34;
+
+    const cols = Math.max(10, Math.floor((w - padX*2) / cellW));
+    const rows = Math.max(5, Math.floor((h - padY*2) / cellH));
+
+    const pts = [];
+    for (let r = 0; r < rows; r++){
+      for (let c = 0; c < cols; c++){
+        const xBase = padX + c * cellW;
+        const yBase = padY + r * cellH;
+
+        const jx = (rand()*2 - 1) * (cellW * 0.60);
+        const jy = (rand()*2 - 1) * (cellH * 0.75);
+
+        pts.push({ x: xBase + jx, y: yBase + jy });
+      }
+    }
+    pts.sort((a,b)=> a.y - b.y);
+
+    // Keep a "mountain" bias: footer uses lower portion; header mirrors it.
+    const keepStart = Math.floor(pts.length * 0.20);
+    const keep = pts.slice(keepStart);
+
+    // Light extra density near bottom
+    const extra = [];
+    for (let i = Math.floor(keep.length*0.70); i < keep.length; i += 4){
+      const p = keep[i];
+      extra.push({ x: p.x + (rand()*8-4), y: p.y + (rand()*8-4) });
     }
 
-    svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
-    svgEl.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-    svgEl.innerHTML = '';
+    const all = keep.concat(extra);
 
-    const defs = document.createElementNS(NS,'defs');
-    svgEl.appendChild(defs);
-
-    const strokeOutline = 'rgba(37,48,65,0.28)';
-    const detailStroke  = 'rgba(37,48,65,0.18)';  // subtle inner detail
-    const detailStroke2 = 'rgba(37,48,65,0.12)';  // even lighter detail
-    const paper = 'rgba(255,255,255,0.92)';
-
-    // Build a set of indices to color
-    const cols = Math.max(10, Math.floor(w / (flagW * 0.92)));
-    const rows = Math.max(5, Math.floor(h / (flagH * 0.92)));
-    const total = cols * rows;
-
-    const coloredCount = Math.max(1, Math.floor(total * colorFrac));
+    // Select 10% to be colored
+    const coloredCount = Math.max(1, Math.floor(all.length * 0.10));
     const coloredIdx = new Set();
-    while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(rnd() * total));
+    while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(rand() * all.length));
 
-    // Use prefetched object URLs so SVG <image> works reliably.
-    function pickMosaicFlagUrl(){
-      if (!MOSAIC_FLAG_OBJECT_URLS || !MOSAIC_FLAG_OBJECT_URLS.length) return '';
-      return MOSAIC_FLAG_OBJECT_URLS[Math.floor(rnd() * MOSAIC_FLAG_OBJECT_URLS.length)];
-    }
-
-    const patterns = new Map(); // url -> patternId
-    function ensurePatternForFlag(url){
-      if (!url) return null;
-      if (patterns.has(url)) return patterns.get(url);
-
-      const pid = `pat_${opts.id}_${patterns.size}_${Math.floor(rnd()*1e9)}`;
-      const pat = document.createElementNS(NS,'pattern');
-      pat.setAttribute('id', pid);
-      pat.setAttribute('patternUnits','objectBoundingBox');
-      pat.setAttribute('width','1');
-      pat.setAttribute('height','1');
-
-      const img = document.createElementNS(NS,'image');
-      img.setAttribute('href', url);
-      img.setAttribute('x','0');
-      img.setAttribute('y','0');
-      img.setAttribute('width','1');
-      img.setAttribute('height','1');
-      img.setAttribute('preserveAspectRatio','none');
-      img.setAttribute('opacity','0.88'); // slightly faded but recognizable
-
-      pat.appendChild(img);
-      defs.appendChild(pat);
-      patterns.set(url, pid);
-      return pid;
-    }
-
-    // Scatter grid with strong jitter so it doesn't look columnar
-    const padX = 8;
-    const padY = 6;
-    const cellW = (w - padX*2) / cols;
-    const cellH = (h - padY*2) / rows;
-
-    const points = [];
-    for (let r=0;r<rows;r++){
-      for (let c=0;c<cols;c++){
-        const i = r*cols + c;
-
-        let x = padX + c*cellW + cellW*0.5;
-        let y = padY + r*cellH + cellH*0.5;
-
-        // jitter: bigger offset between rows so they don't line up
-        x += (rnd()*2 - 1) * (cellW * 0.48);
-        y += (rnd()*2 - 1) * (cellH * 0.42);
-
-        // crop top portion so it "starts higher"
-        y += h * cropTopFrac;
-
-        // clamp
-        x = Math.max(0, Math.min(w, x));
-        y = Math.max(0, Math.min(h, y));
-
-        points.push({ i, x, y });
-      }
-    }
-
-    // Draw top-to-bottom for occlusion
-    points.sort((a,b)=> a.y - b.y);
-
-    // Mirror Y for header (inverted footer)
-    const mirror = (yy) => mirrorY ? (h - yy) : yy;
-
-    for (const p of points){
-      const g = document.createElementNS(NS,'g');
-      const x = p.x - flagW/2;
-      const y = mirror(p.y) - flagH/2;
-
-      g.setAttribute('transform', `translate(${x.toFixed(2)},${y.toFixed(2)})`);
-
-      // base paper
-      const base = document.createElementNS(NS,'rect');
-      base.setAttribute('x','0');
-      base.setAttribute('y','0');
-      base.setAttribute('width', String(flagW));
-      base.setAttribute('height', String(flagH));
-      base.setAttribute('rx','0');
-      base.setAttribute('ry','0');
-      base.setAttribute('fill', paper);
-      base.setAttribute('stroke','rgba(0,0,0,0)');
-      base.setAttribute('stroke-width','0');
-      g.appendChild(base);
-
-      // colored flag (10%) uses actual PNG pattern (prefetched object URL)
-      if (coloredIdx.has(p.i)) {
-        const url = pickMosaicFlagUrl();
-        const pid = ensurePatternForFlag(url);
-        if (pid) {
-          const fill = document.createElementNS(NS,'rect');
-          fill.setAttribute('x','0');
-          fill.setAttribute('y','0');
-          fill.setAttribute('width', String(flagW));
-          fill.setAttribute('height', String(flagH));
-          fill.setAttribute('fill', `url(#${pid})`);
-          fill.setAttribute('stroke','rgba(0,0,0,0)');
-          fill.setAttribute('stroke-width','0');
-          g.appendChild(fill);
-        }
-      }
-
-      // subtle inner "detail" marks (gives depth without changing size/position)
-      // a couple of faint lines + a tiny emblem mark
-      const d1 = document.createElementNS(NS,'path');
-      const y1 = (flagH * (0.32 + rnd()*0.25)).toFixed(2);
-      d1.setAttribute('d', `M ${(flagW*0.10).toFixed(2)} ${y1} L ${(flagW*0.90).toFixed(2)} ${y1}`);
-      d1.setAttribute('stroke', detailStroke);
-      d1.setAttribute('stroke-width', '1');
-      d1.setAttribute('fill', 'none');
-      g.appendChild(d1);
-
-      const d2 = document.createElementNS(NS,'path');
-      const x2 = (flagW * (0.25 + rnd()*0.5)).toFixed(2);
-      d2.setAttribute('d', `M ${x2} ${(flagH*0.15).toFixed(2)} L ${x2} ${(flagH*0.85).toFixed(2)}`);
-      d2.setAttribute('stroke', detailStroke2);
-      d2.setAttribute('stroke-width', '1');
-      d2.setAttribute('fill', 'none');
-      g.appendChild(d2);
-
-      const emblem = document.createElementNS(NS,'circle');
-      emblem.setAttribute('cx', (flagW * (0.55 + (rnd()*0.22 - 0.11))).toFixed(2));
-      emblem.setAttribute('cy', (flagH * (0.52 + (rnd()*0.18 - 0.09))).toFixed(2));
-      emblem.setAttribute('r', (Math.max(1.2, Math.min(2.0, 1.4 + rnd()*0.8))).toFixed(2));
-      emblem.setAttribute('fill', 'rgba(37,48,65,0.10)');
-      emblem.setAttribute('stroke', 'rgba(37,48,65,0.16)');
-      emblem.setAttribute('stroke-width', '1');
-      g.appendChild(emblem);
-
-      // outline always
-      const outline = document.createElementNS(NS,'rect');
-      outline.setAttribute('x','0');
-      outline.setAttribute('y','0');
-      outline.setAttribute('width', String(flagW));
-      outline.setAttribute('height', String(flagH));
-      outline.setAttribute('fill','rgba(255,255,255,0)');
-      outline.setAttribute('stroke', strokeOutline);
-      outline.setAttribute('stroke-width','1');
-      g.appendChild(outline);
-
-      svgEl.appendChild(g);
-    }
+    return { all, coloredIdx, flagW, flagH };
   }
 
-  function buildFooter(){
-    const w = Math.max(1, Math.round(window.innerWidth));
-    const h = 230;
-    buildFlagMosaic(footerSvg, w, h, {
-      id: 'footer',
-      seed: 424242,
-      flagW: 45,
-      flagH: 26,
-      cropTopFrac: 0.22,
-      colorFrac: 0.10,
-      mirrorY: false
-    });
-  }
+  function buildFlagBanners(){
+    const footerEl = document.querySelector('.flagFooter');
+    const msgRect = belowMsg.getBoundingClientRect();
+    const pad = 10;
 
-  function buildHeader(){
-    const w = Math.max(1, Math.round(window.innerWidth));
-    const h = 150;
-    buildFlagMosaic(headerSvg, w, h, {
-      id: 'header',
-      seed: 424242,
-      flagW: 45,
-      flagH: 26,
-      cropTopFrac: 0.00,
-      colorFrac: 0.10,
-      mirrorY: true
-    });
+    // footer starts after message box
+    const topPx = Math.min(
+      Math.max(msgRect.bottom + pad, window.innerHeight * 0.64),
+      window.innerHeight - 120
+    );
+
+    footerEl.style.top = `${Math.round(topPx)}px`;
+    footerEl.style.height = `${Math.max(0, Math.round(window.innerHeight - topPx))}px`;
+
+    // banner SVG sizing
+    const w = Math.max(1400, window.innerWidth);
+
+    const headerH = Math.round(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bannerH')) || 190);
+    const footerH = Math.max(220, Math.round(window.innerHeight - topPx));
+
+    headerSvg.setAttribute('viewBox', `0 0 ${w} ${headerH}`);
+    footerSvg.setAttribute('viewBox', `0 0 ${w} ${footerH}`);
+
+    headerSvg.innerHTML = '';
+    footerSvg.innerHTML = '';
+
+    // choose a pool of flags (use real flag SVGs for detail)
+    const pool = countries.filter(c => c.flags && (c.flags.svg || c.flags.png));
+    if (!pool.length) return;
+
+    // layout cached so header/footer are identical mirrors
+    if (!bannerLayout || bannerLayout.w !== w || bannerLayout.headerH !== headerH || bannerLayout.footerH !== footerH) {
+      // One layout computed off the footer height, then mirrored to header
+      const base = computeBannerLayout(w, footerH, 1337);
+      bannerLayout = { w, headerH, footerH, ...base };
+    }
+
+    const NS = 'http://www.w3.org/2000/svg';
+
+    function defsFor(svg){
+      const defs = document.createElementNS(NS,'defs');
+
+      // Grey “outline-ish” filter: desaturate + lift whites + soften color
+      const f = document.createElementNS(NS,'filter');
+      f.setAttribute('id','greyOutline');
+      f.innerHTML = `
+        <feColorMatrix type="matrix"
+          values="
+            0.25 0.25 0.25 0 0
+            0.25 0.25 0.25 0 0
+            0.25 0.25 0.25 0 0
+            0    0    0    1 0"/>
+        <feComponentTransfer>
+          <feFuncR type="gamma" amplitude="1" exponent="0.85" offset="0.06"/>
+          <feFuncG type="gamma" amplitude="1" exponent="0.85" offset="0.06"/>
+          <feFuncB type="gamma" amplitude="1" exponent="0.85" offset="0.06"/>
+        </feComponentTransfer>
+      `;
+      defs.appendChild(f);
+
+      svg.appendChild(defs);
+    }
+
+    defsFor(headerSvg);
+    defsFor(footerSvg);
+
+    const { all, coloredIdx, flagW, flagH } = bannerLayout;
+
+    // Helper to append one image flag
+    function addFlag(svg, x, y, isColored, idx){
+      const c = pool[idx % pool.length];
+      const href = c.flags.svg || c.flags.png;
+      const img = document.createElementNS(NS, 'image');
+      img.setAttribute('href', href);
+      img.setAttribute('x', x);
+      img.setAttribute('y', y);
+      img.setAttribute('width', flagW);
+      img.setAttribute('height', flagH);
+      img.setAttribute('preserveAspectRatio','xMidYMid meet');
+
+      if (!isColored){
+        img.setAttribute('filter','url(#greyOutline)');
+        img.setAttribute('opacity','0.70');
+      } else {
+        // Slightly faded but recognizable
+        img.setAttribute('opacity','0.86');
+      }
+      svg.appendChild(img);
+    }
+
+    // Deterministic order for “same flags top & bottom”
+    const orderRand = seededRng(424242);
+    const order = all.map((_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(orderRand() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+
+    // Footer: draw top->bottom for occlusion
+    const footerItems = all.map((p, i) => ({
+      i,
+      x: p.x,
+      y: p.y,
+      colored: coloredIdx.has(i)
+    })).sort((a,b)=> a.y - b.y);
+
+    // Header: exact mirror vertically, identical proportions
+    const headerItems = footerItems.map(it => ({
+      i: it.i,
+      x: it.x,
+      y: Math.max(0, bannerLayout.headerH - it.y - flagH),
+      colored: it.colored
+    })).sort((a,b)=> a.y - b.y);
+
+    // Draw
+    footerItems.forEach((it, k) => addFlag(footerSvg, it.x, it.y, it.colored, order[k]));
+    headerItems.forEach((it, k) => addFlag(headerSvg, it.x, it.y, it.colored, order[k]));
   }
 
   // Events
   submitBtn.addEventListener('click', submitGuess);
   skipBtn.addEventListener('click', skipFlag);
-  restartBtnTop.addEventListener('click', () => { restart(); buildHeader(); buildFooter(); });
+  restartBtnTop.addEventListener('click', () => { restart(); buildFlagBanners(); });
 
   guessInput.addEventListener('input', (e) => renderSuggestions(e.target.value));
   guessInput.addEventListener('focus', () => { if (guessInput.value) renderSuggestions(guessInput.value); });
@@ -1477,32 +1430,6 @@
     guessInput.focus();
   });
 
-  // CHANGE 1/2 helper: prefetch some flag PNGs as same-origin object URLs for SVG <image> patterns
-  async function prefetchMosaicFlags(count = 80) {
-    const urls = countries
-      .map(c => c?.flags?.png)
-      .filter(Boolean);
-
-    // deterministic-ish shuffle
-    const copy = urls.slice();
-    shuffle(copy);
-
-    const picked = copy.slice(0, Math.min(count, copy.length));
-    const out = [];
-
-    for (const u of picked) {
-      try {
-        const r = await fetch(u, { mode: 'cors' });
-        if (!r.ok) continue;
-        const blob = await r.blob();
-        const objUrl = URL.createObjectURL(blob);
-        out.push(objUrl);
-      } catch (_) {}
-    }
-
-    MOSAIC_FLAG_OBJECT_URLS = out;
-  }
-
   // Boot
   async function loadCountries() {
     const res = await fetch(
@@ -1532,20 +1459,18 @@
 
     rounds = buildRoundsSmart(countries);
 
-    // Prefetch before building mosaics so 10% tiles can show true flag colors
-    await prefetchMosaicFlags(90);
+    // Build banners (adds detail + 10% true color)
+    buildFlagBanners();
 
-    buildHeader();
-    buildFooter();
     restart();
   }
 
   loadCountries().catch(err => {
     console.error(err);
-    renderMsg('fail',`Couldn’t load country data.`, `${String(err.message || err)}`);
+    renderMsg('fail', `Couldn’t load country data.`, `${String(err.message || err)}`);
   });
 
-  window.addEventListener('resize', () => { buildHeader(); buildFooter(); });
+  window.addEventListener('resize', () => buildFlagBanners());
 })();
 </script>
 </body>
