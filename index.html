@@ -9,6 +9,27 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Calligraffitti&display=swap" rel="stylesheet">
 
+  <!--
+    ============================================================================================
+    SECTION: FONTS (Comic burst)
+    ============================================================================================
+    - Uses "Bazinga" if you host it next to index.html as Bazinga.woff2 / Bazinga.woff / Bazinga.ttf
+    - Falls back to Google "Bangers" and system fonts if Bazinga isn’t present.
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+  <style>
+    @font-face{
+      font-family: "Bazinga";
+      src:
+        url("Bazinga.woff2") format("woff2"),
+        url("Bazinga.woff") format("woff"),
+        url("Bazinga.ttf") format("truetype");
+      font-display: swap;
+    }
+  </style>
+
   <style>
     :root{
       --bg: #dfe8f4;
@@ -26,11 +47,10 @@
 
       --brandBlueGrey: rgba(80, 110, 140, 0.42);
 
-      /* --- Comic burst + fonts --- */
-      --burstOutline: rgba(0,0,0,0.88);
-      --burstShadow: rgba(0,0,0,0.30);
-      --burstDot: rgba(0,0,0,0.26);
-      --burstTextShadow: rgba(0,0,0,0.18);
+      /* =========================================================================================
+         SECTION: TOP/BOTTOM FLAG BANDS (mirror targets)
+         ========================================================================================= */
+      --bandH: 210px; /* fixed band height to avoid vertical squish */
     }
 
     html, body { height: 100%; }
@@ -43,18 +63,6 @@
       display:flex;
       flex-direction: column;
       overflow-x: hidden;
-    }
-
-    /* =============================================================================================
-       SECTION: FONT LOADING (BAZINGA)
-       - NOTE: Place a Bazinga webfont at /fonts/Bazinga.woff2 (or adjust URL below).
-       ============================================================================================= */
-    @font-face{
-      font-family: "Bazinga";
-      src: url("./fonts/Bazinga.woff2") format("woff2");
-      font-weight: 400;
-      font-style: normal;
-      font-display: swap;
     }
 
     .main{
@@ -75,6 +83,9 @@
       position: relative;
     }
 
+    /* =========================================================================================
+       SECTION: BRAND TITLE (MUST STAY Calligraffitti)
+       ========================================================================================= */
     .brandAngle{
       position: absolute;
       left: -132px;
@@ -162,9 +173,12 @@
       padding: 6px 0 12px;
       box-sizing: border-box;
     }
+    /* =========================================================================================
+       SECTION: FLAG IMAGE SIZE (keep as requested: 500x300 box)
+       ========================================================================================= */
     .flag{
-      width: min(520px, 92%);
-      max-height: calc(var(--flagStageH) - 18px);
+      width: 500px;
+      height: 300px;
       object-fit: contain;
       border-radius: 14px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.35);
@@ -221,12 +235,12 @@
     button:hover{ background: rgba(90,140,255,0.33); }
     button:disabled{ opacity: 0.55; cursor: not-allowed; }
 
-    /* Hint CTA: shown ONLY here (kept); requested copy */
+    /* Hint CTA: only below inputs; +15% font */
     .hintHotkeyLine{
       width: min(520px, 92%);
       text-align: left;
-      font-size: 15px; /* ~15% larger than 13px */
-      color: rgba(233,238,252,0.76);
+      font-size: 15px; /* 13px * 1.15 */
+      color: rgba(233,238,252,0.70);
       margin-top: -2px;
       font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
       font-weight: 300;
@@ -289,6 +303,7 @@
       padding-top: 2px;
     }
 
+    /* Icon area stays same size; content is SVG burst with TRANSPARENT background */
     .iconSq{
       width: 132px;
       height: 132px;
@@ -300,13 +315,11 @@
       place-items: center;
       box-shadow: none;
     }
-    .iconSq svg{
-      width: 132px;
-      height: 132px;
-      display:block;
-    }
+    .iconSq svg{ width: 100%; height: 100%; display:block; }
 
-    /* Messaging typography */
+    .iconLabel{ display:none; } /* remove prior all-caps titles entirely */
+
+    /* Messaging typography: slightly smaller (10%) */
     .msgText{
       text-align: left;
       line-height: 1.25;
@@ -316,21 +329,21 @@
       font-weight: 300;
     }
     .msgText .headline{
-      font-size: 29px;
+      font-size: 26px;   /* ~29 * 0.9 */
       margin: 0 0 10px;
       min-height: 36px;
       color: rgba(37,48,65,0.92);
       font-weight: 320;
     }
     .msgText .sub{
-      font-size: 22px;
+      font-size: 20px;   /* ~22 * 0.9 */
       opacity: 0.92;
       margin: 0;
       min-height: 96px;
       color: rgba(37,48,65,0.86);
       font-weight: 300;
     }
-    /* Requested: bold lighter weight (Continent, Food etc.) */
+    /* Bold inside messages: lighten weight */
     .msgText b{ font-weight: 520; }
     .msgText a{
       color: rgba(30,80,170,0.95);
@@ -359,18 +372,18 @@
       font-weight: 300;
     }
 
-    /* =============================================================================================
-       SECTION: HEADER + FOOTER FLAG BANDS (SVG)
-       - Footer: fades IN as you move down.
-       - Header: solid at top, fades OUT as you move down into the page.
-       ============================================================================================= */
+    /* =========================================================================================
+       SECTION: FLAG BANDS (header + footer) — mirrored from ONE generated band
+       - Header: solid at top, fades OUT as it approaches content (downward)
+       - Footer: fades IN as it goes downward (same as before)
+       ========================================================================================= */
 
-    .flagHeader{
+    .flagBandHeader{
       position: fixed;
       left: 0;
       top: 0;
       width: 100vw;
-      height: 210px;
+      height: var(--bandH);
       z-index: 0;
       overflow: hidden;
       pointer-events: none;
@@ -382,26 +395,24 @@
       width: 100%;
       height: 100%;
       opacity: 1;
-
-      /* solid at top -> transparent toward bottom (fade OUT into bg) */
+      /* Solid at top -> fade to transparent at bottom (toward content) */
       mask-image: linear-gradient(
         to bottom,
         rgba(0,0,0,1.00) 0%,
-        rgba(0,0,0,1.00) 40%,
-        rgba(0,0,0,0.65) 62%,
-        rgba(0,0,0,0.25) 80%,
+        rgba(0,0,0,1.00) 55%,
+        rgba(0,0,0,0.35) 78%,
         rgba(0,0,0,0.00) 100%
       );
     }
 
-    /* Footer begins AFTER message box (JS sets top/height). Fades in from that point. */
+    /* Footer container begins after message; SVG itself is fixed-height and pinned to bottom to avoid squish */
     .flagFooter{
       position: fixed;
       left: 0;
       width: 100vw;
       bottom: 0;
-      top: auto;           /* JS will set top */
-      height: 0px;         /* JS will set height */
+      top: auto;           /* JS sets top */
+      height: 0px;         /* JS sets height */
       z-index: 0;
       overflow: hidden;
       pointer-events: none;
@@ -410,18 +421,17 @@
     .footerSvg{
       position:absolute;
       left: 0;
-      top: 0;
+      bottom: 0;           /* pin to bottom */
       width: 100%;
-      height: 100%;
+      height: var(--bandH);/* fixed height == header band */
       opacity: 1;
-
-      /* fade-in AFTER the message box: top is transparent -> visible below */
+      /* Fade-in as you move DOWN */
       mask-image: linear-gradient(
         to bottom,
         rgba(0,0,0,0.00) 0%,
-        rgba(0,0,0,0.00) 12%,
-        rgba(0,0,0,0.35) 28%,
-        rgba(0,0,0,1.00) 55%,
+        rgba(0,0,0,0.20) 18%,
+        rgba(0,0,0,0.70) 52%,
+        rgba(0,0,0,1.00) 78%,
         rgba(0,0,0,1.00) 100%
       );
     }
@@ -444,34 +454,34 @@
       text-align: center;
     }
     .roundOverlay .big{
-      font-family: "Bazinga", "Bangers", "Impact", system-ui, sans-serif;
+      font-family: "Bazinga","Bangers","Impact","Arial Black",system-ui,sans-serif;
       font-weight: 400;
-      font-size: min(170px, 18vw);
+      font-size: min(160px, 18vw);
       line-height: 0.95;
-      color: rgba(0,0,0,0.0);
+      color: rgba(11,16,32,0.92);
       padding: 0;
       border-radius: 0;
-      background: transparent;
+      background: none;
       border: none;
-      text-shadow: none;
+      text-shadow: 0 12px 30px rgba(0,0,0,0.25);
+      transform-origin: 50% 75%;
     }
 
     @media (max-width: 900px){
       .brandAngle{ left: -122px; top: 130px; font-size: 40px; width: 230px; }
       .questionTitle{ font-size: 30px; }
       .iconSq{ width: 120px; height: 120px; }
-      :root{ --iconColW: 140px; --msgH: 300px; }
-      .msgText .headline{ font-size: 26px; }
-      .msgText .sub{ font-size: 20px; }
-      .flagHeader{ height: 190px; }
+      :root{ --iconColW: 140px; --msgH: 300px; --bandH: 190px; }
+      .msgText .headline{ font-size: 24px; }
+      .msgText .sub{ font-size: 19px; }
+      .flag{ width: min(500px, 92%); height: auto; max-height: 300px; }
     }
     @media (max-width: 760px){
-      :root{ --iconColW: 132px; --msgH: 290px; }
+      :root{ --iconColW: 132px; --msgH: 290px; --bandH: 180px; }
       .pill{ font-size: 16px; }
       .pill b{ font-size: 18px; }
       .questionTitle{ font-size: 26px; }
       .brandAngle{ font-size: 34px; left: -110px; top: 140px; width: 210px; }
-      .flagHeader{ height: 175px; }
     }
   </style>
 </head>
@@ -482,11 +492,11 @@
   </div>
 
   <div class="roundOverlay" id="roundOverlay">
-    <div class="big" id="roundOverlayText"></div>
+    <div class="big" id="roundOverlayText">ROUND 2!</div>
   </div>
 
-  <!-- Header flags (mirror/invert of footer logic; same drawing code, different mask) -->
-  <div class="flagHeader" aria-hidden="true">
+  <!-- Header band -->
+  <div class="flagBandHeader" aria-hidden="true">
     <svg id="headerSvg" class="headerSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
   </div>
 
@@ -536,7 +546,9 @@
 
   <div class="bottomArea">
     <div class="copyright">© 2026 Kibera &amp; Co.</div>
-    <div class="flagFooter" aria-hidden="true">
+
+    <!-- Footer band (mirrors header; positioned by JS after message module) -->
+    <div class="flagFooter" id="flagFooter" aria-hidden="true">
       <svg id="footerSvg" class="footerSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
     </div>
   </div>
@@ -566,8 +578,9 @@
   const suggestBox = document.getElementById('suggestBox');
   const belowMsg = document.getElementById('belowMsg');
 
-  const footerSvg = document.getElementById('footerSvg');
   const headerSvg = document.getElementById('headerSvg');
+  const footerSvg = document.getElementById('footerSvg');
+  const footerEl  = document.getElementById('flagFooter');
 
   const confettiLayer = document.getElementById('confettiLayer');
   const confettiCanvas = document.getElementById('confettiCanvas');
@@ -636,103 +649,126 @@
   }
 
   /* =============================================================================================
-     SECTION: ICONS / COMIC BURSTS (TRANSPARENT BACKGROUND)
-     - Uses Bazinga font (via @font-face).
-     - Transparent background (no fill behind burst).
-     - Burst closer to referenced halftone comic bubble feel.
+     SECTION: COMIC BURST ICON (Transparent background; 45° text; thinner outline)
+     - Attempts to mimic the referenced halftone speech-bubble comic background style.
+     - No added bgcolor; SVG background remains transparent.
      ============================================================================================= */
+  function burstSVG(kind, text){
+    // palettes per request
+    const palettes = {
+      // default: BAM style (light blue text, red/orange burst)
+      neutral: { textFill:'#6EC6FF', textShadow:'#000000', burstA:'#FF3B30', burstB:'#FFB000', dots:'#000000' },
+      // fail: yellow text, red/orange burst
+      fail:    { textFill:'#FFD400', textShadow:'#000000', burstA:'#FF3B30', burstB:'#FFB000', dots:'#000000' },
+      // success: green text, darker green burst with light green/yellow accents
+      success: { textFill:'#26E07A', textShadow:'#000000', burstA:'#0E8B45', burstB:'#B7FF4A', dots:'#000000' },
+      // hint: light blue text, darker blue / lighter blue/purple burst
+      hint:    { textFill:'#7FD4FF', textShadow:'#000000', burstA:'#3A63FF', burstB:'#B08CFF', dots:'#000000' },
+    };
+    const p = palettes[kind] || palettes.neutral;
 
-  function burstSVG(kind, word) {
-    // Color presets requested:
-    // default ("Let's Go!") -> green text, burst darker green + light green/yellow
-    // fail ("Oh Nawr!") -> yellow text, burst red/orange
-    // success ("Boom!") -> light blue text, burst red/orange
-    // hint ("Pssst!") -> light blue text, burst blue/purple
+    // thinner outline (50% reduction vs prior)
+    const outlineW = 3;
 
-    let textFill = "#38d27b";
-    let burstA = "#1b7a40";
-    let burstB = "#b7f27b";
-    let burstC = "#ffd65a";
-
-    if (kind === 'fail') {
-      textFill = "#ffe45b";
-      burstA = "#ff3a2e";
-      burstB = "#ff9b3d";
-      burstC = "#ffd65a";
-    } else if (kind === 'success') {
-      textFill = "#8dd7ff";
-      burstA = "#ff3a2e";
-      burstB = "#ff9b3d";
-      burstC = "#ffd65a";
-    } else if (kind === 'hint') {
-      textFill = "#8dd7ff";
-      burstA = "#5b44ff";
-      burstB = "#8a6bff";
-      burstC = "#ff6ad6";
-    } else if (kind === 'neutral') {
-      // Default message bubble: keep "Let's Go!" look (green)
-      textFill = "#38d27b";
-      burstA = "#1b7a40";
-      burstB = "#b7f27b";
-      burstC = "#ffd65a";
-    }
-
-    // Thinner outline (requested: reduce outline weight by 50% vs prior)
-    const outline = "rgba(0,0,0,0.88)";
-    const outlineW = 2.2;
-
-    // A more "real" jagged burst (hand-tuned)
-    const burstPathOuter =
-      "M66 8 L78 20 L94 14 L90 32 L108 38 L92 50 L110 62 L90 68 L96 86 L78 78 L66 96 L58 80 L40 96 L42 78 L20 86 L26 68 L6 62 L24 50 L8 38 L26 32 L22 14 L40 20 L50 8 L58 24 Z";
-    const burstPathInner =
-      "M66 18 L74 26 L86 22 L84 34 L98 38 L86 46 L98 56 L84 58 L88 72 L74 66 L66 78 L60 66 L48 78 L50 66 L36 72 L40 58 L26 56 L38 46 L26 38 L40 34 L38 22 L48 26 L56 18 L60 30 Z";
-
-    // Halftone dots clipped to outer burst-ish region (no background fill)
+    // “speech bubble / burst” + halftone field behind (transparent background)
     return `
-      <svg viewBox="0 0 116 104" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <defs>
-          <pattern id="dotPat" width="8" height="8" patternUnits="userSpaceOnUse">
-            <circle cx="2" cy="2" r="1.4" fill="rgba(0,0,0,0.22)"></circle>
-          </pattern>
-          <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="2" stdDeviation="1.2" flood-color="rgba(0,0,0,0.22)"/>
-          </filter>
-        </defs>
+    <svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <radialGradient id="gBurst" cx="45%" cy="45%" r="70%">
+          <stop offset="0%" stop-color="${p.burstB}" stop-opacity="0.95"/>
+          <stop offset="100%" stop-color="${p.burstA}" stop-opacity="0.95"/>
+        </radialGradient>
 
-        <g filter="url(#softShadow)">
-          <path d="${burstPathOuter}" fill="${burstA}" stroke="${outline}" stroke-width="${outlineW}" stroke-linejoin="round"/>
-          <path d="${burstPathInner}" fill="${burstB}" stroke="${outline}" stroke-width="${outlineW * 0.85}" stroke-linejoin="round" opacity="0.95"/>
-          <path d="${burstPathInner}" fill="url(#dotPat)" opacity="0.55"/>
-          <path d="${burstPathInner}" fill="${burstC}" opacity="0.20"/>
+        <!-- halftone dot field -->
+        <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
+          <circle cx="2.0" cy="2.0" r="1.2" fill="${p.dots}" opacity="0.22"/>
+        </pattern>
 
-          <text x="58" y="58"
-            text-anchor="middle"
-            dominant-baseline="middle"
-            font-family="Bazinga, Bangers, Impact, system-ui, sans-serif"
-            font-size="30"
-            fill="${textFill}"
-            stroke="${outline}"
-            stroke-width="2.6"
-            paint-order="stroke"
-            style="letter-spacing: 1px;"
-          >${String(word || '').toUpperCase()}</text>
-        </g>
-      </svg>
-    `;
+        <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="rgba(0,0,0,0.25)"/>
+        </filter>
+      </defs>
+
+      <!-- halftone behind burst (still transparent overall) -->
+      <g opacity="1">
+        <circle cx="92" cy="72" r="44" fill="url(#dots)" opacity="0.55"/>
+      </g>
+
+      <!-- burst shape (more realistic jagged) -->
+      <path filter="url(#soft)"
+        d="M70 12
+           L83 30 L103 20 L98 42
+           L126 44 L108 60
+           L132 78 L104 78
+           L112 106 L92 92
+           L82 128 L70 108
+           L56 132 L52 106
+           L36 96 L32 120
+           L22 92 L8 104
+           L12 82 L0 74
+           L16 62 L4 44
+           L28 44 L24 22
+           L44 30 L56 12
+           Z"
+        fill="url(#gBurst)"
+        stroke="rgba(0,0,0,0.92)"
+        stroke-width="${outlineW}"
+        stroke-linejoin="round"/>
+
+      <!-- inner highlight edge -->
+      <path
+        d="M70 22
+           L80 36 L98 28 L94 44
+           L116 46 L100 58
+           L120 74 L98 74
+           L104 96 L88 86
+           L80 114 L70 98
+           L60 114 L56 96
+           L42 88 L38 104
+           L30 86 L18 96
+           L22 78 L12 72
+           L26 62 L16 46
+           L36 46 L34 28
+           L52 36 L60 22
+           Z"
+        fill="none"
+        stroke="rgba(255,255,255,0.35)"
+        stroke-width="2"
+        stroke-linejoin="round"
+        opacity="0.55"/>
+
+      <!-- angled text @ 45° -->
+      <g transform="translate(70 72) rotate(-45)">
+        <text x="0" y="10"
+          text-anchor="middle"
+          font-family="Bazinga, Bangers, Impact, Arial Black, system-ui"
+          font-size="${text.length > 7 ? 34 : 40}"
+          letter-spacing="1"
+          fill="${p.textFill}"
+          stroke="${p.textShadow}"
+          stroke-width="6"
+          paint-order="stroke"
+          opacity="1">${text}</text>
+      </g>
+    </svg>`;
   }
 
+  /* =============================================================================================
+     SECTION: MESSAGE RENDERER (no icon labels; icon is the burst SVG)
+     ============================================================================================= */
   function renderMsg(kind, headline, sub){
-    // No extra all-caps labels; just burst + text.
-    let burstWord = "LET'S GO!";
-    if (kind === 'fail') burstWord = "OH NAWR!";
-    if (kind === 'success') burstWord = "BOOM!";
-    if (kind === 'hint') burstWord = "PSSSST!";
-    if (kind === 'neutral') burstWord = "LET'S GO!";
+    const iconTextByKind = {
+      neutral: "LET'S GO!",
+      fail: "OH NAWR!",
+      success: "BOOM!",
+      hint: "PSSSST!"
+    };
+    const iconText = iconTextByKind[kind] || "LET'S GO!";
 
     belowMsg.innerHTML = `
       <div class="msgGrid">
         <div class="iconCol">
-          <div class="iconSq" aria-hidden="true">${burstSVG(kind, burstWord)}</div>
+          <div class="iconSq" aria-hidden="true">${burstSVG(kind, iconText)}</div>
         </div>
         <div class="msgText">
           <div class="headline">${headline || ""}</div>
@@ -741,10 +777,6 @@
       </div>
     `;
   }
-
-  /* =============================================================================================
-     SECTION: SUGGESTIONS (UNCHANGED)
-     ============================================================================================= */
 
   function closeSuggest() {
     suggestBox.style.display = 'none';
@@ -909,8 +941,8 @@
     const one = SYMBOLISM_ONE_LINER[name];
     const url = rjSlugForCountry(name);
     return one
-      ? `<b>Flag meaning</b>: ${one}`
-      : `ℹ️ <a href="${url}" target="_blank" rel="noopener">Learn more about this flag</a>`;
+      ? `ℹ️ <b>Flag meaning</b>: ${one}`
+      : `ℹ️ <a href="${url}" target="_blank" rel="noopener"><b>Learn more about this flag</b></a>`;
   }
 
   function hint1Food(c){
@@ -980,7 +1012,6 @@
     guessInput.focus();
     updateHUD();
 
-    // IMPORTANT: only hint CTA is under input; keep this neutral text simple (no hint CTA repeat)
     renderMsg('neutral','', `Type a country name.`);
   }
 
@@ -992,12 +1023,9 @@
   }
 
   /* =============================================================================================
-     SECTION: CONFETTI + ROUND OVERLAY
-     - Confetti: more volume, 3s fall.
-     - Round overlay: comic burst growth from vanishing point.
+     SECTION: CONFETTI (more volume; slower; longer when round ends)
      ============================================================================================= */
-
-  function confettiBurst(ms=3000){
+  function confettiBurst(ms=3000, count=520, slow=true){
     const dpr = window.devicePixelRatio || 1;
     const w = Math.floor(window.innerWidth * dpr);
     const h = Math.floor(window.innerHeight * dpr);
@@ -1009,18 +1037,18 @@
     const pieces = [];
     const colors = ['#ff6b6b','#ffd93d','#6bcBef','#6bff95','#b36bff','#ff9f43'];
 
-    const count = 520; // more volume
     for (let i=0;i<count;i++){
+      const baseVy = slow ? (Math.random()*0.9+0.65) : (Math.random()*1.2+1.1);
       pieces.push({
         x: Math.random()*w,
-        y: -60 - Math.random()*h*0.35,
-        vx: (Math.random()*2-1) * dpr * 2.0,
-        vy: (Math.random()*1+1.2) * dpr * 2.6,
+        y: -40 - Math.random()*h*0.35,
+        vx: (Math.random()*2-1) * dpr * 1.2,
+        vy: baseVy * dpr * 1.45,
         r: (Math.random()*4+3) * dpr,
         rot: Math.random()*Math.PI,
-        vr: (Math.random()*0.18-0.09),
+        vr: (Math.random()*0.16-0.08),
         c: colors[Math.floor(Math.random()*colors.length)],
-        life: Math.random()*0.7 + 0.3
+        life: Math.random()*0.6 + 0.4
       });
     }
 
@@ -1037,9 +1065,9 @@
         s.x += s.vx;
         s.y += s.vy;
         s.rot += s.vr;
-        s.vy += 0.028 * dpr;
-        s.vx *= 0.992;
-        s.vy *= 0.996;
+        s.vy += 0.012 * dpr; // slower gravity
+        s.vx *= 0.996;
+        s.vy *= 0.999;
 
         const alpha = Math.max(0, fade * s.life);
 
@@ -1048,7 +1076,7 @@
         ctx.rotate(s.rot);
         ctx.globalAlpha = alpha;
         ctx.fillStyle = s.c;
-        ctx.fillRect(-s.r, -s.r, s.r*2.4, s.r*1.3);
+        ctx.fillRect(-s.r, -s.r, s.r*2.2, s.r*1.2);
         ctx.restore();
       }
 
@@ -1058,70 +1086,37 @@
     requestAnimationFrame(tick);
   }
 
-  function roundBurstSVG(text){
-    // Big center burst (transparent background)
-    return `
-      <svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <pattern id="dotBig" width="16" height="16" patternUnits="userSpaceOnUse">
-            <circle cx="4" cy="4" r="2.5" fill="rgba(0,0,0,0.24)"></circle>
-          </pattern>
-          <filter id="drop" x="-30%" y="-30%" width="160%" height="160%">
-            <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="rgba(0,0,0,0.25)"/>
-          </filter>
-        </defs>
-
-        <g filter="url(#drop)" transform="translate(600 350)">
-          <path d="M0 -280 L80 -200 L220 -240 L180 -120 L310 -80 L190 0 L320 90 L180 120 L220 250 L80 200 L0 280 L-70 200 L-220 250 L-180 120 L-310 90 L-190 0 L-310 -80 L-180 -120 L-220 -240 L-70 -200 Z"
-                fill="#ff3a2e" stroke="rgba(0,0,0,0.9)" stroke-width="10" stroke-linejoin="round"/>
-          <path d="M0 -220 L70 -160 L170 -185 L145 -95 L235 -65 L150 0 L240 75 L145 95 L170 190 L70 160 L0 220 L-60 160 L-170 190 L-145 95 L-235 75 L-150 0 L-235 -65 L-145 -95 L-170 -185 L-60 -160 Z"
-                fill="#ffd65a" stroke="rgba(0,0,0,0.9)" stroke-width="10" stroke-linejoin="round"/>
-          <path d="M0 -210 L70 -150 L170 -175 L145 -95 L230 -65 L150 0 L235 75 L145 95 L170 185 L70 155 L0 215 L-60 155 L-170 185 L-145 95 L-235 75 L-150 0 L-235 -65 L-145 -95 L-170 -175 L-60 -150 Z"
-                fill="url(#dotBig)" opacity="0.65"/>
-          <text x="0" y="18" text-anchor="middle" dominant-baseline="middle"
-                font-family="Bazinga, Bangers, Impact, system-ui, sans-serif"
-                font-size="140"
-                fill="#ffffff"
-                stroke="rgba(0,0,0,0.92)"
-                stroke-width="18"
-                paint-order="stroke"
-                style="letter-spacing: 3px;"
-          >${String(text||'').toUpperCase()}</text>
-        </g>
-      </svg>
-    `;
-  }
-
+  /* =============================================================================================
+     SECTION: ROUND TRANSITION (re-add dramatic “zoom from horizon” overlay + confetti)
+     ============================================================================================= */
   function roundTransition(nextRoundNumber){
-    roundOverlayText.innerHTML = roundBurstSVG(`ROUND ${nextRoundNumber}!`);
-    roundOverlay.style.display = 'grid';
+    roundOverlayText.textContent = `ROUND ${nextRoundNumber}!`;
 
-    // grow from vanishing point
-    roundOverlayText.style.transformOrigin = '50% 50%';
-    roundOverlayText.style.transform = 'scale(0.05)';
-    roundOverlayText.style.opacity = '0.0';
+    // start from "vanishing point" (lower) tiny -> huge -> fade
+    roundOverlay.style.display = 'grid';
+    roundOverlayText.style.opacity = '0';
+    roundOverlayText.style.transform = 'translateY(140px) scale(0.02)';
+    roundOverlayText.style.filter = 'blur(0.8px)';
+
+    // big confetti rain for ~3s
+    confettiBurst(3000, 760, true);
 
     requestAnimationFrame(() => {
-      roundOverlayText.style.transition = 'transform 520ms cubic-bezier(.2,.9,.2,1), opacity 240ms ease';
-      roundOverlayText.style.transform = 'scale(1.0)';
-      roundOverlayText.style.opacity = '1.0';
-    });
+      roundOverlayText.style.transition = 'transform 850ms cubic-bezier(.12,.75,.18,1), opacity 260ms ease, filter 850ms ease';
+      roundOverlayText.style.opacity = '1';
+      roundOverlayText.style.transform = 'translateY(0px) scale(1.06)';
+      roundOverlayText.style.filter = 'blur(0px)';
 
-    confettiBurst(3000);
-
-    setTimeout(() => {
-      roundOverlayText.style.transition = 'opacity 220ms ease';
-      roundOverlayText.style.opacity = '0';
       setTimeout(() => {
-        roundOverlay.style.display = 'none';
-        renderFlag();
-      }, 220);
-    }, 1900);
+        roundOverlayText.style.transition = 'opacity 320ms ease';
+        roundOverlayText.style.opacity = '0';
+        setTimeout(() => {
+          roundOverlay.style.display = 'none';
+          renderFlag();
+        }, 340);
+      }, 980);
+    });
   }
-
-  /* =============================================================================================
-     SECTION: GAME FLOW (UNCHANGED LOGIC; messages updated only via renderMsg)
-     ============================================================================================= */
 
   function advanceFlag() {
     flagIdx++;
@@ -1130,7 +1125,7 @@
       flagIdx = 0;
 
       if (roundIdx >= rounds.length) {
-        renderMsg('success', `🏁 Game complete! Final score: <b>${score}</b> 🎉`, `Hit RESTART to play again.`);
+        renderMsg('success',`🏁 Game complete! Final score: <b>${score}</b> 🎉`, `Hit RESTART to play again.`);
         submitBtn.disabled = true;
         skipBtn.disabled = true;
         guessInput.disabled = true;
@@ -1139,6 +1134,8 @@
       }
 
       updateHUD();
+
+      // More confetti + round overlay after each round (10 flags)
       roundTransition(roundIdx + 1);
       return;
     }
@@ -1216,7 +1213,7 @@
     renderMsg(
       'fail',
       `Not quite.`,
-      `Try again. You have <b>${triesLeft}</b> tries left.`
+      `Try again. You have <b>${triesLeft}</b> tries left. (Hit <b>.</b> for a hint — it costs a try.)`
     );
 
     guessInput.select();
@@ -1283,226 +1280,229 @@
   }
 
   /* =============================================================================================
-     SECTION: FLAG BANDS (HEADER + FOOTER)
-     - 10% colored, washed out 50% (opacity 0.5).
-     - Remaining 90%: grey outline “line-art” derived from actual flag image via SVG filters.
-     - Top-to-bottom draw order ensures correct occlusion.
-     - Footer positioning logic unchanged; header is fixed height.
+     SECTION: TOP+BOTTOM FLAG BANDS (ONE band, mirrored)
+     - 10% flags are colored but washed out 50% (i.e. 0.5 opacity wash)
+     - Non-colored flags are GREY OUTLINES with recognizable detail (edge-based line-art)
+     - Occlusion: later items draw on top
+     - Footer is a vertical mirror of header (NO independent generation)
      ============================================================================================= */
 
-  function _ensureFlagFilters(svgEl){
-    const NS = 'http://www.w3.org/2000/svg';
-    svgEl.innerHTML = '';
+  let bandCache = null;
 
-    const defs = document.createElementNS(NS,'defs');
-
-    // Outline / line-art filter from the real flag image:
-    // - grayscale -> edge detection -> threshold-ish -> tint to grey.
-    const f = document.createElementNS(NS,'filter');
-    f.setAttribute('id','flagOutline');
-    f.setAttribute('x','-20%'); f.setAttribute('y','-20%');
-    f.setAttribute('width','140%'); f.setAttribute('height','140%');
-
-    const cm = document.createElementNS(NS,'feColorMatrix');
-    cm.setAttribute('type','matrix');
-    cm.setAttribute('values', `
-      0.333 0.333 0.333 0 0
-      0.333 0.333 0.333 0 0
-      0.333 0.333 0.333 0 0
-      0     0     0     1 0
-    `.trim().replace(/\s+/g,' '));
-    cm.setAttribute('result','gray');
-    f.appendChild(cm);
-
-    const conv = document.createElementNS(NS,'feConvolveMatrix');
-    conv.setAttribute('in','gray');
-    conv.setAttribute('order','3');
-    conv.setAttribute('kernelMatrix','-1 -1 -1 -1 8 -1 -1 -1 -1');
-    conv.setAttribute('result','edge');
-    f.appendChild(conv);
-
-    const comp = document.createElementNS(NS,'feComponentTransfer');
-    comp.setAttribute('in','edge');
-    const fnR = document.createElementNS(NS,'feFuncR'); fnR.setAttribute('type','gamma'); fnR.setAttribute('amplitude','1'); fnR.setAttribute('exponent','0.85'); fnR.setAttribute('offset','0');
-    const fnG = document.createElementNS(NS,'feFuncG'); fnG.setAttribute('type','gamma'); fnG.setAttribute('amplitude','1'); fnG.setAttribute('exponent','0.85'); fnG.setAttribute('offset','0');
-    const fnB = document.createElementNS(NS,'feFuncB'); fnB.setAttribute('type','gamma'); fnB.setAttribute('amplitude','1'); fnB.setAttribute('exponent','0.85'); fnB.setAttribute('offset','0');
-    comp.appendChild(fnR); comp.appendChild(fnG); comp.appendChild(fnB);
-    f.appendChild(comp);
-
-    const tint = document.createElementNS(NS,'feColorMatrix');
-    tint.setAttribute('type','matrix');
-    tint.setAttribute('values', `
-      0 0 0 0 0.20
-      0 0 0 0 0.24
-      0 0 0 0 0.30
-      0 0 0 1 0
-    `.trim().replace(/\s+/g,' '));
-    tint.setAttribute('result','tint');
-    f.appendChild(tint);
-
-    defs.appendChild(f);
-
-    // subtle shadow so overlaps read as “stacked”
-    const sh = document.createElementNS(NS,'filter');
-    sh.setAttribute('id','flagShadow');
-    sh.setAttribute('x','-20%'); sh.setAttribute('y','-20%');
-    sh.setAttribute('width','140%'); sh.setAttribute('height','140%');
-    const ds = document.createElementNS(NS,'feDropShadow');
-    ds.setAttribute('dx','0'); ds.setAttribute('dy','2'); ds.setAttribute('stdDeviation','1.4');
-    ds.setAttribute('flood-color','rgba(0,0,0,0.22)');
-    sh.appendChild(ds);
-    defs.appendChild(sh);
-
-    svgEl.appendChild(defs);
+  function seededRand(seed){
+    // xorshift32
+    let x = seed >>> 0;
+    return () => {
+      x ^= x << 13; x >>>= 0;
+      x ^= x >> 17; x >>>= 0;
+      x ^= x << 5;  x >>>= 0;
+      return (x >>> 0) / 4294967296;
+    };
   }
 
-  function _drawFlagBand(svgEl, bandH, mode){
-    // mode: 'header' or 'footer' (affects “keepStart” / distribution; shapes identical)
-    const NS = 'http://www.w3.org/2000/svg';
-    _ensureFlagFilters(svgEl);
-
+  function buildBandCache(){
+    const bandH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bandH'), 10) || 210;
     const w = Math.max(1400, window.innerWidth);
-    const h = Math.max(220, Math.round(bandH));
+    const h = Math.max(180, bandH);
 
-    svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    // deterministic per (w,h) so header/footer match exactly per resize
+    const rand = seededRand((w * 73856093) ^ (h * 19349663));
 
-    // Choose a pool of countries to sample flags from (more variety).
-    const pool = countries.filter(c => c?.flags?.png).slice();
-    shuffle(pool);
+    const flagW = 54;
+    const flagH = 34;
 
-    // Placement tuned to preserve current “look” (do not change size/spacing elsewhere):
-    const flagW = 64;
-    const flagH = 36;
-
-    const padX = 14;
-    const padY = 10;
-
-    const cellW = flagW * 1.20;
-    const cellH = flagH * 1.18;
+    // spacing: scattered (avoid columns)
+    const padX = 18;
+    const padY = 12;
+    const cellW = flagW * 0.92;
+    const cellH = flagH * 0.95;
 
     const cols = Math.max(10, Math.floor((w - padX*2) / cellW));
     const rows = Math.max(4, Math.floor((h - padY*2) / cellH));
 
-    const points = [];
-    for (let r = 0; r < rows; r++){
-      for (let c = 0; c < cols; c++){
+    const pts = [];
+    for (let r=0;r<rows;r++){
+      for (let c=0;c<cols;c++){
         const xBase = padX + c * cellW;
         const yBase = padY + r * cellH;
 
-        // Stronger scatter (avoid columns)
-        const jx = (Math.random()*1.0 - 0.5) * (cellW * 0.85);
-        const jy = (Math.random()*1.0 - 0.5) * (cellH * 0.75);
+        // larger jitter to break vertical alignment
+        const jx = (rand()*2-1) * (cellW * 0.75);
+        const jy = (rand()*2-1) * (cellH * 0.55);
 
-        points.push({ x: xBase + jx, y: yBase + jy });
+        pts.push({ x: xBase + jx, y: yBase + jy });
       }
     }
 
-    // Keep all points; order by y for occlusion
-    points.sort((a,b)=> a.y - b.y);
+    // keep all points (this is a band, not a mountain)
+    pts.sort((a,b)=> a.y - b.y);
 
-    // For header: keep more near top; for footer: keep more near bottom.
-    let keepStart = 0;
-    if (mode === 'footer') keepStart = Math.floor(points.length * 0.18);
-    if (mode === 'header') keepStart = Math.floor(points.length * 0.02);
-    const keep = points.slice(keepStart);
-
-    // 10% colored
-    const coloredCount = Math.max(1, Math.floor(keep.length * 0.10));
+    const coloredCount = Math.max(1, Math.floor(pts.length * 0.10));
     const coloredIdx = new Set();
-    while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(Math.random() * keep.length));
+    while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(rand() * pts.length));
 
-    // Draw top-to-bottom for occlusion (later = on top)
-    const items = keep.map((p, i) => {
-      const c = pool[i % pool.length];
-      const rot = (Math.random() * 8 - 4);
-      // IMPORTANT: rectangles only (no italics / skew); keep scale ~1
-      const scale = 1.0;
-      const isColored = coloredIdx.has(i);
-      return { i, c, isColored, x: p.x, y: p.y, rot, scale };
+    // choose a country for each tile (random, deterministic)
+    const items = pts.map((p, i) => {
+      const cc = countries.length ? countries[Math.floor(rand()*countries.length)] : null;
+      const url = cc?.flags?.png || cc?.flags?.svg || '';
+      const rot = (rand()*10 - 5);
+      const scale = 1.0 * (0.92 + rand() * 0.22);
+      return { i, x:p.x, y:p.y, rot, scale, colored: coloredIdx.has(i), url };
     });
 
+    // draw order by y for occlusion
     items.sort((a,b)=> a.y - b.y);
 
+    bandCache = { w, h, flagW, flagH, items };
+  }
+
+  function renderBand(svgEl, invertY){
+    if (!bandCache) buildBandCache();
+
+    const { w, h, flagW, flagH, items } = bandCache;
+
+    svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svgEl.innerHTML = '';
+
+    const NS = 'http://www.w3.org/2000/svg';
+
+    const defs = document.createElementNS(NS,'defs');
+
+    // outline filter: edge detect -> grey; preserve detail
+    const f = document.createElementNS(NS,'filter');
+    f.setAttribute('id','lineArt');
+    f.setAttribute('x','-20%'); f.setAttribute('y','-20%');
+    f.setAttribute('width','140%'); f.setAttribute('height','140%');
+
+    const f1 = document.createElementNS(NS,'feColorMatrix');
+    f1.setAttribute('type','matrix');
+    // grayscale
+    f1.setAttribute('values', `
+      0.2126 0.7152 0.0722 0 0
+      0.2126 0.7152 0.0722 0 0
+      0.2126 0.7152 0.0722 0 0
+      0      0      0      1 0
+    `);
+    f1.setAttribute('result','g');
+
+    const f2 = document.createElementNS(NS,'feConvolveMatrix');
+    f2.setAttribute('in','g');
+    f2.setAttribute('order','3');
+    f2.setAttribute('kernelMatrix', `
+      -1 -1 -1
+      -1  8 -1
+      -1 -1 -1
+    `);
+    f2.setAttribute('result','edge');
+
+    const f3 = document.createElementNS(NS,'feComponentTransfer');
+    f3.setAttribute('in','edge');
+    f3.setAttribute('result','edge2');
+
+    const fnR = document.createElementNS(NS,'feFuncR');
+    const fnG = document.createElementNS(NS,'feFuncG');
+    const fnB = document.createElementNS(NS,'feFuncB');
+    // boost visibility: clamp to darker greys
+    fnR.setAttribute('type','gamma'); fnR.setAttribute('amplitude','1'); fnR.setAttribute('exponent','0.75'); fnR.setAttribute('offset','0');
+    fnG.setAttribute('type','gamma'); fnG.setAttribute('amplitude','1'); fnG.setAttribute('exponent','0.75'); fnG.setAttribute('offset','0');
+    fnB.setAttribute('type','gamma'); fnB.setAttribute('amplitude','1'); fnB.setAttribute('exponent','0.75'); fnB.setAttribute('offset','0');
+    f3.appendChild(fnR); f3.appendChild(fnG); f3.appendChild(fnB);
+
+    const f4 = document.createElementNS(NS,'feColorMatrix');
+    f4.setAttribute('in','edge2');
+    f4.setAttribute('type','matrix');
+    // tint edges to grey and slightly fade
+    f4.setAttribute('values', `
+      0 0 0 0 0.32
+      0 0 0 0 0.36
+      0 0 0 0 0.44
+      0 0 0 0.85 0
+    `);
+    f4.setAttribute('result','tinted');
+
+    const f5 = document.createElementNS(NS,'feMerge');
+    const m1 = document.createElementNS(NS,'feMergeNode'); m1.setAttribute('in','tinted');
+    f5.appendChild(m1);
+
+    f.appendChild(f1);
+    f.appendChild(f2);
+    f.appendChild(f3);
+    f.appendChild(f4);
+    f.appendChild(f5);
+
+    defs.appendChild(f);
+    svgEl.appendChild(defs);
+
+    // group for optional inversion (mirror)
+    const gRoot = document.createElementNS(NS,'g');
+    if (invertY) {
+      gRoot.setAttribute('transform', `translate(0 ${h}) scale(1 -1)`);
+    }
+
+    // draw items top-to-bottom so later overlap occludes earlier
     for (const it of items) {
       const g = document.createElementNS(NS,'g');
       g.setAttribute('transform', `translate(${it.x},${it.y}) rotate(${it.rot}) scale(${it.scale})`);
-      g.setAttribute('filter', 'url(#flagShadow)');
 
-      // clip to rounded-ish rect? keep square corners as requested
-      const clipId = `clip_${mode}_${it.i}`;
-      const defs = svgEl.querySelector('defs');
-      const clip = document.createElementNS(NS,'clipPath');
-      clip.setAttribute('id', clipId);
-      const cr = document.createElementNS(NS,'rect');
-      cr.setAttribute('x','0'); cr.setAttribute('y','0');
-      cr.setAttribute('width', String(flagW));
-      cr.setAttribute('height', String(flagH));
-      cr.setAttribute('rx','0'); cr.setAttribute('ry','0');
-      clip.appendChild(cr);
-      defs.appendChild(clip);
+      // base rectangle (paper card, subtle)
+      const base = document.createElementNS(NS,'rect');
+      base.setAttribute('x','0'); base.setAttribute('y','0');
+      base.setAttribute('width', String(flagW));
+      base.setAttribute('height', String(flagH));
+      base.setAttribute('rx','0'); base.setAttribute('ry','0');
+      base.setAttribute('fill','rgba(255,255,255,0.78)');
+      base.setAttribute('stroke','rgba(37,48,65,0.22)');
+      base.setAttribute('stroke-width','1.0');
+      g.appendChild(base);
 
-      // base border (very light)
-      const border = document.createElementNS(NS,'rect');
-      border.setAttribute('x','0'); border.setAttribute('y','0');
-      border.setAttribute('width', String(flagW));
-      border.setAttribute('height', String(flagH));
-      border.setAttribute('fill','rgba(255,255,255,0.85)');
-      border.setAttribute('stroke','rgba(37,48,65,0.22)');
-      border.setAttribute('stroke-width','1.0');
-      g.appendChild(border);
+      if (it.url) {
+        const img = document.createElementNS(NS,'image');
+        img.setAttribute('href', it.url);
+        img.setAttribute('x','0'); img.setAttribute('y','0');
+        img.setAttribute('width', String(flagW));
+        img.setAttribute('height', String(flagH));
+        img.setAttribute('preserveAspectRatio','none'); // keep rectangle, no italics
 
-      const img = document.createElementNS(NS,'image');
-      img.setAttribute('href', it.c.flags.png);
-      img.setAttribute('x','0');
-      img.setAttribute('y','0');
-      img.setAttribute('width', String(flagW));
-      img.setAttribute('height', String(flagH));
-      img.setAttribute('preserveAspectRatio','none');
-      img.setAttribute('clip-path', `url(#${clipId})`);
-
-      if (it.isColored) {
-        // Colored flags: wash out 50%
-        img.setAttribute('opacity','0.50');
-      } else {
-        // Line-art outline flags: derived from actual flag image with detail
-        img.setAttribute('filter','url(#flagOutline)');
-        img.setAttribute('opacity','0.38'); // slight fade but recognizable
+        if (it.colored) {
+          // colored but washed out 50%
+          img.setAttribute('opacity','0.50');
+        } else {
+          // line-art outline (recognizable details) + slight fade
+          img.setAttribute('filter','url(#lineArt)');
+          img.setAttribute('opacity','0.92');
+        }
+        g.appendChild(img);
       }
 
-      g.appendChild(img);
-      svgEl.appendChild(g);
+      gRoot.appendChild(g);
     }
+
+    svgEl.appendChild(gRoot);
   }
 
-  function buildFooter() {
-    const footerEl = document.querySelector('.flagFooter');
+  function buildBands(){
+    bandCache = null;
+    buildBandCache();
+    renderBand(headerSvg, false);
+    renderBand(footerSvg, true);
+  }
+
+  // Footer positioning: starts after message module; svg itself is fixed-height and pinned bottom.
+  function positionFooter(){
     const msgRect = belowMsg.getBoundingClientRect();
     const pad = 10;
-
     const topPx = Math.min(
-      Math.max(msgRect.bottom + pad, window.innerHeight * 0.64),
-      window.innerHeight - 120
+      Math.max(msgRect.bottom + pad, window.innerHeight * 0.60),
+      window.innerHeight - 140
     );
-
     footerEl.style.top = `${Math.round(topPx)}px`;
     footerEl.style.height = `${Math.max(0, Math.round(window.innerHeight - topPx))}px`;
-
-    const bandH = Math.max(220, Math.round(window.innerHeight - topPx));
-    _drawFlagBand(footerSvg, bandH, 'footer');
   }
 
-  function buildHeader() {
-    const bandH = Math.max(175, Math.round(document.querySelector('.flagHeader').getBoundingClientRect().height));
-    _drawFlagBand(headerSvg, bandH, 'header');
-  }
-
-  /* =============================================================================================
-     SECTION: EVENTS (UNCHANGED)
-     ============================================================================================= */
-
+  // Events
   submitBtn.addEventListener('click', submitGuess);
   skipBtn.addEventListener('click', skipFlag);
-  restartBtnTop.addEventListener('click', () => { restart(); buildFooter(); buildHeader(); });
+  restartBtnTop.addEventListener('click', () => { restart(); buildBands(); positionFooter(); });
 
   guessInput.addEventListener('input', (e) => renderSuggestions(e.target.value));
   guessInput.addEventListener('focus', () => { if (guessInput.value) renderSuggestions(guessInput.value); });
@@ -1537,10 +1537,7 @@
     guessInput.focus();
   });
 
-  /* =============================================================================================
-     SECTION: BOOT / DATA LOAD (UNCHANGED)
-     ============================================================================================= */
-
+  // Boot
   async function loadCountries() {
     const res = await fetch(
       'https://restcountries.com/v3.1/all?fields=name,flags,altSpellings,population,region,subregion,cca3,borders'
@@ -1568,17 +1565,18 @@
     }
 
     rounds = buildRoundsSmart(countries);
-    buildHeader();
-    buildFooter();
+
+    buildBands();
+    positionFooter();
     restart();
   }
 
   loadCountries().catch(err => {
     console.error(err);
-    renderMsg('fail', `Couldn’t load country data.`, `${String(err.message || err)}`);
+    renderMsg('fail',`Couldn’t load country data.`, `${String(err.message || err)}`);
   });
 
-  window.addEventListener('resize', () => { buildHeader(); buildFooter(); });
+  window.addEventListener('resize', () => { buildBands(); positionFooter(); });
 })();
 </script>
 </body>
