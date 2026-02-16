@@ -1242,9 +1242,10 @@
   }
 
   /* =============================================================================================
-     SECTION 9: HEADER/FOOTER FLAGS (tune grey-outline: 1px light grey, no rectangle border)
-     - Colored flags unchanged (perfect).
-     - Grey flags: thinner, lighter, and NO surrounding rectangle.
+     SECTION 9: HEADER/FOOTER FLAGS (BUGFIX ONLY: remove outline rectangle + thin stroke)
+     - Outline flags: mask out the outer 2px so the "flag border rectangle" disappears.
+     - Outline stroke: lighter and thinner (closer to 1px light grey).
+     - Colored flags remain unchanged.
   ============================================================================================= */
   let FLAGFIELD_ITEMS = null;
 
@@ -1273,15 +1274,17 @@
         const url = (c.flags && (c.flags.svg || c.flags.png)) || '';
         if (!url) continue;
 
-        const x = Math.random() * (w - 60);
-        const y = Math.random() * (h - 40);
+        const x = Math.random() * (w - 220);
+        const y = Math.random() * (h - 70);
 
         const rot = (Math.random() * 10 - 5);
+        const scale = 0.64 + Math.random() * 0.28;
 
         items.push({
           url,
           x, y,
           rot,
+          scale,
           colored: coloredIdx.has(i)
         });
       }
@@ -1301,69 +1304,57 @@
 
     const defs = `
       <defs>
-        <!-- Thin "line-art" filter (aim ~1px): binary masks -> outline (dilate - erode) -->
-        <filter id="lineArt" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
-          <feColorMatrix type="saturate" values="0" result="g"/>
-
-          <!-- contrast boost (kept modest to avoid chunky edges) -->
-          <feComponentTransfer in="g" result="c">
-            <feFuncR type="gamma" amplitude="1.15" exponent="0.60" offset="-0.02"/>
-            <feFuncG type="gamma" amplitude="1.15" exponent="0.60" offset="-0.02"/>
-            <feFuncB type="gamma" amplitude="1.15" exponent="0.60" offset="-0.02"/>
+        <!-- Outline-only filter (no rectangle border) -->
+        <filter id="edgeOutline" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+          <!-- grayscale + boost contrast a touch -->
+          <feColorMatrix type="saturate" values="0" result="gray"/>
+          <feComponentTransfer in="gray" result="hi">
+            <feFuncR type="linear" slope="1.8" intercept="-0.35"/>
+            <feFuncG type="linear" slope="1.8" intercept="-0.35"/>
+            <feFuncB type="linear" slope="1.8" intercept="-0.35"/>
           </feComponentTransfer>
 
-          <!-- luminance into alpha -->
-          <feColorMatrix in="c" type="matrix" result="lumA"
+          <!-- Sobel edges -->
+          <feConvolveMatrix in="hi" order="3"
+            kernelMatrix="-1 0 1 -2 0 2 -1 0 1"
+            preserveAlpha="false" result="gx"/>
+          <feConvolveMatrix in="hi" order="3"
+            kernelMatrix="-1 -2 -1 0 0 0 1 2 1"
+            preserveAlpha="false" result="gy"/>
+
+          <feComposite in="gx" in2="gy" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="gxy"/>
+
+          <!-- Edge strength -> alpha -->
+          <feColorMatrix in="gxy" type="matrix" result="edgeAlpha"
             values="
               0 0 0 0 0
               0 0 0 0 0
               0 0 0 0 0
-              0.333 0.333 0.333 0 0"/>
+              0.65 0.65 0.65 0 0"/>
 
-          <!-- mask for DARK features: alpha = 1 - lum -->
-          <feComponentTransfer in="lumA" result="darkA">
-            <feFuncA type="table" tableValues="1 0"/>
+          <!-- Threshold so backgrounds become transparent -->
+          <feComponentTransfer in="edgeAlpha" result="thresh">
+            <feFuncA type="linear" slope="2.2" intercept="-0.55"/>
           </feComponentTransfer>
 
-          <!-- threshold dark mask -->
-          <feComponentTransfer in="darkA" result="darkT">
-            <feFuncA type="linear" slope="3.0" intercept="-1.20"/>
-          </feComponentTransfer>
+          <!-- Slight soften to keep it ~1px -->
+          <feGaussianBlur in="thresh" stdDeviation="0.18" result="soft"/>
 
-          <!-- outline dark: *thin* dilate - erode -->
-          <feMorphology in="darkT" operator="dilate" radius="0.65" result="darkD"/>
-          <feMorphology in="darkT" operator="erode"  radius="0.65" result="darkE"/>
-          <feComposite in="darkD" in2="darkE" operator="arithmetic" k1="0" k2="1" k3="-1" k4="0" result="darkO"/>
+          <!-- IMPORTANT: remove the outer rectangle border by masking with an eroded alpha -->
+          <feMorphology in="SourceAlpha" operator="erode" radius="2" result="erodeA"/>
+          <feComposite in="soft" in2="erodeA" operator="in" result="masked"/>
 
-          <!-- mask for LIGHT features -->
-          <feComponentTransfer in="lumA" result="lightT">
-            <feFuncA type="linear" slope="3.0" intercept="-1.65"/>
-          </feComponentTransfer>
-
-          <!-- outline light: *thin* dilate - erode -->
-          <feMorphology in="lightT" operator="dilate" radius="0.65" result="lightD"/>
-          <feMorphology in="lightT" operator="erode"  radius="0.65" result="lightE"/>
-          <feComposite in="lightD" in2="lightE" operator="arithmetic" k1="0" k2="1" k3="-1" k4="0" result="lightO"/>
-
-          <!-- union outlines -->
-          <feComposite in="darkO" in2="lightO" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="u"/>
-
-          <!-- soften just a hair so it reads like 1px -->
-          <feGaussianBlur in="u" stdDeviation="0.18" result="s"/>
-
-          <!-- tint to LIGHT GREY with alpha from s -->
-          <feColorMatrix in="s" type="matrix" result="ink"
+          <!-- Tint to light grey + keep thin alpha -->
+          <feColorMatrix in="masked" type="matrix" result="tinted"
             values="
               0 0 0 0 0.55
               0 0 0 0 0.58
               0 0 0 0 0.62
               0 0 0 0.55 0"/>
-
-          <feComposite in="ink" in2="ink" operator="over"/>
         </filter>
 
-        <filter id="flagShadow" x="-40%" y="-40%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="1.5" stdDeviation="1.6" flood-color="rgba(0,0,0,0.12)"/>
+        <filter id="flagShadow" x="-25%" y="-25%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.14)"/>
         </filter>
       </defs>
     `;
@@ -1371,19 +1362,19 @@
     let out = `${defs}${mirrorOpen}`;
 
     for (const it of items) {
-      const fw = 40;
-      const fh = 25;
+      const fw = 200 * it.scale;
+      const fh = 120 * it.scale;
 
       if (it.colored) {
         out += `
           <g transform="translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) rotate(${it.rot.toFixed(2)})" filter="url(#flagShadow)">
-            <image href="${it.url}" width="${fw}" height="${fh}" opacity="0.50" preserveAspectRatio="none"></image>
+            <image href="${it.url}" width="${fw.toFixed(1)}" height="${fh.toFixed(1)}" opacity="0.50" preserveAspectRatio="none"></image>
           </g>
         `;
       } else {
         out += `
           <g transform="translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) rotate(${it.rot.toFixed(2)})" filter="url(#flagShadow)">
-            <image href="${it.url}" width="${fw}" height="${fh}" opacity="0.90" filter="url(#lineArt)" preserveAspectRatio="none"></image>
+            <image href="${it.url}" width="${fw.toFixed(1)}" height="${fh.toFixed(1)}" opacity="0.90" filter="url(#edgeOutline)" preserveAspectRatio="none"></image>
           </g>
         `;
       }
