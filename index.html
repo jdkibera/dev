@@ -1242,8 +1242,11 @@
   }
 
   /* =============================================================================================
-     SECTION 9: HEADER/FOOTER FLAGS (BUGFIX ONLY: greyscale flags retain detail as line-art)
-     NOTE: #1 only — the ONLY change in this file is the edgeOutline filter inside flagFieldSVGMarkup.
+     SECTION 9: HEADER/FOOTER FLAGS (NEW APPROACH)
+     - FULL 40x25 flags (always) with a thin rectangle border (never “partials”).
+     - Greyscale flags are true line-art: binary masks -> outline (dilate - erode).
+     - Fill is transparent (aliases to page bg).
+     - (Overlap occlusion will be handled in step #3 later; DO NOT add it here.)
   ============================================================================================= */
   let FLAGFIELD_ITEMS = null;
 
@@ -1272,17 +1275,15 @@
         const url = (c.flags && (c.flags.svg || c.flags.png)) || '';
         if (!url) continue;
 
-        const x = Math.random() * (w - 220);
-        const y = Math.random() * (h - 70);
+        const x = Math.random() * (w - 60);
+        const y = Math.random() * (h - 40);
 
         const rot = (Math.random() * 10 - 5);
-        const scale = 0.64 + Math.random() * 0.28;
 
         items.push({
           url,
           x, y,
           rot,
-          scale,
           colored: coloredIdx.has(i)
         });
       }
@@ -1302,58 +1303,74 @@
 
     const defs = `
       <defs>
-        <filter id="edgeOutline" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
-          <!-- 1) Desaturate -->
-          <feColorMatrix type="saturate" values="0" result="gray"/>
+        <!-- "Line-art" filter:
+             1) desaturate + contrast
+             2) create two binary masks (dark-features + light-features)
+             3) outline each mask by (dilate - erode)
+             4) union + tint to grey, transparent elsewhere
+        -->
+        <filter id="lineArt" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+          <feColorMatrix type="saturate" values="0" result="g"/>
 
-          <!-- 2) Contrast boost so internal symbols survive -->
-          <feComponentTransfer in="gray" result="hi">
-            <feFuncR type="gamma" amplitude="1.1" exponent="0.55" offset="-0.02"/>
-            <feFuncG type="gamma" amplitude="1.1" exponent="0.55" offset="-0.02"/>
-            <feFuncB type="gamma" amplitude="1.1" exponent="0.55" offset="-0.02"/>
+          <!-- contrast boost -->
+          <feComponentTransfer in="g" result="c">
+            <feFuncR type="gamma" amplitude="1.2" exponent="0.55" offset="-0.03"/>
+            <feFuncG type="gamma" amplitude="1.2" exponent="0.55" offset="-0.03"/>
+            <feFuncB type="gamma" amplitude="1.2" exponent="0.55" offset="-0.03"/>
           </feComponentTransfer>
 
-          <!-- 3) Edge detect (Sobel X/Y) -->
-          <feConvolveMatrix in="hi" order="3"
-            kernelMatrix="-1 0 1 -2 0 2 -1 0 1"
-            preserveAlpha="false" result="gx"/>
-          <feConvolveMatrix in="hi" order="3"
-            kernelMatrix="-1 -2 -1 0 0 0 1 2 1"
-            preserveAlpha="false" result="gy"/>
-
-          <!-- 4) Combine -->
-          <feComposite in="gx" in2="gy" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="gxy"/>
-
-          <!-- 5) Thicken edges slightly -->
-          <feGaussianBlur in="gxy" stdDeviation="0.55" result="blur1"/>
-          <feComposite in="gxy" in2="blur1" operator="arithmetic" k1="0" k2="1.0" k3="0.9" k4="0" result="thick"/>
-
-          <!-- 6) Convert edge strength into ALPHA (transparent background) -->
-          <feColorMatrix in="thick" type="matrix" result="edgeAlpha"
+          <!-- luminance into alpha -->
+          <feColorMatrix in="c" type="matrix" result="lumA"
             values="
-              0 0 0 0 0.40
-              0 0 0 0 0.40
-              0 0 0 0 0.40
-              1.25 1.25 1.25 0 -0.55"/>
+              0 0 0 0 0
+              0 0 0 0 0
+              0 0 0 0 0
+              0.333 0.333 0.333 0 0"/>
 
-          <!-- 7) Threshold alpha: kill background, keep fine detail -->
-          <feComponentTransfer in="edgeAlpha" result="thresh">
-            <feFuncA type="linear" slope="2.4" intercept="-0.55"/>
+          <!-- mask for DARK features: alpha = 1 - lum -->
+          <feComponentTransfer in="lumA" result="darkA">
+            <feFuncA type="table" tableValues="1 0"/>
           </feComponentTransfer>
 
-          <!-- 8) Tint to line-art gray (preserve alpha) -->
-          <feColorMatrix in="thresh" type="matrix"
+          <!-- threshold dark mask -->
+          <feComponentTransfer in="darkA" result="darkT">
+            <feFuncA type="linear" slope="3.0" intercept="-1.15"/>
+          </feComponentTransfer>
+
+          <!-- outline dark: dilate - erode -->
+          <feMorphology in="darkT" operator="dilate" radius="1" result="darkD"/>
+          <feMorphology in="darkT" operator="erode"  radius="1" result="darkE"/>
+          <feComposite in="darkD" in2="darkE" operator="arithmetic" k1="0" k2="1" k3="-1" k4="0" result="darkO"/>
+
+          <!-- mask for LIGHT features: use lum directly, threshold high -->
+          <feComponentTransfer in="lumA" result="lightT">
+            <feFuncA type="linear" slope="3.0" intercept="-1.55"/>
+          </feComponentTransfer>
+
+          <!-- outline light: dilate - erode -->
+          <feMorphology in="lightT" operator="dilate" radius="1" result="lightD"/>
+          <feMorphology in="lightT" operator="erode"  radius="1" result="lightE"/>
+          <feComposite in="lightD" in2="lightE" operator="arithmetic" k1="0" k2="1" k3="-1" k4="0" result="lightO"/>
+
+          <!-- union outlines -->
+          <feComposite in="darkO" in2="lightO" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="u"/>
+
+          <!-- soften slightly -->
+          <feGaussianBlur in="u" stdDeviation="0.35" result="s"/>
+
+          <!-- tint to grey with alpha from s -->
+          <feColorMatrix in="s" type="matrix" result="ink"
             values="
-              0 0 0 0 0.20
-              0 0 0 0 0.23
+              0 0 0 0 0.25
               0 0 0 0 0.28
-              0 0 0 1 0" result="ink"/>
+              0 0 0 0 0.32
+              0 0 0 1 0"/>
 
           <feComposite in="ink" in2="ink" operator="over"/>
         </filter>
 
-        <filter id="flagShadow" x="-25%" y="-25%" width="160%" height="160%">
-          <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.14)"/>
+        <filter id="flagShadow" x="-40%" y="-40%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="1.5" stdDeviation="1.6" flood-color="rgba(0,0,0,0.12)"/>
         </filter>
       </defs>
     `;
@@ -1361,19 +1378,22 @@
     let out = `${defs}${mirrorOpen}`;
 
     for (const it of items) {
-      const fw = 200 * it.scale;
-      const fh = 120 * it.scale;
+      const fw = 40;
+      const fh = 25;
 
       if (it.colored) {
         out += `
           <g transform="translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) rotate(${it.rot.toFixed(2)})" filter="url(#flagShadow)">
-            <image href="${it.url}" width="${fw.toFixed(1)}" height="${fh.toFixed(1)}" opacity="0.50" preserveAspectRatio="none"></image>
+            <image href="${it.url}" width="${fw}" height="${fh}" opacity="0.50" preserveAspectRatio="none"></image>
           </g>
         `;
       } else {
         out += `
           <g transform="translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) rotate(${it.rot.toFixed(2)})" filter="url(#flagShadow)">
-            <image href="${it.url}" width="${fw.toFixed(1)}" height="${fh.toFixed(1)}" opacity="0.85" filter="url(#edgeOutline)" preserveAspectRatio="none"></image>
+            <image href="${it.url}" width="${fw}" height="${fh}" opacity="0.95" filter="url(#lineArt)" preserveAspectRatio="none"></image>
+            <!-- FULL FLAG BORDER so we never get “partials” -->
+            <rect x="0" y="0" width="${fw}" height="${fh}" fill="none"
+                  stroke="rgba(60,70,85,0.55)" stroke-width="1" shape-rendering="geometricPrecision"></rect>
           </g>
         `;
       }
