@@ -1242,11 +1242,9 @@
   }
 
   /* =============================================================================================
-     SECTION 9: HEADER/FOOTER FLAGS (NEW APPROACH)
-     - FULL 40x25 flags (always) with a thin rectangle border (never “partials”).
-     - Greyscale flags are true line-art: binary masks -> outline (dilate - erode).
-     - Fill is transparent (aliases to page bg).
-     - (Overlap occlusion will be handled in step #3 later; DO NOT add it here.)
+     SECTION 9: HEADER/FOOTER FLAGS (tune grey-outline: 1px light grey, no rectangle border)
+     - Colored flags unchanged (perfect).
+     - Grey flags: thinner, lighter, and NO surrounding rectangle.
   ============================================================================================= */
   let FLAGFIELD_ITEMS = null;
 
@@ -1303,20 +1301,15 @@
 
     const defs = `
       <defs>
-        <!-- "Line-art" filter:
-             1) desaturate + contrast
-             2) create two binary masks (dark-features + light-features)
-             3) outline each mask by (dilate - erode)
-             4) union + tint to grey, transparent elsewhere
-        -->
+        <!-- Thin "line-art" filter (aim ~1px): binary masks -> outline (dilate - erode) -->
         <filter id="lineArt" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
           <feColorMatrix type="saturate" values="0" result="g"/>
 
-          <!-- contrast boost -->
+          <!-- contrast boost (kept modest to avoid chunky edges) -->
           <feComponentTransfer in="g" result="c">
-            <feFuncR type="gamma" amplitude="1.2" exponent="0.55" offset="-0.03"/>
-            <feFuncG type="gamma" amplitude="1.2" exponent="0.55" offset="-0.03"/>
-            <feFuncB type="gamma" amplitude="1.2" exponent="0.55" offset="-0.03"/>
+            <feFuncR type="gamma" amplitude="1.15" exponent="0.60" offset="-0.02"/>
+            <feFuncG type="gamma" amplitude="1.15" exponent="0.60" offset="-0.02"/>
+            <feFuncB type="gamma" amplitude="1.15" exponent="0.60" offset="-0.02"/>
           </feComponentTransfer>
 
           <!-- luminance into alpha -->
@@ -1334,37 +1327,37 @@
 
           <!-- threshold dark mask -->
           <feComponentTransfer in="darkA" result="darkT">
-            <feFuncA type="linear" slope="3.0" intercept="-1.15"/>
+            <feFuncA type="linear" slope="3.0" intercept="-1.20"/>
           </feComponentTransfer>
 
-          <!-- outline dark: dilate - erode -->
-          <feMorphology in="darkT" operator="dilate" radius="1" result="darkD"/>
-          <feMorphology in="darkT" operator="erode"  radius="1" result="darkE"/>
+          <!-- outline dark: *thin* dilate - erode -->
+          <feMorphology in="darkT" operator="dilate" radius="0.65" result="darkD"/>
+          <feMorphology in="darkT" operator="erode"  radius="0.65" result="darkE"/>
           <feComposite in="darkD" in2="darkE" operator="arithmetic" k1="0" k2="1" k3="-1" k4="0" result="darkO"/>
 
-          <!-- mask for LIGHT features: use lum directly, threshold high -->
+          <!-- mask for LIGHT features -->
           <feComponentTransfer in="lumA" result="lightT">
-            <feFuncA type="linear" slope="3.0" intercept="-1.55"/>
+            <feFuncA type="linear" slope="3.0" intercept="-1.65"/>
           </feComponentTransfer>
 
-          <!-- outline light: dilate - erode -->
-          <feMorphology in="lightT" operator="dilate" radius="1" result="lightD"/>
-          <feMorphology in="lightT" operator="erode"  radius="1" result="lightE"/>
+          <!-- outline light: *thin* dilate - erode -->
+          <feMorphology in="lightT" operator="dilate" radius="0.65" result="lightD"/>
+          <feMorphology in="lightT" operator="erode"  radius="0.65" result="lightE"/>
           <feComposite in="lightD" in2="lightE" operator="arithmetic" k1="0" k2="1" k3="-1" k4="0" result="lightO"/>
 
           <!-- union outlines -->
           <feComposite in="darkO" in2="lightO" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="u"/>
 
-          <!-- soften slightly -->
-          <feGaussianBlur in="u" stdDeviation="0.35" result="s"/>
+          <!-- soften just a hair so it reads like 1px -->
+          <feGaussianBlur in="u" stdDeviation="0.18" result="s"/>
 
-          <!-- tint to grey with alpha from s -->
+          <!-- tint to LIGHT GREY with alpha from s -->
           <feColorMatrix in="s" type="matrix" result="ink"
             values="
-              0 0 0 0 0.25
-              0 0 0 0 0.28
-              0 0 0 0 0.32
-              0 0 0 1 0"/>
+              0 0 0 0 0.55
+              0 0 0 0 0.58
+              0 0 0 0 0.62
+              0 0 0 0.55 0"/>
 
           <feComposite in="ink" in2="ink" operator="over"/>
         </filter>
@@ -1390,10 +1383,7 @@
       } else {
         out += `
           <g transform="translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) rotate(${it.rot.toFixed(2)})" filter="url(#flagShadow)">
-            <image href="${it.url}" width="${fw}" height="${fh}" opacity="0.95" filter="url(#lineArt)" preserveAspectRatio="none"></image>
-            <!-- FULL FLAG BORDER so we never get “partials” -->
-            <rect x="0" y="0" width="${fw}" height="${fh}" fill="none"
-                  stroke="rgba(60,70,85,0.55)" stroke-width="1" shape-rendering="geometricPrecision"></rect>
+            <image href="${it.url}" width="${fw}" height="${fh}" opacity="0.90" filter="url(#lineArt)" preserveAspectRatio="none"></image>
           </g>
         `;
       }
