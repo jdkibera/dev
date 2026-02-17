@@ -1242,11 +1242,14 @@
   }
 
   /* =============================================================================================
-     SECTION 9: HEADER/FOOTER FLAGS (tune grey-outline: 1px light grey, no rectangle border)
-     - Colored flags unchanged (perfect).
-     - Grey flags: thinner, lighter, and NO surrounding rectangle.
-     - Surgical fix: remove the single outer perimeter rectangle by clipping the line-art output
-       to an *eroded* SourceAlpha (prevents drawing on the outermost ~1px rim).
+     SECTION 9: HEADER/FOOTER FLAGS (surgical: remove the OUTER perimeter rectangle only)
+     - Colored flags unchanged.
+     - Grey flags: keep the same line-art look, but REMOVE:
+       (a) the light grey “frame” outside the flag perimeter, and
+       (b) the extra grey border-line it introduces.
+     Approach (surgical, minimal):
+       Build the line-art outlines as before (“u”), then explicitly SUBTRACT the outline of the
+       image’s own rectangular SourceAlpha (the perimeter box) before blurring/tinting.
   ============================================================================================= */
   let FLAGFIELD_ITEMS = null;
 
@@ -1303,7 +1306,8 @@
 
     const defs = `
       <defs>
-        <!-- Thin "line-art" filter (aim ~1px): binary masks -> outline (dilate - erode) -->
+        <!-- Thin "line-art" filter (aim ~1px): binary masks -> outline (dilate - erode)
+             Surgical change: subtract SourceAlpha perimeter outline so no outer rectangle appears. -->
         <filter id="lineArt" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
           <feColorMatrix type="saturate" values="0" result="g"/>
 
@@ -1350,8 +1354,16 @@
           <!-- union outlines -->
           <feComposite in="darkO" in2="lightO" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="u"/>
 
+          <!-- NEW: compute the rectangle-perimeter outline of the image alpha, then subtract it -->
+          <feMorphology in="SourceAlpha" operator="dilate" radius="0.70" result="aD"/>
+          <feMorphology in="SourceAlpha" operator="erode"  radius="0.70" result="aE"/>
+          <feComposite in="aD" in2="aE" operator="arithmetic" k1="0" k2="1" k3="-1" k4="0" result="aO"/>
+
+          <!-- subtract perimeter outline from the union outlines -->
+          <feComposite in="u" in2="aO" operator="arithmetic" k1="0" k2="1" k3="-1" k4="0" result="uNoFrame"/>
+
           <!-- soften just a hair so it reads like 1px -->
-          <feGaussianBlur in="u" stdDeviation="0.18" result="s"/>
+          <feGaussianBlur in="uNoFrame" stdDeviation="0.18" result="s"/>
 
           <!-- tint to LIGHT GREY with alpha from s -->
           <feColorMatrix in="s" type="matrix" result="ink"
@@ -1361,12 +1373,7 @@
               0 0 0 0 0.62
               0 0 0 0.55 0"/>
 
-          <!-- SURGICAL FIX: clip ink to an inset alpha so we don't draw the outer perimeter box -->
-          <feMorphology in="SourceAlpha" operator="erode" radius="0.9" result="innerA"/>
-          <feComposite in="ink" in2="innerA" operator="in" result="inkClipped"/>
-
-          <!-- output -->
-          <feComposite in="inkClipped" in2="inkClipped" operator="over"/>
+          <feComposite in="ink" in2="ink" operator="over"/>
         </filter>
 
         <filter id="flagShadow" x="-40%" y="-40%" width="200%" height="200%">
