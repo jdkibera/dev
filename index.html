@@ -1245,6 +1245,8 @@
      SECTION 9: HEADER/FOOTER FLAGS (tune grey-outline: 1px light grey, no rectangle border)
      - Colored flags unchanged (perfect).
      - Grey flags: thinner, lighter, and NO surrounding rectangle.
+     - Surgical fix: remove the single outer perimeter rectangle by clipping the line-art output
+       to an *eroded* SourceAlpha (prevents drawing on the outermost ~1px rim).
   ============================================================================================= */
   let FLAGFIELD_ITEMS = null;
 
@@ -1359,7 +1361,12 @@
               0 0 0 0 0.62
               0 0 0 0.55 0"/>
 
-          <feComposite in="ink" in2="ink" operator="over"/>
+          <!-- SURGICAL FIX: clip ink to an inset alpha so we don't draw the outer perimeter box -->
+          <feMorphology in="SourceAlpha" operator="erode" radius="0.9" result="innerA"/>
+          <feComposite in="ink" in2="innerA" operator="in" result="inkClipped"/>
+
+          <!-- output -->
+          <feComposite in="inkClipped" in2="inkClipped" operator="over"/>
         </filter>
 
         <filter id="flagShadow" x="-40%" y="-40%" width="200%" height="200%">
