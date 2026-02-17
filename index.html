@@ -1242,13 +1242,9 @@
   }
 
   /* =============================================================================================
-     SECTION 9: HEADER/FOOTER FLAGS (CHANGE ONLY FOR OUTLINE FLAGS)
-     Goal:
-       - Colored flags: unchanged, 50% wash-out.
-       - Outline flags: very light grey, ~1px feel, NO outer rectangle.
-       - Bottom is a TRUE MIRROR of top using the SAME items list (no drift).
-     How we remove the “grey border rectangle”:
-       - Clip each outline flag by 1px inset before/after filtering, so the outer image edge never appears.
+     SECTION 9: HEADER/FOOTER FLAGS (REVERT to last known working outline version)
+     - This is the prior “close” outline approach (the one with just the single border issue left).
+     - NO clipping / NO new experiments here.
   ============================================================================================= */
   let FLAGFIELD_ITEMS = null;
 
@@ -1292,9 +1288,7 @@
         });
       }
 
-      // Draw order: lower y on top -> later in SVG occludes earlier
       items.sort((a,b) => a.y - b.y);
-
       FLAGFIELD_ITEMS = { w, h, items };
     }
 
@@ -1306,43 +1300,17 @@
     const mirrorOpen = mirrorY ? `<g transform="translate(0 ${h}) scale(1 -1)">` : `<g>`;
     const mirrorClose = `</g>`;
 
-    // Build clipPaths ONLY for outline flags (to remove outer border edge)
-    let clipDefs = '';
-    let outlineIndex = 0;
-
-    for (const it of items) {
-      if (it.colored) continue;
-
-      const fw = 200 * it.scale;
-      const fh = 120 * it.scale;
-
-      const clipId = `clip_outline_${mirrorY ? 'b' : 't'}_${outlineIndex++}`;
-      // inset by 1px to kill the outer frame edge
-      const inset = 1.0;
-      const cw = Math.max(0, fw - inset*2);
-      const ch = Math.max(0, fh - inset*2);
-
-      clipDefs += `
-        <clipPath id="${clipId}" clipPathUnits="userSpaceOnUse">
-          <rect x="${inset.toFixed(1)}" y="${inset.toFixed(1)}" width="${cw.toFixed(1)}" height="${ch.toFixed(1)}" rx="0" ry="0"></rect>
-        </clipPath>
-      `;
-      it._clipId = clipId;
-    }
-
     const defs = `
       <defs>
-        <filter id="edgeOutlineLite" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
-          <!-- grayscale -->
+        <filter id="edgeOutline" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
           <feColorMatrix type="saturate" values="0" result="gray"/>
-          <!-- increase contrast slightly -->
+
           <feComponentTransfer in="gray" result="hi">
-            <feFuncR type="linear" slope="1.55" intercept="-0.20"/>
-            <feFuncG type="linear" slope="1.55" intercept="-0.20"/>
-            <feFuncB type="linear" slope="1.55" intercept="-0.20"/>
+            <feFuncR type="linear" slope="2.0" intercept="-0.50"/>
+            <feFuncG type="linear" slope="2.0" intercept="-0.50"/>
+            <feFuncB type="linear" slope="2.0" intercept="-0.50"/>
           </feComponentTransfer>
 
-          <!-- Sobel-ish edge detect -->
           <feConvolveMatrix in="hi" order="3"
             kernelMatrix="-1 0 1 -2 0 2 -1 0 1"
             preserveAlpha="false" result="gx"/>
@@ -1350,45 +1318,33 @@
             kernelMatrix="-1 -2 -1 0 0 0 1 2 1"
             preserveAlpha="false" result="gy"/>
 
-          <!-- combine -->
           <feComposite in="gx" in2="gy" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="gxy"/>
 
-          <!-- put edge strength into ALPHA; keep RGB low -->
-          <feColorMatrix in="gxy" type="matrix" result="edgeA"
+          <!-- edge strength -> alpha -->
+          <feColorMatrix in="gxy" type="matrix" result="edgeAlpha"
             values="
-              0 0 0 0 0
-              0 0 0 0 0
-              0 0 0 0 0
-              0.85 0.85 0.85 0 0"/>
+              0 0 0 0 0.18
+              0 0 0 0 0.22
+              0 0 0 0 0.30
+              0.9 0.9 0.9 0 0"/>
 
-          <!-- threshold alpha so background becomes fully transparent -->
-          <feComponentTransfer in="edgeA" result="thresh">
-            <feFuncA type="linear" slope="2.8" intercept="-0.62"/>
+          <feComponentTransfer in="edgeAlpha" result="thresh">
+            <feFuncA type="linear" slope="3.4" intercept="-0.75"/>
           </feComponentTransfer>
 
-          <!-- tiny soften to feel ~1px -->
-          <feGaussianBlur in="thresh" stdDeviation="0.18" result="soft"/>
+          <feGaussianBlur in="thresh" stdDeviation="0.28" result="soft"/>
 
-          <!-- tint the remaining edge pixels to a very light grey -->
-          <feColorMatrix in="soft" type="matrix"
-            values="
-              0 0 0 0 0.58
-              0 0 0 0 0.60
-              0 0 0 0 0.64
-              0 0 0 1 0"/>
+          <feComposite in="soft" in2="soft" operator="over"/>
         </filter>
 
         <filter id="flagShadow" x="-25%" y="-25%" width="160%" height="160%">
           <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.14)"/>
         </filter>
-
-        ${clipDefs}
       </defs>
     `;
 
     let out = `${defs}${mirrorOpen}`;
 
-    // IMPORTANT: outlineIndex is already consumed in clip defs above; use the stored _clipId on items.
     for (const it of items) {
       const fw = 200 * it.scale;
       const fh = 120 * it.scale;
@@ -1400,13 +1356,9 @@
           </g>
         `;
       } else {
-        // Clip inset removes the outer “frame rectangle” edge.
         out += `
           <g transform="translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) rotate(${it.rot.toFixed(2)})" filter="url(#flagShadow)">
-            <g clip-path="url(#${it._clipId})">
-              <image href="${it.url}" width="${fw.toFixed(1)}" height="${fh.toFixed(1)}"
-                     opacity="0.95" filter="url(#edgeOutlineLite)" preserveAspectRatio="none"></image>
-            </g>
+            <image href="${it.url}" width="${fw.toFixed(1)}" height="${fh.toFixed(1)}" opacity="0.85" filter="url(#edgeOutline)" preserveAspectRatio="none"></image>
           </g>
         `;
       }
