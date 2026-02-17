@@ -1,3 +1,1246 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kibera's Flag Gauntlet</title>
+
+  <!-- Keep original brand font (DO NOT REGRESS) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Calligraffitti&display=swap" rel="stylesheet">
+
+  <style>
+    /* =============================================================================================
+       SECTION A: THEME / LAYOUT CONSTANTS
+       (Only changed where explicitly requested in the prompt.)
+    ============================================================================================= */
+    :root{
+      --bg: #E1E8F3;
+      --ink: #253041;
+      --card: rgba(11,16,32,0.92);
+      --cardBorder: rgba(0,0,0,0.18);
+      --pillBg: rgba(255,255,255,0.10);
+
+      --flagStageH: 340px;
+
+      /* Messaging area: fixed layout so nothing jumps */
+      --msgH: 320px;
+      --iconColW: 210px;
+
+      --brandBlueGrey: rgba(80, 110, 140, 0.42);
+    }
+
+    html, body { height: 100%; }
+    body{
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      display:flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    .main{
+      flex: 1;
+      display: grid;
+      place-items: center;
+      padding: 70px 14px 10px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .wrap{
+      width: min(980px, 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+    }
+
+    /* Keep original brand font (Calligraffitti) — DO NOT REGRESS */
+    .brandAngle{
+      position: absolute;
+      left: -132px;
+      top: 118px;
+      transform: rotate(-45deg);
+      transform-origin: left top;
+      font-family: "Calligraffitti", "Snell Roundhand", "Apple Chancery", "Segoe Script", cursive;
+      font-size: 46px;
+      font-weight: 400;
+      color: var(--brandBlueGrey);
+      user-select: none;
+      pointer-events: none;
+      z-index: 10;
+      line-height: 0.92;
+      text-align: center;
+      width: 250px;
+    }
+
+    .topbar{
+      width: min(900px, 100%);
+      display:flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 2px;
+      position: relative;
+      z-index: 5;
+    }
+
+    .pill{
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: var(--pillBg);
+      border: 1px solid rgba(0,0,0,0.08);
+      font-size: 18px;
+      color: #0b1020;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      backdrop-filter: blur(6px);
+      white-space: nowrap;
+    }
+    .pill b{ font-size: 20px; }
+
+    .restartBtnTop{
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.12);
+      background: rgba(0,0,0,0.06);
+      color: #0b1020;
+      cursor: pointer;
+      font-size: 13px;
+      white-space: nowrap;
+      letter-spacing: 0.8px;
+      font-weight: 900;
+    }
+    .restartBtnTop:hover{ background: rgba(0,0,0,0.10); }
+
+    .card{
+      width: min(900px, 100%);
+      background: var(--card);
+      border: 1px solid var(--cardBorder);
+      border-radius: 18px;
+      padding: 18px 18px 16px;
+      color: #e9eefc;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.25);
+      position: relative;
+      z-index: 3;
+    }
+
+    .questionTitle{
+      text-align: center;
+      margin: 6px 0 10px;
+      font-size: 34px;
+      letter-spacing: 0.3px;
+      font-weight: 200;
+      opacity: 0.95;
+      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+    }
+
+    .flagStage{
+      height: var(--flagStageH);
+      width: 100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 6px 0 12px;
+      box-sizing: border-box;
+    }
+
+    /* =============================================================================================
+       SECTION B: MAIN FLAG DISPLAY (leave unchanged unless explicitly requested)
+       Requested: flag size 500x300
+    ============================================================================================= */
+    .flag{
+      width: 500px;
+      height: 300px;
+      max-width: 92%;
+      max-height: calc(var(--flagStageH) - 18px);
+      object-fit: contain;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .controls{
+      display:flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-top: 0px;
+    }
+    .controlRow{
+      width: min(520px, 92%);
+      display:flex;
+      align-items: stretch;
+      gap: 10px;
+    }
+
+    .inputWrap{ flex: 1; position: relative; }
+    input[type="text"]{
+      width: 100%;
+      padding: 16px 14px;
+      font-size: 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.35);
+      color: #e9eefc;
+      outline: none;
+      box-sizing: border-box;
+    }
+    input[type="text"]::placeholder{ color: rgba(233,238,252,0.65); }
+
+    .btnCol{
+      display:flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    button{
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(90,140,255,0.22);
+      color: #e9eefc;
+      cursor: pointer;
+      min-width: 96px;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.9px;
+    }
+    button:hover{ background: rgba(90,140,255,0.33); }
+    button:disabled{ opacity: 0.55; cursor: not-allowed; }
+
+    /* Hint CTA: only under input */
+    .hintHotkeyLine{
+      width: min(520px, 92%);
+      text-align: left;
+      font-size: 15px;
+      color: rgba(233,238,252,0.78);
+      margin-top: -2px;
+      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      font-weight: 300;
+    }
+    .hintHotkeyLine b{ color: rgba(233,238,252,0.90); font-weight: 650; }
+
+    .suggestBox{
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(100% + 8px);
+      background: rgba(14, 20, 40, 0.98);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 14px;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.45);
+      overflow: hidden;
+      z-index: 50;
+      display: none;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    .sgItem{
+      padding: 10px 12px;
+      cursor: pointer;
+      color: #e9eefc;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display:flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+    .sgItem:hover, .sgItem.active{ background: rgba(90,140,255,0.22); }
+    .sgMeta{ font-size: 12px; opacity: 0.70; white-space: nowrap; }
+
+    /* =============================================================================================
+       SECTION C: MESSAGE MODULE
+    ============================================================================================= */
+    .belowMsg{
+      width: min(900px, 100%);
+      height: var(--msgH);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      z-index: 2;
+      position: relative;
+    }
+
+    .msgGrid{
+      width: min(900px, 100%);
+      display: grid;
+      grid-template-columns: var(--iconColW) minmax(0, 1fr);
+      align-items: start;
+      gap: 18px;
+      padding: 0 6px;
+      box-sizing: border-box;
+    }
+
+    .iconCol{
+      display:flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding-top: 2px;
+    }
+
+    .iconSq{
+      width: 190px;
+      height: 140px;
+      border-radius: 0;
+      border: none;
+      background: transparent;
+      overflow: visible;
+      display: grid;
+      place-items: center;
+      box-shadow: none;
+    }
+    .iconSq svg{
+      width: 100%;
+      height: 100%;
+      display:block;
+      overflow: visible;
+    }
+
+    .iconLabel{ display:none; }
+
+    /* Messaging typography */
+    .msgText{
+      text-align: left;
+      line-height: 1.25;
+      align-self: start;
+      padding-top: 6px;
+      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      font-weight: 300;
+    }
+    .msgText .headline{
+      font-size: 26px;
+      margin: 0 0 10px;
+      min-height: 30px;
+      color: rgba(37,48,65,0.92);
+      font-weight: 320;
+    }
+    .msgText .sub{
+      font-size: 20px;
+      opacity: 0.92;
+      margin: 0;
+      min-height: 96px;
+      color: rgba(37,48,65,0.86);
+      font-weight: 300;
+    }
+    .msgText b{ font-weight: 520; }
+    .msgText a{
+      color: rgba(30,80,170,0.95);
+      text-decoration: underline;
+      font-weight: 520;
+    }
+
+    .bottomArea{
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    .copyright{
+      position: fixed;
+      left: 0;
+      width: 100%;
+      bottom: 50px;
+      text-align: center;
+      color: rgba(37,48,65,0.75);
+      font-size: 13px;
+      letter-spacing: 0.3px;
+      z-index: 3;
+      pointer-events: none;
+      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      font-weight: 300;
+    }
+
+    /* =============================================================================================
+       SECTION D: HEADER + FOOTER FLAG FIELDS
+    ============================================================================================= */
+    .flagField{
+      position: fixed;
+      left: 0;
+      width: 100vw;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .flagField--top{
+      top: 0;
+      height: 240px;
+    }
+    .flagField--bottom{
+      bottom: 0;
+      height: 240px;
+    }
+
+    .flagFieldSvg{
+      position:absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 1;
+    }
+
+    /* Top: solid at top -> transparent towards bottom */
+    .flagField--top .flagFieldSvg{
+      mask-image: linear-gradient(
+        to bottom,
+        rgba(0,0,0,1.00) 0%,
+        rgba(0,0,0,1.00) 35%,
+        rgba(0,0,0,0.65) 62%,
+        rgba(0,0,0,0.00) 100%
+      );
+    }
+    /* Bottom: transparent at top -> solid at bottom */
+    .flagField--bottom .flagFieldSvg{
+      mask-image: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.00) 0%,
+        rgba(0,0,0,0.25) 22%,
+        rgba(0,0,0,0.75) 60%,
+        rgba(0,0,0,1.00) 100%
+      );
+    }
+
+    .confettiLayer{
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      display: none;
+    }
+
+    .roundOverlay{
+      position: fixed;
+      inset: 0;
+      display: none;
+      pointer-events: none;
+      z-index: 10000;
+      place-items: center;
+      text-align: center;
+    }
+
+    .roundOverlay .big{
+      font-family: "Impact", "Haettenschweiler", "Arial Black", system-ui, sans-serif;
+      font-weight: 900;
+      font-size: min(160px, 17vw);
+      line-height: 0.95;
+      color: #FFD400;
+      -webkit-text-stroke: 10px rgba(0,0,0,0.92);
+      paint-order: stroke fill;
+      text-shadow:
+        0 10px 0 rgba(0,0,0,0.12),
+        0 22px 55px rgba(0,0,0,0.25);
+      transform: translateZ(0);
+      padding: 14px 22px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.0);
+    }
+
+    .roundBurst{
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      transform: scale(0.12);
+      filter: drop-shadow(0 26px 40px rgba(0,0,0,0.18));
+    }
+
+    .roundBurst.show{
+      animation: burstZoom 1.05s ease-out forwards;
+    }
+
+    @keyframes burstZoom{
+      0%   { opacity: 0; transform: translateY(180px) scale(0.12); }
+      55%  { opacity: 1; transform: translateY(0px) scale(1.02); }
+      100% { opacity: 0; transform: translateY(-10px) scale(1.10); }
+    }
+
+    @media (max-width: 900px){
+      .brandAngle{ left: -122px; top: 130px; font-size: 40px; width: 230px; }
+      .questionTitle{ font-size: 30px; }
+      :root{ --iconColW: 190px; --msgH: 300px; }
+      .msgText .headline{ font-size: 24px; }
+      .msgText .sub{ font-size: 19px; }
+      .flagField--top, .flagField--bottom{ height: 220px; }
+    }
+    @media (max-width: 760px){
+      :root{ --iconColW: 178px; --msgH: 290px; }
+      .pill{ font-size: 16px; }
+      .pill b{ font-size: 18px; }
+      .questionTitle{ font-size: 26px; }
+      .brandAngle{ font-size: 34px; left: -110px; top: 140px; width: 210px; }
+      .flagField--top, .flagField--bottom{ height: 200px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="flagField flagField--top" aria-hidden="true">
+    <svg id="flagFieldTopSvg" class="flagFieldSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
+  </div>
+
+  <div class="confettiLayer" id="confettiLayer">
+    <canvas id="confettiCanvas" style="width:100%;height:100%"></canvas>
+  </div>
+
+  <div class="roundOverlay" id="roundOverlay">
+    <div class="roundBurst" id="roundBurst"></div>
+    <div class="big" id="roundOverlayText">ROUND 2</div>
+  </div>
+
+  <div class="main">
+    <div class="wrap">
+      <div class="brandAngle">Kibera's<br/>Flag Gauntlet</div>
+
+      <div class="topbar">
+        <div class="pill">Round: <b id="roundNum">1</b> / <span id="roundTotal">?</span></div>
+        <div class="pill">Flag: <b id="flagIndex">1</b> / <b id="flagsPerRound">10</b></div>
+        <div class="pill">Tries left: <b id="triesLeft">3</b></div>
+        <div class="pill">
+          Score: <b id="score">0</b>
+          <button class="restartBtnTop" id="restartBtnTop" title="Restart from Round 1">RESTART</button>
+        </div>
+      </div>
+
+      <div class="card" id="card">
+        <div class="questionTitle">What Country's Flag Is This?</div>
+
+        <div class="flagStage">
+          <img id="flagImg" class="flag" alt="Country flag" />
+        </div>
+
+        <div class="controls">
+          <div class="controlRow">
+            <div class="inputWrap">
+              <input id="guessInput" type="text" placeholder="Type a country name…" autocomplete="off" />
+              <div id="suggestBox" class="suggestBox" role="listbox" aria-label="Country suggestions"></div>
+            </div>
+
+            <div class="btnCol">
+              <button id="submitBtn">SUBMIT</button>
+              <button id="skipBtn" title="Give up on this flag (0 points)">SKIP</button>
+            </div>
+          </div>
+
+          <div class="hintHotkeyLine">
+            Hit the period <b>&ldquo;.&rdquo;</b> key for a hint! Each hint costs a try
+          </div>
+        </div>
+      </div>
+
+      <div class="belowMsg" id="belowMsg"></div>
+    </div>
+  </div>
+
+  <div class="bottomArea">
+    <div class="copyright">© 2026 Kibera &amp; Co.</div>
+  </div>
+
+  <div class="flagField flagField--bottom" aria-hidden="true">
+    <svg id="flagFieldBottomSvg" class="flagFieldSvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
+  </div>
+
+<script>
+(() => {
+  /* =============================================================================================
+     SECTION 1: GAME CONSTANTS (unchanged unless explicitly requested)
+  ============================================================================================= */
+  const FLAGS_PER_ROUND = 10;
+  const TRIES_PER_FLAG = 3;
+
+  const PAUSE_CORRECT_MS = 3000;
+  const PAUSE_WRONG_MS   = 10000;
+
+  /* =============================================================================================
+     SECTION 2: UI HOOKS (unchanged)
+  ============================================================================================= */
+  const roundNumEl = document.getElementById('roundNum');
+  const roundTotalEl = document.getElementById('roundTotal');
+  const flagIndexEl = document.getElementById('flagIndex');
+  const flagsPerRoundEl = document.getElementById('flagsPerRound');
+  const triesLeftEl = document.getElementById('triesLeft');
+  const scoreEl = document.getElementById('score');
+
+  const flagImg = document.getElementById('flagImg');
+  const guessInput = document.getElementById('guessInput');
+  const submitBtn = document.getElementById('submitBtn');
+  const skipBtn = document.getElementById('skipBtn');
+  const restartBtnTop = document.getElementById('restartBtnTop');
+
+  const suggestBox = document.getElementById('suggestBox');
+  const belowMsg = document.getElementById('belowMsg');
+
+  const confettiLayer = document.getElementById('confettiLayer');
+  const confettiCanvas = document.getElementById('confettiCanvas');
+  const roundOverlay = document.getElementById('roundOverlay');
+  const roundOverlayText = document.getElementById('roundOverlayText');
+  const roundBurst = document.getElementById('roundBurst');
+
+  const flagFieldTopSvg = document.getElementById('flagFieldTopSvg');
+  const flagFieldBottomSvg = document.getElementById('flagFieldBottomSvg');
+
+  /* =============================================================================================
+     SECTION 3: GAME STATE (unchanged)
+  ============================================================================================= */
+  let countries = [];
+  let rounds = [];
+  let roundIdx = 0;
+  let flagIdx = 0;
+  let triesLeft = TRIES_PER_FLAG;
+  let score = 0;
+
+  let activeSuggestionIndex = -1;
+  let currentSuggestions = [];
+  let lastRenderedQuery = "";
+
+  let cca3ToCountry = new Map();
+
+  function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function norm(s) {
+    return String(s || '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9 ]/g, '')
+      .replace(/\s+/g, ' ');
+  }
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function updateHUD() {
+    roundNumEl.textContent = String(roundIdx + 1);
+    roundTotalEl.textContent = String(rounds.length || '?');
+    flagIndexEl.textContent = String(flagIdx + 1);
+    flagsPerRoundEl.textContent = String(FLAGS_PER_ROUND);
+    triesLeftEl.textContent = String(triesLeft);
+    scoreEl.textContent = String(score);
+  }
+
+  function currentCountry() {
+    return rounds?.[roundIdx]?.[flagIdx] || null;
+  }
+
+  function continentLabel(region, subregion) {
+    const r = String(region || '').trim();
+    const s = String(subregion || '').trim();
+    if (!r) return 'Other';
+    if (r === 'Americas') {
+      if (s.includes('South')) return 'South America';
+      if (s.includes('North')) return 'North America';
+      if (s.includes('Caribbean')) return 'Caribbean';
+      if (s.includes('Central')) return 'Central America';
+      return 'Americas';
+    }
+    return r;
+  }
+
+  /* =============================================================================================
+     SECTION 4: COMIC BURST ICON (unchanged)
+  ============================================================================================= */
+  function burstSVG(kind, text){
+    const styles = {
+      default: { txt:'#4AA3FF', burst1:'#FF3D2E', burst2:'#FFB02E', dots:'#1b1b1b' },
+      success: { txt:'#4AA3FF', burst1:'#FF3D2E', burst2:'#FFB02E', dots:'#1b1b1b' },
+      fail:    { txt:'#FFD400', burst1:'#FF3D2E', burst2:'#FFB02E', dots:'#1b1b1b' },
+      go:      { txt:'#36E06B', burst1:'#0E7A2F', burst2:'#B7F74A', dots:'#1b1b1b' },
+      hint:    { txt:'#76C8FF', burst1:'#3D66FF', burst2:'#B07BFF', dots:'#1b1b1b' },
+      round:   { txt:'#FFD400', burst1:'#FF3D2E', burst2:'#FFB02E', dots:'#1b1b1b' },
+    };
+    const s = styles[kind] || styles.default;
+
+    const burstStroke = 3.2;
+    const textStrokeThin = 4.2;
+
+    return `
+    <svg viewBox="0 0 260 190" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <radialGradient id="bgGrad_${kind}" cx="40%" cy="35%" r="75%">
+          <stop offset="0%"  stop-color="${s.burst2}" stop-opacity="1"/>
+          <stop offset="65%" stop-color="${s.burst1}" stop-opacity="1"/>
+          <stop offset="100%" stop-color="${s.burst1}" stop-opacity="1"/>
+        </radialGradient>
+
+        <pattern id="dots_${kind}" width="14" height="14" patternUnits="userSpaceOnUse">
+          <circle cx="3" cy="3" r="2.2" fill="${s.dots}" opacity="0.36"></circle>
+        </pattern>
+
+        <filter id="softShadow_${kind}" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="7" stdDeviation="5" flood-color="rgba(0,0,0,0.25)"/>
+        </filter>
+      </defs>
+
+      <g opacity="0.52">
+        <path d="M40 46 C64 22, 110 10, 148 18 C192 28, 222 60, 232 88 C242 118, 226 150, 192 166 C154 184, 104 180, 70 164 C40 150, 22 122, 20 96 C18 72, 26 58, 40 46 Z"
+              fill="url(#dots_${kind})"/>
+      </g>
+
+      <g filter="url(#softShadow_${kind})">
+        <path d="M132 10
+                 L150 34 L178 18 L178 46 L210 38 L196 64 L236 70 L204 84
+                 L232 104 L196 106 L210 136 L178 124 L178 154 L154 140
+                 L140 176 L124 150 L96 174 L96 146 L66 156 L78 128
+                 L40 132 L58 108 L26 92 L58 88 L38 62 L76 64
+                 L64 36 L96 46 L96 18 L122 34 Z"
+              fill="url(#bgGrad_${kind})"
+              stroke="rgba(0,0,0,0.92)"
+              stroke-width="${burstStroke}"
+              stroke-linejoin="round"/>
+        <path d="M132 26
+                 L144 42 L166 32 L166 52 L190 48 L180 66 L210 72 L186 82
+                 L206 96 L180 98 L190 118 L166 108 L166 128 L146 118
+                 L138 146 L126 124 L106 140 L106 120 L84 126 L92 108
+                 L64 110 L76 94 L54 84 L76 80 L60 64 L90 66
+                 L82 46 L106 54 L106 34 L124 42 Z"
+              fill="rgba(255,255,255,0.14)"/>
+      </g>
+
+      <g transform="translate(78,120) rotate(-45)">
+        <text x="0" y="0"
+              font-family="Bazinga, 'Bangers', 'Impact', system-ui, sans-serif"
+              font-weight="900"
+              font-size="46"
+              fill="${s.txt}"
+              stroke="rgba(0,0,0,0.92)"
+              stroke-width="${textStrokeThin}"
+              paint-order="stroke fill"
+              letter-spacing="1.2">${String(text || '').toUpperCase()}</text>
+      </g>
+    </svg>`;
+  }
+
+  function renderMsg(kind, iconText, headline, sub){
+    belowMsg.innerHTML = `
+      <div class="msgGrid">
+        <div class="iconCol">
+          <div class="iconSq" aria-hidden="true">
+            ${burstSVG(kind, iconText || "LET'S GO!")}
+          </div>
+        </div>
+        <div class="msgText">
+          <div class="headline">${headline || ""}</div>
+          <div class="sub">${sub || ""}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  /* =============================================================================================
+     SECTION 5: SUGGEST UI (unchanged)
+  ============================================================================================= */
+  function closeSuggest() {
+    suggestBox.style.display = 'none';
+    suggestBox.innerHTML = '';
+    activeSuggestionIndex = -1;
+    currentSuggestions = [];
+    lastRenderedQuery = "";
+  }
+  function openSuggest() { suggestBox.style.display = 'block'; }
+
+  function renderSuggestions(query) {
+    const q = norm(query);
+    if (!q) { closeSuggest(); return; }
+    if (q === lastRenderedQuery) return;
+
+    const matches = countries
+      .filter(c => norm(c.name.common).startsWith(q))
+      .slice(0, 25);
+
+    if (!matches.length) { closeSuggest(); return; }
+
+    suggestBox.innerHTML = '';
+    currentSuggestions = matches.map(c => ({
+      name: c.name.common,
+      continent: continentLabel(c.region, c.subregion)
+    }));
+
+    activeSuggestionIndex = 0;
+
+    currentSuggestions.forEach((it, idx) => {
+      const row = document.createElement('div');
+      row.className = 'sgItem' + (idx === 0 ? ' active' : '');
+      row.innerHTML = `<span>${it.name}</span><span class="sgMeta">${it.continent}</span>`;
+      row.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        guessInput.value = it.name;
+        closeSuggest();
+        guessInput.focus();
+      });
+      suggestBox.appendChild(row);
+    });
+
+    lastRenderedQuery = q;
+    openSuggest();
+  }
+
+  function moveActive(delta) {
+    if (suggestBox.style.display !== 'block') return;
+    if (!currentSuggestions.length) return;
+
+    activeSuggestionIndex += delta;
+    if (activeSuggestionIndex < 0) activeSuggestionIndex = currentSuggestions.length - 1;
+    if (activeSuggestionIndex >= currentSuggestions.length) activeSuggestionIndex = 0;
+
+    [...suggestBox.querySelectorAll('.sgItem')].forEach((el, idx) => {
+      el.classList.toggle('active', idx === activeSuggestionIndex);
+    });
+
+    const activeEl = suggestBox.querySelectorAll('.sgItem')[activeSuggestionIndex];
+    if (activeEl) activeEl.scrollIntoView({ block: 'nearest' });
+  }
+
+  function applySuggestionSelectionToInput() {
+    if (suggestBox.style.display !== 'block') return false;
+    if (!currentSuggestions.length) return false;
+
+    const idx = Math.max(0, activeSuggestionIndex);
+    const pickItem = currentSuggestions[idx] || currentSuggestions[0];
+    if (pickItem?.name) {
+      guessInput.value = pickItem.name;
+      closeSuggest();
+      return true;
+    }
+    return false;
+  }
+
+  /* =============================================================================================
+     SECTION 6: ANSWER MATCHING / HINTS (unchanged)
+  ============================================================================================= */
+  function currentAcceptedNames(c) {
+    const accepted = new Set();
+    accepted.add(norm(c.name?.common));
+    accepted.add(norm(c.name?.official));
+    (c.altSpellings || []).forEach(s => accepted.add(norm(s)));
+
+    const common = norm(c.name?.common);
+    if (common === 'united states') accepted.add('usa');
+    if (common === 'united kingdom') accepted.add('uk');
+    if (common === 'russia') accepted.add('russian federation');
+    if (common === 'south korea') accepted.add('korea');
+    if (common === 'czechia') accepted.add('czech republic');
+    return accepted;
+  }
+
+  function fmtNumber(n){
+    if (!Number.isFinite(n)) return '—';
+    return n.toLocaleString('en-US');
+  }
+
+  function neighborsList(c){
+    const borders = Array.isArray(c.borders) ? c.borders : [];
+    const names = borders
+      .map(code => cca3ToCountry.get(code)?.name?.common)
+      .filter(Boolean);
+
+    if (!names.length) return `· <b>Neighbors</b>: <b>none</b> (island / solo mode) 🏝️`;
+
+    const sample = names.slice(0, 6);
+    const extra = names.length > sample.length ? ` (+${names.length - sample.length} more)` : '';
+    return `· <b>Neighbors</b>: ${sample.join(', ')}${extra} 🤝`;
+  }
+
+  const FOOD_HINT = {
+    "Iran": `date palms & saffron rice with meat (Chelo Kabab) 🍚🥩`,
+    "Peru": `ceviche + lomo saltado 🐟🥔`,
+    "Japan": `sushi + ramen 🍣🍜`,
+    "Italy": `pasta + espresso 🍝☕`,
+    "Mexico": `tacos al pastor + mole 🌮🍫`,
+    "India": `biryani + masala chai 🍛☕`,
+    "Thailand": `pad thai + green curry 🌶️🍜`,
+    "Turkey": `kebabs + baklava 🥙🍯`,
+    "Morocco": `tagine + mint tea 🫖🍲`,
+    "Ethiopia": `injera + wats 🍲`,
+    "France": `croissant + cheese 🥐🧀`,
+    "United States": `burgers + BBQ 🍔🔥`,
+    "Australia": `flat white + meat pie + “barbie” culture ☕🥧`
+  };
+
+  const FAMOUS_PERSON = {
+    "Australia": "Chris Hemsworth (actor) 🎬",
+    "New Zealand": "Taika Waititi (filmmaker) 🎬",
+    "United States": "Beyoncé (musician) 🎤",
+    "Canada": "Ryan Reynolds (actor) 🎬",
+    "United Kingdom": "David Bowie (musician) 🎸",
+    "France": "Marie Curie (scientist) ⚗️",
+    "Germany": "Albert Einstein (scientist) 🧠",
+    "Japan": "Hayao Miyazaki (filmmaker) 🎬",
+    "India": "Mahatma Gandhi (leader) 🕊️",
+    "Brazil": "Pelé (athlete) ⚽",
+    "Mexico": "Frida Kahlo (artist) 🎨",
+    "Peru": "Mario Vargas Llosa (writer) 📚"
+  };
+
+  const SYMBOLISM_ONE_LINER = {
+    "Peru": "Red honors sacrifice in the independence struggle; white stands for peace/purity.",
+    "Iran": "Green/white/red are tied to growth/peace/courage; emblem/pattern reference Islamic identity.",
+    "Japan": "Red sun disc represents the sun—Japan as the ‘land of the rising sun.’",
+    "France": "Tricolor tied to the Revolution; often read as liberty/equality/fraternity."
+  };
+
+  function rjSlugForCountry(name){
+    const slug = name.toLowerCase()
+      .replace(/’/g,'')
+      .replace(/'/g,'')
+      .replace(/&/g,'and')
+      .replace(/[^a-z0-9 ]/g,'')
+      .trim()
+      .replace(/\s+/g, '-');
+    return `https://www.rjtravelagency.com/flag-of-${slug}/`;
+  }
+
+  function symbolismBlock(c){
+    const name = c.name.common;
+    const one = SYMBOLISM_ONE_LINER[name];
+    const url = rjSlugForCountry(name);
+    return one
+      ? `<b>Flag meaning</b>: ${one}`
+      : `ℹ️ <a href="${url}" target="_blank" rel="noopener">Learn more about this flag</a>`;
+  }
+
+  function hint1Food(c){
+    const name = c.name.common;
+    if (FOOD_HINT[name]) return FOOD_HINT[name];
+
+    const cont = continentLabel(c.region, c.subregion);
+    const fallback = {
+      "Europe": "cheese + bread + something fermented 🧀🥖",
+      "Asia": "noodles/rice + a signature spice combo 🍜🍚",
+      "Africa": "stews + grains + slow-cooked magic 🍲",
+      "North America": "BBQ or tacos… possibly both 🔥🌮",
+      "Central America": "beans + rice + coffee fuel ☕🍛",
+      "Caribbean": "jerk seasoning + tropical fruit 🥭🌶️",
+      "South America": "grilled meats + corn things 🥩🌽",
+      "Oceania": "BBQ + beach picnic energy 🏖️🥩",
+      "Other": "mystery snacks from a parallel universe 🥪🧁"
+    };
+    return fallback[cont] || fallback["Other"];
+  }
+
+  function hintForTry(c, tryUsed){
+    if (tryUsed === 1) {
+      const cont = continentLabel(c.region, c.subregion);
+      return [
+        `· <b>Continent</b>: ${cont} 🌍`,
+        `· <b>Food</b>: ${hint1Food(c)}`
+      ].join('<br/>');
+    }
+    if (tryUsed === 2) {
+      const pop = fmtNumber(Math.round(c.population || 0));
+      const celeb = FAMOUS_PERSON[c.name.common] || `A person too powerful for this hint engine 🕶️`;
+      return [
+        `· <b>Famous Name</b>: ${celeb}`,
+        `· <b>Population</b>: ${pop} 👥`,
+        neighborsList(c)
+      ].join('<br/>');
+    }
+
+    const name = c.name.common;
+    const n = norm(name).replace(/ /g,'');
+    const ends = n.slice(-3);
+    const patterns = [
+      { suffix: 'land', words: ['sand','hand','band','grand'] },
+      { suffix: 'ia', words: ['see-ya','pizzeria','utopia','chia'] },
+      { suffix: 'stan', words: ['plan','fan','can','pan'] },
+      { suffix: 'ana', words: ['banana','cabana','bandana','nirvana'] },
+      { suffix: 'ine', words: ['wine','fine','line','shine'] },
+    ];
+    for (const p of patterns){
+      if (n.endsWith(p.suffix)) return `· <b>Rhymes-ish</b>: ${p.words.join(', ')} 🎶`;
+    }
+    return `· <b>Sound clue</b>: ends like “${ends}”… try yelling “${ends}!” dramatically 🎭`;
+  }
+
+  function renderFlag() {
+    closeSuggest();
+    const c = currentCountry();
+    if (!c) return;
+
+    const url = c.flags?.png || c.flags?.svg || '';
+    flagImg.src = url;
+    flagImg.alt = `Flag of ${c.name?.common || 'Unknown'}`;
+
+    triesLeft = TRIES_PER_FLAG;
+    guessInput.value = '';
+    guessInput.focus();
+    updateHUD();
+
+    renderMsg('go',"LET'S GO!",'', `Type a country name.`);
+  }
+
+  function pointsForTry(tryNumberUsed) {
+    if (tryNumberUsed === 1) return 3;
+    if (tryNumberUsed === 2) return 2;
+    if (tryNumberUsed === 3) return 1;
+    return 0;
+  }
+
+  /* =============================================================================================
+     SECTION 7: CONFETTI + ROUND TRANSITION (unchanged)
+  ============================================================================================= */
+  function confettiBurst(ms=3000){
+    const dpr = window.devicePixelRatio || 1;
+    const w = Math.floor(window.innerWidth * dpr);
+    const h = Math.floor(window.innerHeight * dpr);
+
+    confettiCanvas.width = w;
+    confettiCanvas.height = h;
+
+    const ctx = confettiCanvas.getContext('2d');
+    const pieces = [];
+    const colors = ['#ff6b6b','#ffd93d','#6bcBef','#6bff95','#b36bff','#ff9f43'];
+
+    const count = 520;
+
+    for (let i=0;i<count;i++){
+      pieces.push({
+        x: Math.random()*w,
+        y: -60 - Math.random()*h*0.35,
+        vx: (Math.random()*2-1) * dpr * 0.9,
+        vy: (Math.random()*1+0.9) * dpr * 1.25,
+        r: (Math.random()*4+3) * dpr,
+        rot: Math.random()*Math.PI,
+        vr: (Math.random()*0.14-0.07),
+        c: colors[Math.floor(Math.random()*colors.length)],
+        life: Math.random()*0.65 + 0.35
+      });
+    }
+
+    confettiLayer.style.display = 'block';
+
+    const start = performance.now();
+    function tick(t){
+      const p = Math.min(1, (t-start)/ms);
+      ctx.clearRect(0,0,w,h);
+
+      const fade = Math.max(0, 1 - p);
+
+      for (const s of pieces){
+        s.x += s.vx;
+        s.y += s.vy;
+        s.rot += s.vr;
+
+        s.vy += 0.010 * dpr;
+        s.vx *= 0.996;
+        s.vy *= 0.999;
+
+        const alpha = Math.max(0, fade * s.life);
+
+        ctx.save();
+        ctx.translate(s.x, s.y);
+        ctx.rotate(s.rot);
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = s.c;
+        ctx.fillRect(-s.r, -s.r, s.r*2.2, s.r*1.2);
+        ctx.restore();
+      }
+
+      if (p < 1) requestAnimationFrame(tick);
+      else confettiLayer.style.display = 'none';
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function roundTransition(nextRoundNumber){
+    roundOverlayText.textContent = `ROUND ${nextRoundNumber}`;
+    roundBurst.innerHTML = burstSVG('round', `ROUND ${nextRoundNumber}`);
+    roundBurst.classList.remove('show');
+    void roundBurst.offsetWidth;
+    roundBurst.classList.add('show');
+
+    roundOverlay.style.display = 'grid';
+    confettiBurst(3000);
+
+    setTimeout(() => {
+      roundOverlay.style.display = 'none';
+      renderFlag();
+    }, 1550);
+  }
+
+  function advanceFlag() {
+    flagIdx++;
+    if (flagIdx >= FLAGS_PER_ROUND) {
+      roundIdx++;
+      flagIdx = 0;
+
+      if (roundIdx >= rounds.length) {
+        renderMsg('success','BOOM!',`🏁 Game complete! Final score: <b>${score}</b> 🎉`, `Hit RESTART to play again.`);
+        submitBtn.disabled = true;
+        skipBtn.disabled = true;
+        guessInput.disabled = true;
+        updateHUD();
+        return;
+      }
+
+      updateHUD();
+      roundTransition(roundIdx + 1);
+      return;
+    }
+
+    renderFlag();
+  }
+
+  function consumeTryWithHint() {
+    const c = currentCountry();
+    if (!c) return;
+    if (triesLeft <= 0) return;
+
+    const tryUsed = TRIES_PER_FLAG - triesLeft + 1;
+    const hint = hintForTry(c, tryUsed);
+
+    triesLeft--;
+    updateHUD();
+
+    if (triesLeft <= 0) {
+      renderMsg(
+        'fail',
+        'OH NAWR!',
+        `Out of tries! Answer: <b>${c.name.common}</b>.`,
+        `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+      );
+      setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
+      return;
+    }
+
+    renderMsg(
+      'hint',
+      'PSSST!',
+      `Hint Used (costs a try!)`,
+      `${hint}<br/><br/>You have <b>${triesLeft}</b> tries left.`
+    );
+  }
+
+  function submitGuess() {
+    const c = currentCountry();
+    if (!c) return;
+
+    applySuggestionSelectionToInput();
+
+    const guess = guessInput.value;
+    const guessN = norm(guess);
+    const accepted = currentAcceptedNames(c);
+    const tryUsed = TRIES_PER_FLAG - triesLeft + 1;
+
+    if (guessN && accepted.has(guessN)) {
+      const pts = pointsForTry(tryUsed);
+      score += pts;
+      updateHUD();
+
+      const emoji = pick(["🎉","🥳","✨"]);
+      renderMsg(
+        'success',
+        'BOOM!',
+        `Correct! That was <b>${c.name.common}</b>. ${emoji}`,
+        `You earned <b>${pts}</b> point${pts === 1 ? '' : 's'}.<br/><br/>Next flag in <b>${Math.round(PAUSE_CORRECT_MS/1000)}s</b>…`
+      );
+      setTimeout(() => advanceFlag(), PAUSE_CORRECT_MS);
+      return;
+    }
+
+    triesLeft--;
+    updateHUD();
+
+    if (triesLeft <= 0) {
+      renderMsg(
+        'fail',
+        'OH NAWR!',
+        `Nope. Answer: <b>${c.name.common}</b>.`,
+        `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+      );
+      setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
+      return;
+    }
+
+    renderMsg(
+      'fail',
+      'OH NAWR!',
+      `Not quite.`,
+      `Try again. You have <b>${triesLeft}</b> tries left. (Hit <b>.</b> for a hint — it costs a try.)`
+    );
+
+    guessInput.select();
+    guessInput.focus();
+  }
+
+  function skipFlag() {
+    const c = currentCountry();
+    if (!c) return;
+
+    renderMsg(
+      'default',
+      "LET'S GO!",
+      `Skipped. Answer: <b>${c.name.common}</b>.`,
+      `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+    );
+    setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
+  }
+
+  function restart() {
+    roundIdx = 0;
+    flagIdx = 0;
+    triesLeft = TRIES_PER_FLAG;
+    score = 0;
+    submitBtn.disabled = false;
+    skipBtn.disabled = false;
+    guessInput.disabled = false;
+    renderFlag();
+  }
+
+  /* =============================================================================================
+     SECTION 8: ROUND BUILDING (unchanged)
+  ============================================================================================= */
+  const WELL_KNOWN = new Set([
+    'United States','Canada','Mexico','Brazil','Argentina','Chile','Colombia','Peru',
+    'United Kingdom','Ireland','France','Spain','Portugal','Italy','Germany','Netherlands','Belgium','Switzerland','Austria','Sweden','Norway','Denmark','Finland','Iceland',
+    'Russia','Ukraine','Poland','Czechia','Greece','Turkey',
+    'China','Japan','South Korea','India','Pakistan','Bangladesh','Sri Lanka','Thailand','Vietnam','Indonesia','Philippines','Malaysia','Singapore',
+    'Australia','New Zealand',
+    'Egypt','South Africa','Nigeria','Kenya','Ethiopia','Ghana','Morocco','Tunisia',
+    'Saudi Arabia','United Arab Emirates','Qatar','Iran','Iraq','Israel','Jordan','Lebanon','Syria'
+  ]);
+
+  function familiarityScore(c) {
+    const pop = Math.max(0, c.population || 0);
+    const popScore = Math.log10(pop + 1);
+    const knownBoost = WELL_KNOWN.has(c.name.common) ? 6 : 0;
+    return popScore + knownBoost;
+  }
+
+  function buildRoundsSmart(countries) {
+    const scored = countries.map(c => ({ c, ease: familiarityScore(c) }));
+    scored.sort((a,b) => b.ease - a.ease);
+
+    const totalPossibleRounds = Math.floor(scored.length / FLAGS_PER_ROUND);
+    const roundsCount = Math.max(6, Math.min(12, totalPossibleRounds));
+    const bandSize = Math.floor(scored.length / roundsCount);
+
+    const out = [];
+    for (let r = 0; r < roundsCount; r++) {
+      const start = r * bandSize;
+      const end = (r === roundsCount - 1) ? scored.length : (r + 1) * bandSize;
+      const band = scored.slice(start, end).map(x => x.c);
+      shuffle(band);
+      out.push(band.slice(0, FLAGS_PER_ROUND));
+    }
+    return out;
+  }
+
   /* =============================================================================================
      SECTION 9: HEADER/FOOTER FLAGS (tune grey-outline: 1px light grey, no rectangle border)
      - Colored flags unchanged (perfect).
@@ -149,3 +1392,91 @@
     out += `${mirrorClose}`;
     return out;
   }
+
+  /* =============================================================================================
+     SECTION 10: EVENTS (unchanged)
+  ============================================================================================= */
+  submitBtn.addEventListener('click', submitGuess);
+  skipBtn.addEventListener('click', skipFlag);
+  restartBtnTop.addEventListener('click', () => { restart(); });
+
+  guessInput.addEventListener('input', (e) => renderSuggestions(e.target.value));
+  guessInput.addEventListener('focus', () => { if (guessInput.value) renderSuggestions(guessInput.value); });
+
+  document.addEventListener('mousedown', (e) => {
+    const inWrap = e.target === guessInput || suggestBox.contains(e.target);
+    if (!inWrap) closeSuggest();
+  });
+
+  guessInput.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); moveActive(+1); return; }
+    if (e.key === 'ArrowUp') { e.preventDefault(); moveActive(-1); return; }
+    if (e.key === 'Escape') { closeSuggest(); return; }
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (suggestBox.style.display === 'block' && currentSuggestions.length) {
+        applySuggestionSelectionToInput();
+      }
+      submitGuess();
+      return;
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== '.') return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const t = e.target;
+    const isTextField = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA') && !t.readOnly && !t.disabled;
+    if (isTextField) e.preventDefault();
+    consumeTryWithHint();
+    guessInput.focus();
+  });
+
+  /* =============================================================================================
+     SECTION 11: BOOT
+  ============================================================================================= */
+  async function loadCountries() {
+    const res = await fetch(
+      'https://restcountries.com/v3.1/all?fields=name,flags,altSpellings,population,region,subregion,cca3,borders'
+    );
+    if (!res.ok) throw new Error(`Failed to fetch countries: ${res.status}`);
+
+    const data = await res.json();
+
+    countries = data
+      .filter(c => c?.name?.common && (c?.flags?.png || c?.flags?.svg))
+      .map(c => ({
+        name: c.name,
+        altSpellings: c.altSpellings || [],
+        flags: c.flags,
+        population: c.population || 0,
+        region: c.region || '',
+        subregion: c.subregion || '',
+        cca3: c.cca3 || '',
+        borders: Array.isArray(c.borders) ? c.borders : []
+      }));
+
+    cca3ToCountry = new Map();
+    for (const c of countries) {
+      if (c.cca3) cca3ToCountry.set(c.cca3, c);
+    }
+
+    rounds = buildRoundsSmart(countries);
+
+    buildFlagFields();
+    restart();
+  }
+
+  loadCountries().catch(err => {
+    console.error(err);
+    renderMsg('fail','OH NAWR!',`Couldn’t load country data.`, `${String(err.message || err)}`);
+  });
+
+  window.addEventListener('resize', () => {
+    buildFlagFields();
+  });
+})();
+</script>
+</body>
+</html>
