@@ -1242,14 +1242,10 @@
   }
 
   /* =============================================================================================
-     SECTION 9: HEADER/FOOTER FLAGS (surgical: remove the OUTER perimeter rectangle only)
-     - Colored flags unchanged.
-     - Grey flags: keep the same line-art look, but REMOVE:
-       (a) the light grey “frame” outside the flag perimeter, and
-       (b) the extra grey border-line it introduces.
-     Approach (surgical, minimal):
-       Build the line-art outlines as before (“u”), then explicitly SUBTRACT the outline of the
-       image’s own rectangular SourceAlpha (the perimeter box) before blurring/tinting.
+     SECTION 9: HEADER/FOOTER FLAGS (surgical: rectangle gone, JUST FLAGS)
+     - Colored flags unchanged (still uses flagShadow).
+     - Grey flags: keep line-art exactly as-is, but REMOVE group-level flagShadow
+       because it shadows the rectangular SourceAlpha of the <image>.
   ============================================================================================= */
   let FLAGFIELD_ITEMS = null;
 
@@ -1307,18 +1303,16 @@
     const defs = `
       <defs>
         <!-- Thin "line-art" filter (aim ~1px): binary masks -> outline (dilate - erode)
-             Surgical change: subtract SourceAlpha perimeter outline so no outer rectangle appears. -->
+             Includes perimeter subtraction (as before). -->
         <filter id="lineArt" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
           <feColorMatrix type="saturate" values="0" result="g"/>
 
-          <!-- contrast boost (kept modest to avoid chunky edges) -->
           <feComponentTransfer in="g" result="c">
             <feFuncR type="gamma" amplitude="1.15" exponent="0.60" offset="-0.02"/>
             <feFuncG type="gamma" amplitude="1.15" exponent="0.60" offset="-0.02"/>
             <feFuncB type="gamma" amplitude="1.15" exponent="0.60" offset="-0.02"/>
           </feComponentTransfer>
 
-          <!-- luminance into alpha -->
           <feColorMatrix in="c" type="matrix" result="lumA"
             values="
               0 0 0 0 0
@@ -1326,46 +1320,36 @@
               0 0 0 0 0
               0.333 0.333 0.333 0 0"/>
 
-          <!-- mask for DARK features: alpha = 1 - lum -->
           <feComponentTransfer in="lumA" result="darkA">
             <feFuncA type="table" tableValues="1 0"/>
           </feComponentTransfer>
 
-          <!-- threshold dark mask -->
           <feComponentTransfer in="darkA" result="darkT">
             <feFuncA type="linear" slope="3.0" intercept="-1.20"/>
           </feComponentTransfer>
 
-          <!-- outline dark: *thin* dilate - erode -->
           <feMorphology in="darkT" operator="dilate" radius="0.65" result="darkD"/>
           <feMorphology in="darkT" operator="erode"  radius="0.65" result="darkE"/>
           <feComposite in="darkD" in2="darkE" operator="arithmetic" k1="0" k2="1" k3="-1" k4="0" result="darkO"/>
 
-          <!-- mask for LIGHT features -->
           <feComponentTransfer in="lumA" result="lightT">
             <feFuncA type="linear" slope="3.0" intercept="-1.65"/>
           </feComponentTransfer>
 
-          <!-- outline light: *thin* dilate - erode -->
           <feMorphology in="lightT" operator="dilate" radius="0.65" result="lightD"/>
           <feMorphology in="lightT" operator="erode"  radius="0.65" result="lightE"/>
           <feComposite in="lightD" in2="lightE" operator="arithmetic" k1="0" k2="1" k3="-1" k4="0" result="lightO"/>
 
-          <!-- union outlines -->
           <feComposite in="darkO" in2="lightO" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="u"/>
 
-          <!-- NEW: compute the rectangle-perimeter outline of the image alpha, then subtract it -->
+          <!-- subtract the rectangular perimeter outline -->
           <feMorphology in="SourceAlpha" operator="dilate" radius="0.70" result="aD"/>
           <feMorphology in="SourceAlpha" operator="erode"  radius="0.70" result="aE"/>
           <feComposite in="aD" in2="aE" operator="arithmetic" k1="0" k2="1" k3="-1" k4="0" result="aO"/>
-
-          <!-- subtract perimeter outline from the union outlines -->
           <feComposite in="u" in2="aO" operator="arithmetic" k1="0" k2="1" k3="-1" k4="0" result="uNoFrame"/>
 
-          <!-- soften just a hair so it reads like 1px -->
           <feGaussianBlur in="uNoFrame" stdDeviation="0.18" result="s"/>
 
-          <!-- tint to LIGHT GREY with alpha from s -->
           <feColorMatrix in="s" type="matrix" result="ink"
             values="
               0 0 0 0 0.55
@@ -1396,7 +1380,8 @@
         `;
       } else {
         out += `
-          <g transform="translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) rotate(${it.rot.toFixed(2)})" filter="url(#flagShadow)">
+          <!-- NOTE: NO flagShadow here (it creates the rectangular ghost box) -->
+          <g transform="translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) rotate(${it.rot.toFixed(2)})">
             <image href="${it.url}" width="${fw}" height="${fh}" opacity="0.90" filter="url(#lineArt)" preserveAspectRatio="none"></image>
           </g>
         `;
