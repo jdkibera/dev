@@ -1241,257 +1241,247 @@
     return out;
   }
 
-  /* =============================================================================================
-     SECTION 9: HEADER/FOOTER FLAGS (NEW APPROACH: Canvas edge-stencil outlines)
-     GOAL:
-     - Colored flags: keep working behavior (real flags, 10% colored, 50% wash).
-     - Outline flags: TRUE line-art w/ recognisable detail, transparent background, NO outer rectangle.
-     METHOD:
-     - Build the same random item list as before.
-     - For non-colored flags, generate a tiny 40x25 transparent PNG via canvas Sobel edges.
-     - Cache per-URL so we only generate once.
-  ============================================================================================= */
+/* =============================================================================================
+   SECTION 9: HEADER/FOOTER FLAGS (OUTLINE FLAGS: true detail + NO outer rectangle)
+   - Colored flags: unchanged (opacity wash-out)
+   - Outline flags: generated via canvas “stencil/line” + transparent background
+   - FIX: add a thin INNER border (1px) without reintroducing the outer rectangle artifact.
+   - Footer mirrors header using the SAME item list.
+============================================================================================= */
+let FLAGFIELD_ITEMS = null;
 
-  let FLAGFIELD_ITEMS = null;
+// Fixed per your spec for the flag field layer
+const FLAG_W = 40;
+const FLAG_H = 25;
 
-  // Cache: original flag URL -> outline (data URL PNG, transparent background)
-  const OUTLINE_CACHE = new Map();          // url -> dataUrl
-  const OUTLINE_INFLIGHT = new Map();       // url -> Promise<dataUrl>
+// Outline cache: url -> dataURL (png)
+const OUTLINE_CACHE = new Map();
+// In-flight loads: url -> Promise<dataURL|null>
+const OUTLINE_INFLIGHT = new Map();
 
-  function buildFlagFields() {
-    if (!countries.length) return;
+function buildFlagFields() {
+  if (!countries.length) return;
 
-    const topEl = flagFieldTopSvg;
-    const botEl = flagFieldBottomSvg;
+  const topEl = flagFieldTopSvg;
+  const botEl = flagFieldBottomSvg;
 
-    const w = Math.max(1400, window.innerWidth);
-    const h = Math.max(240, Math.round(document.querySelector('.flagField--top').getBoundingClientRect().height));
+  const w = Math.max(1400, window.innerWidth);
+  const h = Math.max(240, Math.round(document.querySelector('.flagField--top').getBoundingClientRect().height));
 
-    topEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
-    botEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  topEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  botEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
 
-    // Build (or reuse) deterministic-ish placement list
-    if (!FLAGFIELD_ITEMS || FLAGFIELD_ITEMS.w !== w || FLAGFIELD_ITEMS.h !== h) {
-      const count = Math.floor((w * h) / 6800);
-      const items = [];
+  if (!FLAGFIELD_ITEMS || FLAGFIELD_ITEMS.w !== w || FLAGFIELD_ITEMS.h !== h) {
+    const count = Math.floor((w * h) / 6800);
+    const items = [];
 
-      const coloredCount = Math.max(1, Math.floor(count * 0.10));
-      const coloredIdx = new Set();
-      while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(Math.random() * count));
+    const coloredCount = Math.max(1, Math.floor(count * 0.10));
+    const coloredIdx = new Set();
+    while (coloredIdx.size < coloredCount) coloredIdx.add(Math.floor(Math.random() * count));
 
-      for (let i = 0; i < count; i++) {
-        const c = countries[Math.floor(Math.random() * countries.length)];
-        const url = (c.flags && (c.flags.svg || c.flags.png)) || '';
-        if (!url) continue;
+    for (let i = 0; i < count; i++) {
+      const c = countries[Math.floor(Math.random() * countries.length)];
+      const url = (c.flags && (c.flags.svg || c.flags.png)) || '';
+      if (!url) continue;
 
-        const x = Math.random() * (w - 60);
-        const y = Math.random() * (h - 40);
-        const rot = (Math.random() * 10 - 5);
+      const x = Math.random() * (w - (FLAG_W + 6));
+      const y = Math.random() * (h - (FLAG_H + 6));
+      const rot = (Math.random() * 10 - 5);
 
-        items.push({
-          url,
-          x, y,
-          rot,
-          colored: coloredIdx.has(i)
-        });
-      }
-
-      // Sort so later (lower) flags draw on top for sane occlusion
-      items.sort((a, b) => a.y - b.y);
-
-      FLAGFIELD_ITEMS = { w, h, items };
+      items.push({ url, x, y, rot, colored: coloredIdx.has(i) });
     }
 
-    // Render immediately (colored always works; outlines may fill in as cache warms)
-    renderFlagFieldsNow(topEl, botEl, FLAGFIELD_ITEMS.items, FLAGFIELD_ITEMS.w, FLAGFIELD_ITEMS.h);
+    // Ensure “top occludes bottom” by drawing back-to-front in y-order
+    items.sort((a, b) => a.y - b.y);
 
-    // Kick outline generation; when newly generated items finish, re-render once.
-    warmOutlineCacheAndRerender(FLAGFIELD_ITEMS.items, FLAGFIELD_ITEMS.w, FLAGFIELD_ITEMS.h);
+    FLAGFIELD_ITEMS = { w, h, items };
   }
 
-  function renderFlagFieldsNow(topEl, botEl, items, w, h) {
-    topEl.innerHTML = flagFieldSVGMarkup(items, w, h, false);
-    botEl.innerHTML = flagFieldSVGMarkup(items, w, h, true);
-  }
+  // Kick off outline generation (non-blocking). When each finishes, we re-render.
+  primeOutlineCache_(FLAGFIELD_ITEMS.items);
 
-  async function warmOutlineCacheAndRerender(items, w, h) {
-    // Only outlines need warming
-    const needed = items.filter(it => !it.colored).map(it => it.url);
+  topEl.innerHTML = flagFieldSVGMarkup(FLAGFIELD_ITEMS.items, FLAGFIELD_ITEMS.w, FLAGFIELD_ITEMS.h, false);
+  botEl.innerHTML = flagFieldSVGMarkup(FLAGFIELD_ITEMS.items, FLAGFIELD_ITEMS.w, FLAGFIELD_ITEMS.h, true);
+}
 
-    // Generate missing outlines (deduped)
-    const gens = [];
-    for (const url of needed) {
-      if (OUTLINE_CACHE.has(url)) continue;
-      gens.push(getOrCreateOutline(url));
-    }
-    if (!gens.length) return;
+function primeOutlineCache_(items) {
+  for (const it of items) {
+    if (it.colored) continue;
+    const url = it.url;
+    if (!url) continue;
+    if (OUTLINE_CACHE.has(url)) continue;
+    if (OUTLINE_INFLIGHT.has(url)) continue;
 
-    try {
-      await Promise.allSettled(gens);
-    } finally {
-      // Re-render once after generation attempts; uses whatever succeeded.
-      if (FLAGFIELD_ITEMS && FLAGFIELD_ITEMS.w === w && FLAGFIELD_ITEMS.h === h) {
-        renderFlagFieldsNow(flagFieldTopSvg, flagFieldBottomSvg, FLAGFIELD_ITEMS.items, w, h);
-      }
-    }
-  }
-
-  function flagFieldSVGMarkup(items, w, h, mirrorY) {
-    const mirrorOpen = mirrorY ? `<g transform="translate(0 ${h}) scale(1 -1)">` : `<g>`;
-    const mirrorClose = `</g>`;
-
-    // Shadow kept light and identical for both types.
-    const defs = `
-      <defs>
-        <filter id="flagShadow" x="-40%" y="-40%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="1.5" stdDeviation="1.6" flood-color="rgba(0,0,0,0.12)"/>
-        </filter>
-      </defs>
-    `;
-
-    let out = `${defs}${mirrorOpen}`;
-
-    for (const it of items) {
-      const fw = 40;
-      const fh = 25;
-
-      if (it.colored) {
-        // Colored flags: unchanged behavior (real flags, washed 50%).
-        out += `
-          <g transform="translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) rotate(${it.rot.toFixed(2)})" filter="url(#flagShadow)">
-            <image href="${it.url}" width="${fw}" height="${fh}" opacity="0.50" preserveAspectRatio="none"></image>
-          </g>
-        `;
-      } else {
-        // Outline flags: use cached transparent edge-stencil PNG if available;
-        // fallback to nothing until ready (prevents “bad rectangles”).
-        const outlineUrl = OUTLINE_CACHE.get(it.url);
-        if (!outlineUrl) continue;
-
-        out += `
-          <g transform="translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) rotate(${it.rot.toFixed(2)})" filter="url(#flagShadow)">
-            <image href="${outlineUrl}" width="${fw}" height="${fh}" opacity="0.80" preserveAspectRatio="none"></image>
-          </g>
-        `;
-      }
-    }
-
-    out += `${mirrorClose}`;
-    return out;
-  }
-
-  function getOrCreateOutline(url) {
-    if (OUTLINE_CACHE.has(url)) return Promise.resolve(OUTLINE_CACHE.get(url));
-    if (OUTLINE_INFLIGHT.has(url)) return OUTLINE_INFLIGHT.get(url);
-
-    const p = (async () => {
-      const dataUrl = await makeOutlineDataUrl(url);
-      OUTLINE_CACHE.set(url, dataUrl);
-      return dataUrl;
-    })().finally(() => {
-      OUTLINE_INFLIGHT.delete(url);
-    });
+    const p = getOutlineDataUrl_(url)
+      .then((dataUrl) => {
+        if (dataUrl) OUTLINE_CACHE.set(url, dataUrl);
+      })
+      .catch(() => {})
+      .finally(() => {
+        OUTLINE_INFLIGHT.delete(url);
+        // Re-render once we have more outlines ready.
+        // (Safe: only affects section 9 visuals.)
+        if (FLAGFIELD_ITEMS) {
+          flagFieldTopSvg.innerHTML = flagFieldSVGMarkup(FLAGFIELD_ITEMS.items, FLAGFIELD_ITEMS.w, FLAGFIELD_ITEMS.h, false);
+          flagFieldBottomSvg.innerHTML = flagFieldSVGMarkup(FLAGFIELD_ITEMS.items, FLAGFIELD_ITEMS.w, FLAGFIELD_ITEMS.h, true);
+        }
+      });
 
     OUTLINE_INFLIGHT.set(url, p);
-    return p;
+  }
+}
+
+function flagFieldSVGMarkup(items, w, h, mirrorY) {
+  const mirrorOpen = mirrorY ? `<g transform="translate(0 ${h}) scale(1 -1)">` : `<g>`;
+  const mirrorClose = `</g>`;
+
+  const defs = `
+    <defs>
+      <filter id="flagShadow" x="-40%" y="-40%" width="200%" height="200%">
+        <feDropShadow dx="0" dy="1.5" stdDeviation="1.6" flood-color="rgba(0,0,0,0.12)"/>
+      </filter>
+    </defs>
+  `;
+
+  let out = `${defs}${mirrorOpen}`;
+
+  for (const it of items) {
+    const href = it.colored
+      ? it.url
+      : (OUTLINE_CACHE.get(it.url) || it.url); // fallback to real flag while outline loads
+
+    // Colored flags: keep exactly as-is (your “perfect” state)
+    // Outline flags: once cached, href becomes transparent-background line-art PNG
+    const opacity = it.colored ? 0.50 : (OUTLINE_CACHE.has(it.url) ? 0.90 : 0.18);
+
+    out += `
+      <g transform="translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) rotate(${it.rot.toFixed(2)})" filter="url(#flagShadow)">
+        <image href="${href}" width="${FLAG_W}" height="${FLAG_H}" opacity="${opacity}" preserveAspectRatio="none"></image>
+      </g>
+    `;
   }
 
-  async function makeOutlineDataUrl(url) {
-    // Fetch as blob to avoid canvas taint surprises.
-    const res = await fetch(url, { mode: 'cors', cache: 'force-cache' });
-    if (!res.ok) throw new Error(`outline fetch failed: ${res.status}`);
+  out += `${mirrorClose}`;
+  return out;
+}
 
-    const blob = await res.blob();
-    const objUrl = URL.createObjectURL(blob);
+function getOutlineDataUrl_(url) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
 
-    try {
-      const img = await loadImage(objUrl);
-
-      const W = 40, H = 25;
-      const canvas = document.createElement('canvas');
-      canvas.width = W;
-      canvas.height = H;
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-
-      // Draw flag into tiny canvas
-      ctx.clearRect(0, 0, W, H);
-      ctx.drawImage(img, 0, 0, W, H);
-
-      const src = ctx.getImageData(0, 0, W, H);
-      const s = src.data;
-
-      // Luminance buffer
-      const lum = new Float32Array(W * H);
-      for (let i = 0, p = 0; i < s.length; i += 4, p++) {
-        const r = s[i], g = s[i + 1], b = s[i + 2];
-        lum[p] = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    img.onload = () => {
+      try {
+        const dataUrl = makeOutlineDataUrl_(img);
+        resolve(dataUrl);
+      } catch (e) {
+        // Canvas may be tainted if CORS fails; fallback to null
+        resolve(null);
       }
+    };
 
-      // Sobel edge magnitude
-      const out = ctx.createImageData(W, H);
-      const o = out.data;
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
 
-      const t = 34;       // threshold (lower -> more edges)
-      const gain = 5.2;   // edge contrast gain
+/**
+ * Convert a full-color flag image into transparent-background grey line-art,
+ * preserving recognizable internal details, and avoiding the “outer rectangle” artifact.
+ *
+ * Key rules:
+ * 1) Outer-most perimeter pixels are forced fully transparent (kills the rectangle).
+ * 2) A thin INNER border is drawn (x==1 || y==1 || x==W-2 || y==H-2) in light grey.
+ * 3) The rest uses an edge-ish stencil (simple gradient magnitude) -> alpha.
+ */
+function makeOutlineDataUrl_(img) {
+  const canvas = document.createElement('canvas');
+  canvas.width = FLAG_W;
+  canvas.height = FLAG_H;
 
-      function L(x, y) { return lum[y * W + x]; }
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  ctx.clearRect(0, 0, FLAG_W, FLAG_H);
 
-      for (let y = 0; y < H; y++) {
-        for (let x = 0; x < W; x++) {
-          const idx = (y * W + x) * 4;
+  // Draw scaled into our exact 40x25 box
+  ctx.drawImage(img, 0, 0, FLAG_W, FLAG_H);
 
-          // Hard kill perimeter so no outer rectangle ever appears.
-          if (x === 0 || y === 0 || x === W - 1 || y === H - 1) {
-            o[idx] = o[idx + 1] = o[idx + 2] = 0;
-            o[idx + 3] = 0;
-            continue;
-          }
+  const W = FLAG_W, H = FLAG_H;
+  const src = ctx.getImageData(0, 0, W, H);
+  const s = src.data;
 
-          // Sobel (3x3)
-          const gx =
-            (-1 * L(x - 1, y - 1)) + (1 * L(x + 1, y - 1)) +
-            (-2 * L(x - 1, y    )) + (2 * L(x + 1, y    )) +
-            (-1 * L(x - 1, y + 1)) + (1 * L(x + 1, y + 1));
-
-          const gy =
-            (-1 * L(x - 1, y - 1)) + (-2 * L(x, y - 1)) + (-1 * L(x + 1, y - 1)) +
-            ( 1 * L(x - 1, y + 1)) + ( 2 * L(x, y + 1)) + ( 1 * L(x + 1, y + 1));
-
-          const mag = Math.sqrt(gx * gx + gy * gy); // 0..~1020
-
-          // Map magnitude -> alpha (transparent background)
-          const a = Math.max(0, Math.min(1, (mag - t) / (t * gain)));
-
-          if (a <= 0) {
-            o[idx] = o[idx + 1] = o[idx + 2] = 0;
-            o[idx + 3] = 0;
-            continue;
-          }
-
-          // Light grey stroke
-          o[idx]     = 138; // R
-          o[idx + 1] = 146; // G
-          o[idx + 2] = 156; // B
-          o[idx + 3] = Math.round(255 * a);
-        }
-      }
-
-      ctx.putImageData(out, 0, 0);
-      return canvas.toDataURL('image/png');
-    } finally {
-      URL.revokeObjectURL(objUrl);
+  // Luma buffer
+  const lum = new Float32Array(W * H);
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4;
+      const r = s[i], g = s[i + 1], b = s[i + 2];
+      lum[y * W + x] = 0.2126 * r + 0.7152 * g + 0.0722 * b;
     }
   }
 
-  function loadImage(src) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error('image load failed'));
-      img.src = src;
-    });
+  // Output
+  const out = ctx.createImageData(W, H);
+  const o = out.data;
+
+  // Helper: clamp
+  const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const p = y * W + x;
+      const idx = p * 4;
+
+      // 1) HARD KILL PERIMETER: removes the unwanted outer rectangle artifact
+      if (x === 0 || y === 0 || x === W - 1 || y === H - 1) {
+        o[idx] = o[idx + 1] = o[idx + 2] = 0;
+        o[idx + 3] = 0;
+        continue;
+      }
+
+      // 2) INNER BORDER (NEW): adds the thin grey “flag frame” without creating an outer rectangle
+      if (x === 1 || y === 1 || x === W - 2 || y === H - 2) {
+        o[idx]     = 138; // light grey
+        o[idx + 1] = 146;
+        o[idx + 2] = 156;
+        o[idx + 3] = 120; // alpha (90–150 if you want)
+        continue;
+      }
+
+      // 3) Simple edge magnitude using central differences
+      const xm1 = x - 1, xp1 = x + 1;
+      const ym1 = y - 1, yp1 = y + 1;
+
+      const Lx = lum[y * W + xp1] - lum[y * W + xm1];
+      const Ly = lum[yp1 * W + x] - lum[ym1 * W + x];
+
+      // Normalize-ish: empirical scaling for tiny 40x25
+      const mag = Math.sqrt(Lx * Lx + Ly * Ly) / 255;
+
+      // Threshold to keep detail, but avoid “boxy fill”
+      let a = (mag - 0.08) / 0.28; // shift + scale
+      a = clamp01(a);
+
+      // Light fade so it blends into bg a bit
+      const alpha = Math.round(a * 140); // overall line strength
+
+      if (alpha <= 0) {
+        o[idx] = o[idx + 1] = o[idx + 2] = 0;
+        o[idx + 3] = 0;
+      } else {
+        o[idx]     = 138; // light grey ink
+        o[idx + 1] = 146;
+        o[idx + 2] = 156;
+        o[idx + 3] = alpha;
+      }
+    }
   }
+
+  // Write + export
+  ctx.clearRect(0, 0, W, H);
+  ctx.putImageData(out, 0, 0);
+
+  return canvas.toDataURL('image/png');
+}
 
   /* =============================================================================================
      SECTION 10: EVENTS (unchanged)
