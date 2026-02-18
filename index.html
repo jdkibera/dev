@@ -1242,11 +1242,21 @@
   }
 
   /* =============================================================================================
-     SECTION 9: HEADER/FOOTER FLAGS (tune grey-outline: 1px light grey, no rectangle border)
-     - Colored flags unchanged (perfect).
-     - Grey flags: thinner, lighter, and NO surrounding rectangle.
+     SECTION 9: HEADER/FOOTER FLAGS (NEW APPROACH: Canvas edge-stencil outlines)
+     GOAL:
+     - Colored flags: keep working behavior (real flags, 10% colored, 50% wash).
+     - Outline flags: TRUE line-art w/ recognisable detail, transparent background, NO outer rectangle.
+     METHOD:
+     - Build the same random item list as before.
+     - For non-colored flags, generate a tiny 40x25 transparent PNG via canvas Sobel edges.
+     - Cache per-URL so we only generate once.
   ============================================================================================= */
+
   let FLAGFIELD_ITEMS = null;
+
+  // Cache: original flag URL -> outline (data URL PNG, transparent background)
+  const OUTLINE_CACHE = new Map();          // url -> dataUrl
+  const OUTLINE_INFLIGHT = new Map();       // url -> Promise<dataUrl>
 
   function buildFlagFields() {
     if (!countries.length) return;
@@ -1260,6 +1270,7 @@
     topEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
     botEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
 
+    // Build (or reuse) deterministic-ish placement list
     if (!FLAGFIELD_ITEMS || FLAGFIELD_ITEMS.w !== w || FLAGFIELD_ITEMS.h !== h) {
       const count = Math.floor((w * h) / 6800);
       const items = [];
@@ -1275,7 +1286,6 @@
 
         const x = Math.random() * (w - 60);
         const y = Math.random() * (h - 40);
-
         const rot = (Math.random() * 10 - 5);
 
         items.push({
@@ -1286,88 +1296,53 @@
         });
       }
 
-      items.sort((a,b) => a.y - b.y);
+      // Sort so later (lower) flags draw on top for sane occlusion
+      items.sort((a, b) => a.y - b.y);
 
       FLAGFIELD_ITEMS = { w, h, items };
     }
 
-    topEl.innerHTML = flagFieldSVGMarkup(FLAGFIELD_ITEMS.items, FLAGFIELD_ITEMS.w, FLAGFIELD_ITEMS.h, false);
-    botEl.innerHTML = flagFieldSVGMarkup(FLAGFIELD_ITEMS.items, FLAGFIELD_ITEMS.w, FLAGFIELD_ITEMS.h, true);
+    // Render immediately (colored always works; outlines may fill in as cache warms)
+    renderFlagFieldsNow(topEl, botEl, FLAGFIELD_ITEMS.items, FLAGFIELD_ITEMS.w, FLAGFIELD_ITEMS.h);
+
+    // Kick outline generation; when newly generated items finish, re-render once.
+    warmOutlineCacheAndRerender(FLAGFIELD_ITEMS.items, FLAGFIELD_ITEMS.w, FLAGFIELD_ITEMS.h);
+  }
+
+  function renderFlagFieldsNow(topEl, botEl, items, w, h) {
+    topEl.innerHTML = flagFieldSVGMarkup(items, w, h, false);
+    botEl.innerHTML = flagFieldSVGMarkup(items, w, h, true);
+  }
+
+  async function warmOutlineCacheAndRerender(items, w, h) {
+    // Only outlines need warming
+    const needed = items.filter(it => !it.colored).map(it => it.url);
+
+    // Generate missing outlines (deduped)
+    const gens = [];
+    for (const url of needed) {
+      if (OUTLINE_CACHE.has(url)) continue;
+      gens.push(getOrCreateOutline(url));
+    }
+    if (!gens.length) return;
+
+    try {
+      await Promise.allSettled(gens);
+    } finally {
+      // Re-render once after generation attempts; uses whatever succeeded.
+      if (FLAGFIELD_ITEMS && FLAGFIELD_ITEMS.w === w && FLAGFIELD_ITEMS.h === h) {
+        renderFlagFieldsNow(flagFieldTopSvg, flagFieldBottomSvg, FLAGFIELD_ITEMS.items, w, h);
+      }
+    }
   }
 
   function flagFieldSVGMarkup(items, w, h, mirrorY) {
     const mirrorOpen = mirrorY ? `<g transform="translate(0 ${h}) scale(1 -1)">` : `<g>`;
     const mirrorClose = `</g>`;
 
+    // Shadow kept light and identical for both types.
     const defs = `
       <defs>
-        <!-- Thin "line-art" filter (aim ~1px): binary masks -> outline (dilate - erode) -->
-        <filter id="lineArt" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
-
-          <!-- SURGICAL FIX:
-               Inset the source by ~1px so the outer flag perimeter never becomes an edge. -->
-          <feMorphology in="SourceAlpha" operator="erode" radius="1.0" result="insetA"/>
-          <feComposite in="SourceGraphic" in2="insetA" operator="in" result="insetG"/>
-
-          <feColorMatrix in="insetG" type="saturate" values="0" result="g"/>
-
-          <!-- contrast boost (kept modest to avoid chunky edges) -->
-          <feComponentTransfer in="g" result="c">
-            <feFuncR type="gamma" amplitude="1.15" exponent="0.60" offset="-0.02"/>
-            <feFuncG type="gamma" amplitude="1.15" exponent="0.60" offset="-0.02"/>
-            <feFuncB type="gamma" amplitude="1.15" exponent="0.60" offset="-0.02"/>
-          </feComponentTransfer>
-
-          <!-- luminance into alpha -->
-          <feColorMatrix in="c" type="matrix" result="lumA"
-            values="
-              0 0 0 0 0
-              0 0 0 0 0
-              0 0 0 0 0
-              0.333 0.333 0.333 0 0"/>
-
-          <!-- mask for DARK features: alpha = 1 - lum -->
-          <feComponentTransfer in="lumA" result="darkA">
-            <feFuncA type="table" tableValues="1 0"/>
-          </feComponentTransfer>
-
-          <!-- threshold dark mask -->
-          <feComponentTransfer in="darkA" result="darkT">
-            <feFuncA type="linear" slope="3.0" intercept="-1.20"/>
-          </feComponentTransfer>
-
-          <!-- outline dark: *thin* dilate - erode -->
-          <feMorphology in="darkT" operator="dilate" radius="0.65" result="darkD"/>
-          <feMorphology in="darkT" operator="erode"  radius="0.65" result="darkE"/>
-          <feComposite in="darkD" in2="darkE" operator="arithmetic" k1="0" k2="1" k3="-1" k4="0" result="darkO"/>
-
-          <!-- mask for LIGHT features -->
-          <feComponentTransfer in="lumA" result="lightT">
-            <feFuncA type="linear" slope="3.0" intercept="-1.65"/>
-          </feComponentTransfer>
-
-          <!-- outline light: *thin* dilate - erode -->
-          <feMorphology in="lightT" operator="dilate" radius="0.65" result="lightD"/>
-          <feMorphology in="lightT" operator="erode"  radius="0.65" result="lightE"/>
-          <feComposite in="lightD" in2="lightE" operator="arithmetic" k1="0" k2="1" k3="-1" k4="0" result="lightO"/>
-
-          <!-- union outlines -->
-          <feComposite in="darkO" in2="lightO" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="u"/>
-
-          <!-- soften just a hair so it reads like 1px -->
-          <feGaussianBlur in="u" stdDeviation="0.18" result="s"/>
-
-          <!-- tint to LIGHT GREY with alpha from s -->
-          <feColorMatrix in="s" type="matrix" result="ink"
-            values="
-              0 0 0 0 0.55
-              0 0 0 0 0.58
-              0 0 0 0 0.62
-              0 0 0 0.55 0"/>
-
-          <feComposite in="ink" in2="ink" operator="over"/>
-        </filter>
-
         <filter id="flagShadow" x="-40%" y="-40%" width="200%" height="200%">
           <feDropShadow dx="0" dy="1.5" stdDeviation="1.6" flood-color="rgba(0,0,0,0.12)"/>
         </filter>
@@ -1381,15 +1356,21 @@
       const fh = 25;
 
       if (it.colored) {
+        // Colored flags: unchanged behavior (real flags, washed 50%).
         out += `
           <g transform="translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) rotate(${it.rot.toFixed(2)})" filter="url(#flagShadow)">
             <image href="${it.url}" width="${fw}" height="${fh}" opacity="0.50" preserveAspectRatio="none"></image>
           </g>
         `;
       } else {
+        // Outline flags: use cached transparent edge-stencil PNG if available;
+        // fallback to nothing until ready (prevents “bad rectangles”).
+        const outlineUrl = OUTLINE_CACHE.get(it.url);
+        if (!outlineUrl) continue;
+
         out += `
           <g transform="translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) rotate(${it.rot.toFixed(2)})" filter="url(#flagShadow)">
-            <image href="${it.url}" width="${fw}" height="${fh}" opacity="0.90" filter="url(#lineArt)" preserveAspectRatio="none"></image>
+            <image href="${outlineUrl}" width="${fw}" height="${fh}" opacity="0.80" preserveAspectRatio="none"></image>
           </g>
         `;
       }
@@ -1397,6 +1378,119 @@
 
     out += `${mirrorClose}`;
     return out;
+  }
+
+  function getOrCreateOutline(url) {
+    if (OUTLINE_CACHE.has(url)) return Promise.resolve(OUTLINE_CACHE.get(url));
+    if (OUTLINE_INFLIGHT.has(url)) return OUTLINE_INFLIGHT.get(url);
+
+    const p = (async () => {
+      const dataUrl = await makeOutlineDataUrl(url);
+      OUTLINE_CACHE.set(url, dataUrl);
+      return dataUrl;
+    })().finally(() => {
+      OUTLINE_INFLIGHT.delete(url);
+    });
+
+    OUTLINE_INFLIGHT.set(url, p);
+    return p;
+  }
+
+  async function makeOutlineDataUrl(url) {
+    // Fetch as blob to avoid canvas taint surprises.
+    const res = await fetch(url, { mode: 'cors', cache: 'force-cache' });
+    if (!res.ok) throw new Error(`outline fetch failed: ${res.status}`);
+
+    const blob = await res.blob();
+    const objUrl = URL.createObjectURL(blob);
+
+    try {
+      const img = await loadImage(objUrl);
+
+      const W = 40, H = 25;
+      const canvas = document.createElement('canvas');
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+      // Draw flag into tiny canvas
+      ctx.clearRect(0, 0, W, H);
+      ctx.drawImage(img, 0, 0, W, H);
+
+      const src = ctx.getImageData(0, 0, W, H);
+      const s = src.data;
+
+      // Luminance buffer
+      const lum = new Float32Array(W * H);
+      for (let i = 0, p = 0; i < s.length; i += 4, p++) {
+        const r = s[i], g = s[i + 1], b = s[i + 2];
+        lum[p] = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      }
+
+      // Sobel edge magnitude
+      const out = ctx.createImageData(W, H);
+      const o = out.data;
+
+      const t = 34;       // threshold (lower -> more edges)
+      const gain = 5.2;   // edge contrast gain
+
+      function L(x, y) { return lum[y * W + x]; }
+
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          const idx = (y * W + x) * 4;
+
+          // Hard kill perimeter so no outer rectangle ever appears.
+          if (x === 0 || y === 0 || x === W - 1 || y === H - 1) {
+            o[idx] = o[idx + 1] = o[idx + 2] = 0;
+            o[idx + 3] = 0;
+            continue;
+          }
+
+          // Sobel (3x3)
+          const gx =
+            (-1 * L(x - 1, y - 1)) + (1 * L(x + 1, y - 1)) +
+            (-2 * L(x - 1, y    )) + (2 * L(x + 1, y    )) +
+            (-1 * L(x - 1, y + 1)) + (1 * L(x + 1, y + 1));
+
+          const gy =
+            (-1 * L(x - 1, y - 1)) + (-2 * L(x, y - 1)) + (-1 * L(x + 1, y - 1)) +
+            ( 1 * L(x - 1, y + 1)) + ( 2 * L(x, y + 1)) + ( 1 * L(x + 1, y + 1));
+
+          const mag = Math.sqrt(gx * gx + gy * gy); // 0..~1020
+
+          // Map magnitude -> alpha (transparent background)
+          const a = Math.max(0, Math.min(1, (mag - t) / (t * gain)));
+
+          if (a <= 0) {
+            o[idx] = o[idx + 1] = o[idx + 2] = 0;
+            o[idx + 3] = 0;
+            continue;
+          }
+
+          // Light grey stroke
+          o[idx]     = 138; // R
+          o[idx + 1] = 146; // G
+          o[idx + 2] = 156; // B
+          o[idx + 3] = Math.round(255 * a);
+        }
+      }
+
+      ctx.putImageData(out, 0, 0);
+      return canvas.toDataURL('image/png');
+    } finally {
+      URL.revokeObjectURL(objUrl);
+    }
+  }
+
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('image load failed'));
+      img.src = src;
+    });
   }
 
   /* =============================================================================================
