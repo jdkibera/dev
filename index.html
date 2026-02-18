@@ -363,6 +363,9 @@
     /* =============================================================================================
        SECTION D: HEADER + FOOTER FLAG FIELDS
     ============================================================================================= */
+
+    .flagField--bottom{ display:none; }
+    
     .flagField{
       position: fixed;
       left: 0;
@@ -1242,11 +1245,11 @@
   }
 
 /* =============================================================================================
-   SECTION 9: HEADER/FOOTER FLAGS (OUTLINE FLAGS: true detail + NO outer rectangle)
-   - Colored flags: unchanged (opacity wash-out)
-   - Outline flags: generated via canvas “stencil/line” + transparent background
-   - FIX: add a thin INNER border (1px) without reintroducing the outer rectangle artifact.
-   - Footer mirrors header using the SAME item list.
+   SECTION 9: HEADER FLAGS (LOCKED WINNER) + TWEAKS ONLY
+   LOCKED: Outline flags approach that produced the winning result (DO NOT TOUCH).
+   Tweaks:
+   - ~3x more flags (still 10% colored)
+   - Remove footer flags (top only)
 ============================================================================================= */
 let FLAGFIELD_ITEMS = null;
 
@@ -1263,16 +1266,17 @@ function buildFlagFields() {
   if (!countries.length) return;
 
   const topEl = flagFieldTopSvg;
-  const botEl = flagFieldBottomSvg;
 
   const w = Math.max(1400, window.innerWidth);
   const h = Math.max(240, Math.round(document.querySelector('.flagField--top').getBoundingClientRect().height));
 
   topEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
-  botEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
 
   if (!FLAGFIELD_ITEMS || FLAGFIELD_ITEMS.w !== w || FLAGFIELD_ITEMS.h !== h) {
-    const count = Math.floor((w * h) / 6800);
+    // TWEAK ONLY: ~3x more flags
+    const baseCount = Math.floor((w * h) / 6800);
+    const count = Math.max(1, baseCount * 3);
+
     const items = [];
 
     const coloredCount = Math.max(1, Math.floor(count * 0.10));
@@ -1300,8 +1304,8 @@ function buildFlagFields() {
   // Kick off outline generation (non-blocking). When each finishes, we re-render.
   primeOutlineCache_(FLAGFIELD_ITEMS.items);
 
+  // Top only (footer removed)
   topEl.innerHTML = flagFieldSVGMarkup(FLAGFIELD_ITEMS.items, FLAGFIELD_ITEMS.w, FLAGFIELD_ITEMS.h, false);
-  botEl.innerHTML = flagFieldSVGMarkup(FLAGFIELD_ITEMS.items, FLAGFIELD_ITEMS.w, FLAGFIELD_ITEMS.h, true);
 }
 
 function primeOutlineCache_(items) {
@@ -1323,7 +1327,6 @@ function primeOutlineCache_(items) {
         // (Safe: only affects section 9 visuals.)
         if (FLAGFIELD_ITEMS) {
           flagFieldTopSvg.innerHTML = flagFieldSVGMarkup(FLAGFIELD_ITEMS.items, FLAGFIELD_ITEMS.w, FLAGFIELD_ITEMS.h, false);
-          flagFieldBottomSvg.innerHTML = flagFieldSVGMarkup(FLAGFIELD_ITEMS.items, FLAGFIELD_ITEMS.w, FLAGFIELD_ITEMS.h, true);
         }
       });
 
@@ -1438,12 +1441,12 @@ function makeOutlineDataUrl_(img) {
         continue;
       }
 
-      // 2) INNER BORDER (NEW): adds the thin grey “flag frame” without creating an outer rectangle
+      // 2) INNER BORDER: thin grey “flag frame” without creating an outer rectangle
       if (x === 1 || y === 1 || x === W - 2 || y === H - 2) {
         o[idx]     = 138; // light grey
         o[idx + 1] = 146;
         o[idx + 2] = 156;
-        o[idx + 3] = 120; // alpha (90–150 if you want)
+        o[idx + 3] = 120; // alpha
         continue;
       }
 
@@ -1461,7 +1464,6 @@ function makeOutlineDataUrl_(img) {
       let a = (mag - 0.08) / 0.28; // shift + scale
       a = clamp01(a);
 
-      // Light fade so it blends into bg a bit
       const alpha = Math.round(a * 140); // overall line strength
 
       if (alpha <= 0) {
