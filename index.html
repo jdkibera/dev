@@ -827,12 +827,12 @@
   /* =============================================================================================
      SECTION 6: ANSWER MATCHING / HINTS (UPDATED)
      - One hint only (advanced hint = previous "hint 2")
-     - First "." shows hint (costs a try)
-     - Second "." immediately reveals answer + link + waits PAUSE_WRONG_MS then advances
+     - 1st "." shows hint (costs a try)
+     - 2nd "." immediately reveals answer + link + waits PAUSE_WRONG_MS then advances
   ============================================================================================= */
 
-  // One-hint mode state (resets each new flag)
-  let hintUsedThisFlag = false;
+  // Per-flag dot press counter (resets each new flag)
+  let dotPressesThisFlag = 0;
 
   function currentAcceptedNames(c) {
     const accepted = new Set();
@@ -944,7 +944,7 @@
     return fallback[cont] || fallback["Other"];
   }
 
-  // ONE hint only: use the advanced block (previously tryUsed === 2)
+  // ONE hint only: advanced hint (previously tryUsed === 2)
   function hintForTry(c){
     const pop = fmtNumber(Math.round(c.population || 0));
     const celeb = FAMOUS_PERSON[c.name.common] || `A person too powerful for this hint engine 🕶️`;
@@ -965,7 +965,7 @@
     flagImg.alt = `Flag of ${c.name?.common || 'Unknown'}`;
 
     triesLeft = TRIES_PER_FLAG;
-    hintUsedThisFlag = false; // reset per-flag
+    dotPressesThisFlag = 0; // reset per-flag
 
     guessInput.value = '';
     guessInput.focus();
@@ -982,7 +982,7 @@
   }
 
   function revealAnswerAndAdvance_(c) {
-    // Force HUD to show no tries left when we reveal via "."
+    // Force HUD to show 0 tries on reveal
     triesLeft = 0;
     updateHUD();
 
@@ -999,23 +999,16 @@
     const c = currentCountry();
     if (!c) return;
 
-    // If hint already used, second "." immediately reveals the answer (and advances)
-    if (hintUsedThisFlag) {
+    dotPressesThisFlag++;
+
+    // 2nd press (or more) ALWAYS reveals immediately
+    if (dotPressesThisFlag >= 2) {
       revealAnswerAndAdvance_(c);
       return;
     }
 
-    // First "." = show the one hint (costs a try)
-    if (triesLeft <= 0) {
-      // If they're already out of tries, just reveal
-      revealAnswerAndAdvance_(c);
-      return;
-    }
-
-    hintUsedThisFlag = true;
-
-    // Costs a try
-    triesLeft--;
+    // 1st press: show the single hint, costs ONE try
+    if (triesLeft > 0) triesLeft--;
     updateHUD();
 
     // If that consumed the last try, reveal immediately
