@@ -659,6 +659,7 @@
      SECTION 4: COMIC BURST ICON (minor tweaks only)
      - Remove grey dots around burst
      - Center text on the diagonal (rotate around center)
+     - IMPORTANT: keep renderMsg() (this is why messaging disappeared)
   ============================================================================================= */
   function burstSVG(kind, text){
     const styles = {
@@ -727,6 +728,22 @@
               letter-spacing="1.2">${String(text || '').toUpperCase()}</text>
       </g>
     </svg>`;
+  }
+
+  function renderMsg(kind, iconText, headline, sub){
+    belowMsg.innerHTML = `
+      <div class="msgGrid">
+        <div class="iconCol">
+          <div class="iconSq" aria-hidden="true">
+            ${burstSVG(kind, iconText || "LET'S GO!")}
+          </div>
+        </div>
+        <div class="msgText">
+          <div class="headline">${headline || ""}</div>
+          <div class="sub">${sub || ""}</div>
+        </div>
+      </div>
+    `;
   }
 
   /* =============================================================================================
