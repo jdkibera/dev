@@ -825,10 +825,10 @@
   }
 
   /* =============================================================================================
-     SECTION 6: ANSWER MATCHING / HINTS (UPDATED)
-     - One hint only (advanced hint = previous "hint 2")
-     - 1st "." shows hint (costs a try)
-     - 2nd "." immediately reveals answer + link + waits PAUSE_WRONG_MS then advances
+     SECTION 6: ANSWER MATCHING / HINTS (UPDATED — GUARANTEED 2 DOT PRESSES)
+     Behavior:
+     - 1st "." => show ONE advanced hint (previously "hint 2"), costs 1 try
+     - 2nd "." => immediately reveal answer + link + waits PAUSE_WRONG_MS then advances
   ============================================================================================= */
 
   // Per-flag dot press counter (resets each new flag)
@@ -925,27 +925,8 @@
       : `ℹ️ <a href="${url}" target="_blank" rel="noopener">Learn more about this flag</a>`;
   }
 
-  function hint1Food(c){
-    const name = c.name.common;
-    if (FOOD_HINT[name]) return FOOD_HINT[name];
-
-    const cont = continentLabel(c.region, c.subregion);
-    const fallback = {
-      "Europe": "cheese + bread + something fermented 🧀🥖",
-      "Asia": "noodles/rice + a signature spice combo 🍜🍚",
-      "Africa": "stews + grains + slow-cooked magic 🍲",
-      "North America": "BBQ or tacos… possibly both 🔥🌮",
-      "Central America": "beans + rice + coffee fuel ☕🍛",
-      "Caribbean": "jerk seasoning + tropical fruit 🥭🌶️",
-      "South America": "grilled meats + corn things 🥩🌽",
-      "Oceania": "BBQ + beach picnic energy 🏖️🥩",
-      "Other": "mystery snacks from a parallel universe 🥪🧁"
-    };
-    return fallback[cont] || fallback["Other"];
-  }
-
   // ONE hint only: advanced hint (previously tryUsed === 2)
-  function hintForTry(c){
+  function oneHintAdvanced_(c){
     const pop = fmtNumber(Math.round(c.population || 0));
     const celeb = FAMOUS_PERSON[c.name.common] || `A person too powerful for this hint engine 🕶️`;
     return [
@@ -982,7 +963,6 @@
   }
 
   function revealAnswerAndAdvance_(c) {
-    // Force HUD to show 0 tries on reveal
     triesLeft = 0;
     updateHUD();
 
@@ -995,29 +975,30 @@
     setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
   }
 
-  function consumeTryWithHint() {
+  // NEW UNIQUE NAME: prevents any duplicate old consumeTryWithHint() from overriding this behavior
+  function consumeTryWithHint_ONEHINT() {
     const c = currentCountry();
     if (!c) return;
 
     dotPressesThisFlag++;
 
-    // 2nd press (or more) ALWAYS reveals immediately
+    // 2nd press: always reveal immediately (no “dead” intermediate press)
     if (dotPressesThisFlag >= 2) {
       revealAnswerAndAdvance_(c);
       return;
     }
 
-    // 1st press: show the single hint, costs ONE try
+    // 1st press: show the one hint, costs 1 try
     if (triesLeft > 0) triesLeft--;
     updateHUD();
 
-    // If that consumed the last try, reveal immediately
+    // If hint cost drops you to 0 tries, reveal immediately
     if (triesLeft <= 0) {
       revealAnswerAndAdvance_(c);
       return;
     }
 
-    const hint = hintForTry(c);
+    const hint = oneHintAdvanced_(c);
 
     renderMsg(
       'hint',
@@ -1554,7 +1535,7 @@ function makeOutlineDataUrl_(img) {
     const t = e.target;
     const isTextField = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA') && !t.readOnly && !t.disabled;
     if (isTextField) e.preventDefault();
-    consumeTryWithHint();
+    consumeTryWithHint_ONEHINT();
     guessInput.focus();
   });
 
