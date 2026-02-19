@@ -1103,33 +1103,24 @@
   function consumeTryWithHint() {
     const c = currentCountry();
     if (!c) return;
-  
-    // One-hint mode:
-    // allow hint only when you're at full tries (i.e., before any guesses/hints)
-    // This also makes repeated '.' presses a no-op.
-    if (triesLeft !== TRIES_PER_FLAG) return;
-  
-    const hint = hintForTry(c, 1);
-  
-    // Show hint first (so the user sees it), then immediately "reveal answer" mode.
-    renderMsg(
-      'hint',
-      'PSSST!',
-      `Hint (only one!)`,
-      `${hint}<br/><br/>Revealing answer in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
-    );
-  
-    // Reveal answer + schedule next flag
-    setTimeout(() => {
+    if (triesLeft <= 0) return;
+
+    const tryUsed = TRIES_PER_FLAG - triesLeft + 1;
+    const hint = hintForTry(c, tryUsed);
+
+    triesLeft--;
+    updateHUD();
+
+    if (triesLeft <= 0) {
       renderMsg(
         'fail',
         'OH NAWR!',
-        `Answer: <b>${c.name.common}</b>.`,
+        `Out of tries! Answer: <b>${c.name.common}</b>.`,
         `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
       );
       setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
-    }, 250);
-  }
+      return;
+    }
 
     renderMsg(
       'hint',
