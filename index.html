@@ -825,7 +825,7 @@
   }
 
   /* =============================================================================================
-     SECTION 6: ANSWER MATCHING / HINTS (unchanged)
+     SECTION 6: ANSWER MATCHING / HINTS (UPDATED: one-hint mode)
   ============================================================================================= */
   function currentAcceptedNames(c) {
     const accepted = new Set();
@@ -938,37 +938,12 @@
   }
 
   function hintForTry(c, tryUsed){
-    if (tryUsed === 1) {
-      const cont = continentLabel(c.region, c.subregion);
-      return [
-        `· <b>Continent</b>: ${cont} 🌍`,
-        `· <b>Food</b>: ${hint1Food(c)}`
-      ].join('<br/>');
-    }
-    if (tryUsed === 2) {
-      const pop = fmtNumber(Math.round(c.population || 0));
-      const celeb = FAMOUS_PERSON[c.name.common] || `A person too powerful for this hint engine 🕶️`;
-      return [
-        `· <b>Famous Name</b>: ${celeb}`,
-        `· <b>Population</b>: ${pop} 👥`,
-        neighborsList(c)
-      ].join('<br/>');
-    }
-
-    const name = c.name.common;
-    const n = norm(name).replace(/ /g,'');
-    const ends = n.slice(-3);
-    const patterns = [
-      { suffix: 'land', words: ['sand','hand','band','grand'] },
-      { suffix: 'ia', words: ['see-ya','pizzeria','utopia','chia'] },
-      { suffix: 'stan', words: ['plan','fan','can','pan'] },
-      { suffix: 'ana', words: ['banana','cabana','bandana','nirvana'] },
-      { suffix: 'ine', words: ['wine','fine','line','shine'] },
-    ];
-    for (const p of patterns){
-      if (n.endsWith(p.suffix)) return `· <b>Rhymes-ish</b>: ${p.words.join(', ')} 🎶`;
-    }
-    return `· <b>Sound clue</b>: ends like “${ends}”… try yelling “${ends}!” dramatically 🎭`;
+    // One-hint mode: only use the "tryUsed === 1" hint content.
+    const cont = continentLabel(c.region, c.subregion);
+    return [
+      `· <b>Continent</b>: ${cont} 🌍`,
+      `· <b>Food</b>: ${hint1Food(c)}`
+    ].join('<br/>');
   }
 
   function renderFlag() {
@@ -993,6 +968,35 @@
     if (tryNumberUsed === 2) return 2;
     if (tryNumberUsed === 3) return 1;
     return 0;
+  }
+
+  // UPDATED: Press '.' once to show exactly one hint, then reveal the answer and advance.
+  function consumeTryWithHint() {
+    const c = currentCountry();
+    if (!c) return;
+
+    // Allow hint only at the very start of a flag (prevents multiple hints / spam)
+    if (triesLeft !== TRIES_PER_FLAG) return;
+
+    const hint = hintForTry(c, 1);
+
+    renderMsg(
+      'hint',
+      'PSSST!',
+      `Hint (only one!)`,
+      `${hint}<br/><br/>Revealing answer in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+    );
+
+    // Small beat so the hint is seen, then show the answer + schedule next flag
+    setTimeout(() => {
+      renderMsg(
+        'fail',
+        'OH NAWR!',
+        `Answer: <b>${c.name.common}</b>.`,
+        `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+      );
+      setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
+    }, 250);
   }
 
   /* =============================================================================================
