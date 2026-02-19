@@ -827,12 +827,22 @@
   /* =============================================================================================
      SECTION 6: ANSWER MATCHING / HINTS (UPDATED — GUARANTEED 2 DOT PRESSES)
      Behavior:
-     - 1st "." => show ONE advanced hint (previously "hint 2"), costs 1 try
+     - 1st "." => show ONE advanced hint (costs 1 try)
      - 2nd "." => immediately reveal answer + link + waits PAUSE_WRONG_MS then advances
+
+     Enhancement:
+     - ONE key “famous fact” for every country (dynamic via Wikidata w/ caching + safe fallbacks)
   ============================================================================================= */
 
   // Per-flag dot press counter (resets each new flag)
   let dotPressesThisFlag = 0;
+
+  // Cache: cca3 -> fact string
+  const FAMOUS_FACT_CACHE = new Map();
+  // Cache: cca3 -> in-flight Promise<string>
+  const FAMOUS_FACT_INFLIGHT = new Map();
+  // Cache: cca3 -> Wikidata QID (country item)
+  const COUNTRY_QID_CACHE = new Map();
 
   function currentAcceptedNames(c) {
     const accepted = new Set();
@@ -883,6 +893,7 @@
     "Australia": `flat white + meat pie + “barbie” culture ☕🥧`
   };
 
+  // Keep as fallback-only (safe offline)
   const FAMOUS_PERSON = {
     "Australia": "Chris Hemsworth (actor) 🎬",
     "New Zealand": "Taika Waititi (filmmaker) 🎬",
@@ -925,12 +936,236 @@
       : `ℹ️ <a href="${url}" target="_blank" rel="noopener">Learn more about this flag</a>`;
   }
 
-  // ONE hint only: advanced hint (previously tryUsed === 2)
-  function oneHintAdvanced_(c){
+  function hint1Food(c){
+    const name = c.name.common;
+    if (FOOD_HINT[name]) return FOOD_HINT[name];
+
+    const cont = continentLabel(c.region, c.subregion);
+    const fallback = {
+      "Europe": "cheese + bread + something fermented 🧀🥖",
+      "Asia": "noodles/rice + a signature spice combo 🍜🍚",
+      "Africa": "stews + grains + slow-cooked magic 🍲",
+      "North America": "BBQ or tacos… possibly both 🔥🌮",
+      "Central America": "beans + rice + coffee fuel ☕🍛",
+      "Caribbean": "jerk seasoning + tropical fruit 🥭🌶️",
+      "South America": "grilled meats + corn things 🥩🌽",
+      "Oceania": "BBQ + beach picnic energy 🏖️🥩",
+      "Other": "mystery snacks from a parallel universe 🥪🧁"
+    };
+    return fallback[cont] || fallback["Other"];
+  }
+
+  // ----------------------------
+  // Dynamic “famous fact” engine
+  // ----------------------------
+  async function sparql_(query) {
+    const url = 'https://query.wikidata.org/sparql?format=json&query=' + encodeURIComponent(query);
+    const res = await fetch(url, {
+      headers: {
+        // Friendly UA helps Wikidata; keep simple
+        'Accept': 'application/sparql-results+json'
+      }
+    });
+    if (!res.ok) throw new Error(`Wikidata SPARQL failed: ${res.status}`);
+    return res.json();
+  }
+
+  async function getCountryQidForCCA3_(cca3) {
+    const code = String(cca3 || '').trim().toUpperCase();
+    if (!code) return null;
+    if (COUNTRY_QID_CACHE.has(code)) return COUNTRY_QID_CACHE.get(code);
+
+    // wdt:P298 = ISO 3166-1 alpha-3
+    const q = `
+      SELECT ?country WHERE {
+        ?country wdt:P298 "${code}" .
+      } LIMIT 1
+    `;
+    try {
+      const data = await sparql_(q);
+      const b = data?.results?.bindings?.[0];
+      const uri = b?.country?.value || '';
+      const qid = uri.split('/').pop() || null;
+      COUNTRY_QID_CACHE.set(code, qid);
+      return qid;
+    } catch (e) {
+      COUNTRY_QID_CACHE.set(code, null);
+      return null;
+    }
+  }
+
+  function safeTrim_(s){ return String(s || '').trim(); }
+
+  async function famousPersonFact_(countryQid) {
+    if (!countryQid) return null;
+
+    // Find a notable person with citizenship = country, order by sitelinks (proxy for fame)
+    // P27: country of citizenship
+    // schema:about + sitelinks gives us a numeric we can sort by
+    const q = `
+      SELECT ?personLabel ?occLabel ?sitelinks WHERE {
+        ?person wdt:P27 wd:${countryQid} .
+        OPTIONAL { ?person wdt:P106 ?occ . }
+        OPTIONAL { ?article schema:about ?person .
+                   schema:isPartOf <https://en.wikipedia.org/> . }
+        BIND(COALESCE(xsd:integer(?sitelinks), 0) AS ?sitelinks)
+        SERVICE wikibase:sitelinks { ?person wikibase:sitelinks ?sitelinks . }
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+        OPTIONAL { ?occ rdfs:label ?occLabel FILTER(LANG(?occLabel)="en") }
+      }
+      ORDER BY DESC(?sitelinks)
+      LIMIT 1
+    `;
+
+    try {
+      const data = await sparql_(q);
+      const row = data?.results?.bindings?.[0];
+      const name = safeTrim_(row?.personLabel?.value);
+      if (!name) return null;
+
+      const occ = safeTrim_(row?.occLabel?.value);
+      const occClean = occ ? ` (${occ.toLowerCase()})` : '';
+      return `· <b>Famous fact</b>: ${name}${occClean} 🌟`;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function geographyFact_(countryQid) {
+    if (!countryQid) return null;
+
+    // Try to find a notable geographic feature located in the country.
+    // P17: country
+    // P31: instance of
+    // We include common “wow” types: mountain, volcano, river, lake, desert, waterfall, canyon, island, peninsula, forest, glacier.
+    const q = `
+      SELECT ?placeLabel ?typeLabel ?sitelinks WHERE {
+        ?place wdt:P17 wd:${countryQid} .
+        ?place wdt:P31 ?type .
+        FILTER(?type IN (
+          wd:Q8502,      # mountain
+          wd:Q8072,      # volcano
+          wd:Q4022,      # river
+          wd:Q23397,     # lake
+          wd:Q46831,     # desert
+          wd:Q34038,     # waterfall
+          wd:Q1092563,   # canyon
+          wd:Q23442,     # island
+          wd:Q34763,     # peninsula
+          wd:Q4421,      # forest
+          wd:Q35666      # glacier
+        )) .
+        SERVICE wikibase:sitelinks { ?place wikibase:sitelinks ?sitelinks . }
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+        OPTIONAL { ?type rdfs:label ?typeLabel FILTER(LANG(?typeLabel)="en") }
+      }
+      ORDER BY DESC(?sitelinks)
+      LIMIT 1
+    `;
+
+    try {
+      const data = await sparql_(q);
+      const row = data?.results?.bindings?.[0];
+      const place = safeTrim_(row?.placeLabel?.value);
+      if (!place) return null;
+
+      const type = safeTrim_(row?.typeLabel?.value);
+      const typeNice = type ? type.toLowerCase() : 'place';
+      return `· <b>Famous fact</b>: ${place} (${typeNice}) 🗺️`;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function historicalFact_(countryQid) {
+    if (!countryQid) return null;
+
+    // Try "also known as" / former name-ish: official name (P1448) or short name (P1813)
+    // Keep it very conservative: if we find an alt name that differs from the English label, use it.
+    const q = `
+      SELECT ?altName WHERE {
+        wd:${countryQid} (wdt:P1813|wdt:P1448) ?altName .
+        FILTER(LANG(?altName) = "en") .
+      } LIMIT 6
+    `;
+
+    try {
+      const data = await sparql_(q);
+      const rows = data?.results?.bindings || [];
+      const alts = rows.map(r => safeTrim_(r?.altName?.value)).filter(Boolean);
+
+      if (!alts.length) return null;
+
+      // Pick first that looks different and not overly long
+      const pickAlt = alts.find(a => a.length >= 3 && a.length <= 48) || null;
+      if (!pickAlt) return null;
+
+      return `· <b>Famous fact</b>: Also known as “${pickAlt}” 📜`;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function getFamousFactForCountry_(c) {
+    const cca3 = String(c?.cca3 || '').trim().toUpperCase();
+    if (!cca3) {
+      const fallbackName = c?.name?.common || '';
+      const fb = FAMOUS_PERSON[fallbackName];
+      return fb ? `· <b>Famous fact</b>: ${fb}` : `· <b>Famous fact</b>: Big vibes. No fact found. 🕶️`;
+    }
+
+    if (FAMOUS_FACT_CACHE.has(cca3)) return FAMOUS_FACT_CACHE.get(cca3);
+    if (FAMOUS_FACT_INFLIGHT.has(cca3)) return FAMOUS_FACT_INFLIGHT.get(cca3);
+
+    const p = (async () => {
+      // Safe fallback always available
+      const fallbackName = c?.name?.common || '';
+      const fallback = FAMOUS_PERSON[fallbackName]
+        ? `· <b>Famous fact</b>: ${FAMOUS_PERSON[fallbackName]}`
+        : null;
+
+      try {
+        const qid = await getCountryQidForCCA3_(cca3);
+
+        // Try person -> geography -> historical -> fallback -> generic
+        const a = await famousPersonFact_(qid);
+        if (a) return a;
+
+        const b = await geographyFact_(qid);
+        if (b) return b;
+
+        const h = await historicalFact_(qid);
+        if (h && fallbackName && norm(h).indexOf(norm(fallbackName)) === -1) return h;
+
+        if (fallback) return fallback;
+
+        // Last resort: continent + food (still “one fact”)
+        const cont = continentLabel(c.region, c.subregion);
+        return `· <b>Famous fact</b>: ${cont} 🌍 — food vibe: ${hint1Food(c)}`;
+      } catch (e) {
+        // Network/blocked: fallback
+        if (fallback) return fallback;
+
+        const cont = continentLabel(c.region, c.subregion);
+        return `· <b>Famous fact</b>: ${cont} 🌍 — food vibe: ${hint1Food(c)}`;
+      }
+    })();
+
+    FAMOUS_FACT_INFLIGHT.set(cca3, p);
+
+    const fact = await p;
+    FAMOUS_FACT_INFLIGHT.delete(cca3);
+    FAMOUS_FACT_CACHE.set(cca3, fact);
+    return fact;
+  }
+
+  // ONE hint only: advanced hint (dynamic famous fact + pop + neighbors)
+  async function oneHintAdvanced_(c){
     const pop = fmtNumber(Math.round(c.population || 0));
-    const celeb = FAMOUS_PERSON[c.name.common] || `A person too powerful for this hint engine 🕶️`;
+    const factLine = await getFamousFactForCountry_(c);
+
     return [
-      `· <b>Famous Name</b>: ${celeb}`,
+      factLine,
       `· <b>Population</b>: ${pop} 👥`,
       neighborsList(c)
     ].join('<br/>');
@@ -998,14 +1233,46 @@
       return;
     }
 
-    const hint = oneHintAdvanced_(c);
-
+    // Show a quick placeholder immediately, then swap in the dynamic hint
     renderMsg(
       'hint',
       'PSSST!',
       `Hint (one-time only!)`,
-      `${hint}<br/><br/>Press <b>.</b> again to reveal the answer.`
+      `Loading your clue…<br/><br/>Press <b>.</b> again to reveal the answer.`
     );
+
+    // Async hint build
+    oneHintAdvanced_(c).then((hintHtml) => {
+      // Only update if we're still on the same flag and still on first hint press
+      if (currentCountry() !== c) return;
+      if (dotPressesThisFlag !== 1) return;
+
+      renderMsg(
+        'hint',
+        'PSSST!',
+        `Hint (one-time only!)`,
+        `${hintHtml}<br/><br/>Press <b>.</b> again to reveal the answer.`
+      );
+    }).catch(() => {
+      // Fallback if anything goes wrong
+      const pop = fmtNumber(Math.round(c.population || 0));
+      const celeb = FAMOUS_PERSON[c.name.common] || `A person too powerful for this hint engine 🕶️`;
+      const fallbackHint = [
+        `· <b>Famous fact</b>: ${celeb}`,
+        `· <b>Population</b>: ${pop} 👥`,
+        neighborsList(c)
+      ].join('<br/>');
+
+      if (currentCountry() !== c) return;
+      if (dotPressesThisFlag !== 1) return;
+
+      renderMsg(
+        'hint',
+        'PSSST!',
+        `Hint (one-time only!)`,
+        `${fallbackHint}<br/><br/>Press <b>.</b> again to reveal the answer.`
+      );
+    });
   }
 
   /* =============================================================================================
