@@ -825,8 +825,15 @@
   }
 
   /* =============================================================================================
-     SECTION 6: ANSWER MATCHING / HINTS (UPDATED: one-hint mode)
+     SECTION 6: ANSWER MATCHING / HINTS (UPDATED)
+     - One hint only (advanced hint = previous "hint 2")
+     - First "." shows hint (costs a try)
+     - Second "." immediately reveals answer + link + waits PAUSE_WRONG_MS then advances
   ============================================================================================= */
+
+  // One-hint mode state (resets each new flag)
+  let hintUsedThisFlag = false;
+
   function currentAcceptedNames(c) {
     const accepted = new Set();
     accepted.add(norm(c.name?.common));
@@ -937,12 +944,14 @@
     return fallback[cont] || fallback["Other"];
   }
 
-  function hintForTry(c, tryUsed){
-    // One-hint mode: only use the "tryUsed === 1" hint content.
-    const cont = continentLabel(c.region, c.subregion);
+  // ONE hint only: use the advanced block (previously tryUsed === 2)
+  function hintForTry(c){
+    const pop = fmtNumber(Math.round(c.population || 0));
+    const celeb = FAMOUS_PERSON[c.name.common] || `A person too powerful for this hint engine 🕶️`;
     return [
-      `· <b>Continent</b>: ${cont} 🌍`,
-      `· <b>Food</b>: ${hint1Food(c)}`
+      `· <b>Famous Name</b>: ${celeb}`,
+      `· <b>Population</b>: ${pop} 👥`,
+      neighborsList(c)
     ].join('<br/>');
   }
 
@@ -956,6 +965,8 @@
     flagImg.alt = `Flag of ${c.name?.common || 'Unknown'}`;
 
     triesLeft = TRIES_PER_FLAG;
+    hintUsedThisFlag = false; // reset per-flag
+
     guessInput.value = '';
     guessInput.focus();
     updateHUD();
@@ -970,33 +981,57 @@
     return 0;
   }
 
-  // UPDATED: Press '.' once to show exactly one hint, then reveal the answer and advance.
+  function revealAnswerAndAdvance_(c) {
+    // Force HUD to show no tries left when we reveal via "."
+    triesLeft = 0;
+    updateHUD();
+
+    renderMsg(
+      'fail',
+      'OH NAWR!',
+      `Answer: <b>${c.name.common}</b>.`,
+      `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+    );
+    setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
+  }
+
   function consumeTryWithHint() {
     const c = currentCountry();
     if (!c) return;
 
-    // Allow hint only at the very start of a flag (prevents multiple hints / spam)
-    if (triesLeft !== TRIES_PER_FLAG) return;
+    // If hint already used, second "." immediately reveals the answer (and advances)
+    if (hintUsedThisFlag) {
+      revealAnswerAndAdvance_(c);
+      return;
+    }
 
-    const hint = hintForTry(c, 1);
+    // First "." = show the one hint (costs a try)
+    if (triesLeft <= 0) {
+      // If they're already out of tries, just reveal
+      revealAnswerAndAdvance_(c);
+      return;
+    }
+
+    hintUsedThisFlag = true;
+
+    // Costs a try
+    triesLeft--;
+    updateHUD();
+
+    // If that consumed the last try, reveal immediately
+    if (triesLeft <= 0) {
+      revealAnswerAndAdvance_(c);
+      return;
+    }
+
+    const hint = hintForTry(c);
 
     renderMsg(
       'hint',
       'PSSST!',
-      `Hint (only one!)`,
-      `${hint}<br/><br/>Revealing answer in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
+      `Hint (one-time only!)`,
+      `${hint}<br/><br/>You have <b>${triesLeft}</b> tries left. Press <b>.</b> again to reveal the answer.`
     );
-
-    // Small beat so the hint is seen, then show the answer + schedule next flag
-    setTimeout(() => {
-      renderMsg(
-        'fail',
-        'OH NAWR!',
-        `Answer: <b>${c.name.common}</b>.`,
-        `${symbolismBlock(c)}<br/><br/>Next flag in <b>${Math.round(PAUSE_WRONG_MS/1000)}s</b>…`
-      );
-      setTimeout(() => advanceFlag(), PAUSE_WRONG_MS);
-    }, 250);
   }
 
   /* =============================================================================================
